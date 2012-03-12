@@ -19,14 +19,14 @@ namespace DataServiceProvider
     /// <summary>
     /// base vistor class for walking an expression tree bottom up.
     /// </summary>
-    internal abstract class ExpressionVisitor
+    public abstract class ExpressionVisitor
     {
         /// <summary>
         /// Main visit method for ExpressionVisitor
         /// </summary>
         /// <param name="exp">The expression to visit</param>
         /// <returns>The visited expression </returns>
-        internal virtual Expression Visit(Expression exp)
+        public virtual Expression Visit(Expression exp)
         {
             if (exp == null)
             {
@@ -107,7 +107,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="binding">The MemberBinding expression to visit</param>
         /// <returns>The visited MemberBinding expression </returns>
-        internal virtual MemberBinding VisitBinding(MemberBinding binding)
+        public virtual MemberBinding VisitBinding(MemberBinding binding)
         {
             switch (binding.BindingType)
             {
@@ -127,7 +127,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="initializer">The ElementInit expression to visit</param>
         /// <returns>The visited ElementInit expression </returns>
-        internal virtual ElementInit VisitElementInitializer(ElementInit initializer)
+        public virtual ElementInit VisitElementInitializer(ElementInit initializer)
         {
             ReadOnlyCollection<Expression> arguments = this.VisitExpressionList(initializer.Arguments);
             if (arguments != initializer.Arguments)
@@ -143,7 +143,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="u">The UnaryExpression expression to visit</param>
         /// <returns>The visited UnaryExpression expression </returns>
-        internal virtual Expression VisitUnary(UnaryExpression u)
+        public virtual Expression VisitUnary(UnaryExpression u)
         {
             Expression operand = this.Visit(u.Operand);
             if (operand != u.Operand)
@@ -159,7 +159,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="b">The BinaryExpression expression to visit</param>
         /// <returns>The visited BinaryExpression expression </returns>
-        internal virtual Expression VisitBinary(BinaryExpression b)
+        public virtual Expression VisitBinary(BinaryExpression b)
         {
             Expression left = this.Visit(b.Left);
             Expression right = this.Visit(b.Right);
@@ -184,7 +184,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="b">The TypeBinaryExpression expression to visit</param>
         /// <returns>The visited TypeBinaryExpression expression </returns>
-        internal virtual Expression VisitTypeIs(TypeBinaryExpression b)
+        public virtual Expression VisitTypeIs(TypeBinaryExpression b)
         {
             Expression expr = this.Visit(b.Expression);
             if (expr != b.Expression)
@@ -200,7 +200,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="c">The ConstantExpression expression to visit</param>
         /// <returns>The visited ConstantExpression expression </returns>
-        internal virtual Expression VisitConstant(ConstantExpression c)
+        public virtual Expression VisitConstant(ConstantExpression c)
         {
             return c;
         }
@@ -210,7 +210,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="c">The ConditionalExpression expression to visit</param>
         /// <returns>The visited ConditionalExpression expression </returns>
-        internal virtual Expression VisitConditional(ConditionalExpression c)
+        public virtual Expression VisitConditional(ConditionalExpression c)
         {
             Expression test = this.Visit(c.Test);
             Expression iftrue = this.Visit(c.IfTrue);
@@ -228,7 +228,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="p">The ParameterExpression expression to visit</param>
         /// <returns>The visited ParameterExpression expression </returns>
-        internal virtual Expression VisitParameter(ParameterExpression p)
+        public virtual Expression VisitParameter(ParameterExpression p)
         {
             return p;
         }
@@ -238,7 +238,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="m">The MemberExpression expression to visit</param>
         /// <returns>The visited MemberExpression expression </returns>
-        internal virtual Expression VisitMemberAccess(MemberExpression m)
+        public virtual Expression VisitMemberAccess(MemberExpression m)
         {
             Expression exp = this.Visit(m.Expression);
             if (exp != m.Expression)
@@ -254,7 +254,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="m">The MethodCallExpression expression to visit</param>
         /// <returns>The visited MethodCallExpression expression </returns>
-        internal virtual Expression VisitMethodCall(MethodCallExpression m)
+        public virtual Expression VisitMethodCall(MethodCallExpression m)
         {
             Expression obj = this.Visit(m.Object);
             IEnumerable<Expression> args = this.VisitExpressionList(m.Arguments);
@@ -271,7 +271,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="original">The expression list to visit</param>
         /// <returns>The visited expression list</returns>
-        internal virtual ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
+        public virtual ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
         {
             List<Expression> list = null;
             for (int i = 0, n = original.Count; i < n; i++)
@@ -306,7 +306,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="assignment">The MemberAssignment to visit</param>
         /// <returns>The visited MemberAssignmentt</returns>
-        internal virtual MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
+        public virtual MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
         {
             Expression e = this.Visit(assignment.Expression);
             if (e != assignment.Expression)
@@ -322,7 +322,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="binding">The MemberMemberBinding to visit</param>
         /// <returns>The visited MemberMemberBinding</returns>
-        internal virtual MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding binding)
+        public virtual MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding binding)
         {
             IEnumerable<MemberBinding> bindings = this.VisitBindingList(binding.Bindings);
             if (bindings != binding.Bindings)
@@ -338,7 +338,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="binding">The MemberListBinding to visit</param>
         /// <returns>The visited MemberListBinding</returns>
-        internal virtual MemberListBinding VisitMemberListBinding(MemberListBinding binding)
+        public virtual MemberListBinding VisitMemberListBinding(MemberListBinding binding)
         {
             IEnumerable<ElementInit> initializers = this.VisitElementInitializerList(binding.Initializers);
             if (initializers != binding.Initializers)
@@ -354,7 +354,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="original">The Binding list to visit</param>
         /// <returns>The visited Binding list</returns>
-        internal virtual IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+        public virtual IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
         {
             List<MemberBinding> list = null;
             for (int i = 0, n = original.Count; i < n; i++)
@@ -389,7 +389,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="original">The ElementInit expression list  to visit</param>
         /// <returns>The visited ElementInit expression list </returns>
-        internal virtual IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
+        public virtual IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
         {
             List<ElementInit> list = null;
             for (int i = 0, n = original.Count; i < n; i++)
@@ -424,7 +424,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="lambda">The LambdaExpression to visit</param>
         /// <returns>The visited LambdaExpression</returns>
-        internal virtual Expression VisitLambda(LambdaExpression lambda)
+        public virtual Expression VisitLambda(LambdaExpression lambda)
         {
             Expression body = this.Visit(lambda.Body);
             if (body != lambda.Body)
@@ -440,7 +440,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="nex">The NewExpression to visit</param>
         /// <returns>The visited NewExpression</returns>
-        internal virtual NewExpression VisitNew(NewExpression nex)
+        public virtual NewExpression VisitNew(NewExpression nex)
         {
             IEnumerable<Expression> args = this.VisitExpressionList(nex.Arguments);
             if (args != nex.Arguments)
@@ -463,7 +463,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="init">The MemberInitExpression to visit</param>
         /// <returns>The visited MemberInitExpression</returns>
-        internal virtual Expression VisitMemberInit(MemberInitExpression init)
+        public virtual Expression VisitMemberInit(MemberInitExpression init)
         {
             NewExpression n = this.VisitNew(init.NewExpression);
             IEnumerable<MemberBinding> bindings = this.VisitBindingList(init.Bindings);
@@ -480,7 +480,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="init">The ListInitExpression to visit</param>
         /// <returns>The visited ListInitExpression</returns>
-        internal virtual Expression VisitListInit(ListInitExpression init)
+        public virtual Expression VisitListInit(ListInitExpression init)
         {
             NewExpression n = this.VisitNew(init.NewExpression);
             IEnumerable<ElementInit> initializers = this.VisitElementInitializerList(init.Initializers);
@@ -497,7 +497,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="na">The NewArrayExpression to visit</param>
         /// <returns>The visited NewArrayExpression</returns>
-        internal virtual Expression VisitNewArray(NewArrayExpression na)
+        public virtual Expression VisitNewArray(NewArrayExpression na)
         {
             IEnumerable<Expression> exprs = this.VisitExpressionList(na.Expressions);
             if (exprs != na.Expressions)
@@ -520,7 +520,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="iv">The InvocationExpression to visit</param>
         /// <returns>The visited InvocationExpression</returns>
-        internal virtual Expression VisitInvocation(InvocationExpression iv)
+        public virtual Expression VisitInvocation(InvocationExpression iv)
         {
             IEnumerable<Expression> args = this.VisitExpressionList(iv.Arguments);
             Expression expr = this.Visit(iv.Expression);

@@ -20,10 +20,10 @@ namespace DataServiceProvider
 
     /// <summary>Expression visitor which translates calls to methods on the <see cref="DataServiceProviderMethods"/> class
     /// into expressions which can be evaluated by LINQ to Objects.</summary>
-    internal class DSPMethodTranslatingVisitor : ExpressionVisitor
+    public class DSPMethodTranslatingVisitor : ExpressionVisitor
     {
         /// <summary>MethodInfo for object DataServiceProviderMethods.GetValue(this object value, ResourceProperty property).</summary>
-        internal static readonly MethodInfo GetValueMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
+        internal protected static readonly MethodInfo GetValueMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
             "GetValue",
             BindingFlags.Static | BindingFlags.Public,
             null,
@@ -31,7 +31,7 @@ namespace DataServiceProvider
             null);
 
         /// <summary>MethodInfo for IEnumerable&lt;T&gt; DataServiceProviderMethods.GetSequenceValue(this object value, ResourceProperty property).</summary>
-        internal static readonly MethodInfo GetSequenceValueMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
+        internal protected static readonly MethodInfo GetSequenceValueMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
             "GetSequenceValue",
             BindingFlags.Static | BindingFlags.Public,
             null,
@@ -39,31 +39,21 @@ namespace DataServiceProvider
             null);
 
         /// <summary>MethodInfo for Convert.</summary>
-        internal static readonly MethodInfo ConvertMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
+        internal protected static readonly MethodInfo ConvertMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
             "Convert",
             BindingFlags.Static | BindingFlags.Public);
 
         /// <summary>MethodInfo for TypeIs.</summary>
-        internal static readonly MethodInfo TypeIsMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
+        internal protected static readonly MethodInfo TypeIsMethodInfo = typeof(DataServiceProviderMethods).GetMethod(
             "TypeIs",
             BindingFlags.Static | BindingFlags.Public);
-
-        /// <summary>Method which translates an expression using the <see cref="DataServiceProviderMethods"/> methods
-        /// into a new expression which can be evaluated by LINQ to Objects.</summary>
-        /// <param name="expression">The expression to translate.</param>
-        /// <returns>The translated expression.</returns>
-        public static Expression TranslateExpression(Expression expression)
-        {
-            DSPMethodTranslatingVisitor visitor = new DSPMethodTranslatingVisitor();
-            return visitor.Visit(expression);
-        }
 
         /// <summary>
         /// MethodCallExpression visit method
         /// </summary>
         /// <param name="m">The MethodCallExpression expression to visit</param>
         /// <returns>The visited MethodCallExpression expression </returns>
-        internal override Expression VisitMethodCall(MethodCallExpression m)
+        public override Expression VisitMethodCall(MethodCallExpression m)
         {
             if (m.Method == GetValueMethodInfo)
             {

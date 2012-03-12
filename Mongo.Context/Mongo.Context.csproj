@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FluentMongo">
+      <HintPath>..\packages\FluentMongo.1.3.1.1\lib\FluentMongo.dll</HintPath>
+    </Reference>
     <Reference Include="MongoDB.Bson, Version=1.3.1.4349, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\mongocsharpdriver.1.3.1\lib\net35\MongoDB.Bson.dll</HintPath>
@@ -50,16 +53,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IMongoDSPContext.cs" />
-    <Compile Include="IMongoDSPMetadata.cs" />
+    <Compile Include="Queryable\ExpressionUtils.cs" />
     <Compile Include="MongoContext.cs" />
-    <Compile Include="MongoKeyValueContext.cs" />
-    <Compile Include="MongoStrongTypeContext.cs" />
-    <Compile Include="MongoKeyValueMetadata.cs" />
-    <Compile Include="MongoDataService.cs" />
-    <Compile Include="MongoMetadataBase.cs" />
+    <Compile Include="MongoDSPConverter.cs" />
+    <Compile Include="Queryable\MongoDSPResourceQueryProvider.cs" />
+    <Compile Include="Queryable\ResultExpressionVisitor.cs" />
+    <Compile Include="Queryable\MongoQueryableContext.cs" />
+    <Compile Include="Queryable\MongoQueryableDataService.cs" />
+    <Compile Include="Queryable\MongoQueryableResource.cs" />
+    <Compile Include="Queryable\MongoQueryProvider.cs" />
+    <Compile Include="InMemory\MongoInMemoryContext.cs" />
+    <Compile Include="InMemory\MongoInMemoryDataService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MongoStrongTypeMetadata.cs" />
+    <Compile Include="MongoMetadata.cs" />
+    <Compile Include="Queryable\QueryExpressionVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataServiceProvider\DataServiceProvider.csproj">
@@ -70,6 +77,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

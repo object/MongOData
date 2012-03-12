@@ -15,7 +15,7 @@ namespace DataServiceProvider
     using System.Collections.Generic;
 
     /// <summary>Helper methods for working with types and reflection.</summary>
-    internal static class TypeSystem
+    public static class TypeSystem
     {
         /// <summary>
         /// Gets the elementtype for enumerable

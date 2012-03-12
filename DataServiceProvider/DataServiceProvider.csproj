@@ -60,16 +60,22 @@
   <ItemGroup>
     <Compile Include="DSPContext.cs" />
     <Compile Include="DSPDataService.cs" />
+    <Compile Include="DSPInMemoryContext.cs" />
     <Compile Include="DSPLinqQuery.cs" />
     <Compile Include="DSPLinqQueryProvider.cs" />
     <Compile Include="DSPMetadata.cs" />
     <Compile Include="DSPMethodTranslatingVisitor.cs" />
+    <Compile Include="DSPQueryableContext.cs" />
     <Compile Include="DSPResource.cs" />
     <Compile Include="DSPResourceQueryProvider.cs" />
+    <Compile Include="DSPUpdateProvider.cs" />
     <Compile Include="ExpressionVisitor.cs" />
+    <Compile Include="InterceptedQuery.cs" />
+    <Compile Include="InterceptingProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourcePropertyAnnotation.cs" />
     <Compile Include="ResourceTypeAnnotation.cs" />
+    <Compile Include="TypeHelper.cs" />
     <Compile Include="TypeSystem.cs" />
   </ItemGroup>
   <ItemGroup>

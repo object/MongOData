@@ -22,21 +22,23 @@ namespace DataServiceProvider
     {
         /// <summary>The underlying query provider (the LINQ to Objects provider) determined from the source query.</summary>
         private IQueryProvider underlyingQueryProvider;
+        private ExpressionVisitor expressionVisitor;
 
         /// <summary>Private constructor.</summary>
         /// <param name="underlyingQueryProvider">The underlying provider to run the translated query on.</param>
-        private DSPLinqQueryProvider(IQueryProvider underlyingQueryProvider)
+        private DSPLinqQueryProvider(IQueryProvider underlyingQueryProvider, ExpressionVisitor expressionVisitor)
         {
             this.underlyingQueryProvider = underlyingQueryProvider;
+            this.expressionVisitor = expressionVisitor;
         }
 
         /// <summary>Wraps a query in a new query which will translate the DSP query into a LINQ to Objects runnable query
         /// and run it on the provided <paramref name="underlyingQuery"/>.</summary>
         /// <param name="underlyingQuery">The underlying (LINQ to Objects) query to wrap.</param>
         /// <returns>A new query which can handle the DSP expressions and run them on top of the <pararef name="underlyingQuery"/>.</returns>
-        public static IQueryable CreateQuery(IQueryable underlyingQuery)
+        public static IQueryable CreateQuery(IQueryable underlyingQuery, ExpressionVisitor expressionVisitor)
         {
-            DSPLinqQueryProvider provider = new DSPLinqQueryProvider(underlyingQuery.Provider);
+            DSPLinqQueryProvider provider = new DSPLinqQueryProvider(underlyingQuery.Provider, expressionVisitor);
             return provider.CreateQuery(underlyingQuery.Expression);
         }
 
@@ -105,7 +107,7 @@ namespace DataServiceProvider
         /// <returns>A new expression which is the result of the conversion.</returns>
         private Expression ProcessExpression(Expression expression)
         {
-            return DSPMethodTranslatingVisitor.TranslateExpression(expression);
+            return expressionVisitor.Visit(expression);
         }
     }
 }

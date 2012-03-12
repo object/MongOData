@@ -17,15 +17,25 @@ namespace DataServiceProvider
     using System.Linq;
 
     /// <summary>Implementation of the <see cref="IDataServiceQueryProvider"/>.</summary>
-    internal class DSPResourceQueryProvider : IDataServiceQueryProvider
+    public class DSPResourceQueryProvider : IDataServiceQueryProvider
     {
         /// <summary>The "context" which is the data source.</summary>
         private DSPContext dataSource;
+        private ExpressionVisitor expressionVisitor;
 
         /// <summary>Constructor.</summary>
         public DSPResourceQueryProvider()
+            : this (new DSPMethodTranslatingVisitor())
         {
         }
+
+        /// <summary>Constructor.</summary>
+        public DSPResourceQueryProvider(ExpressionVisitor expressionVisitor)
+        {
+            this.expressionVisitor = expressionVisitor;
+        }
+
+        public DSPMetadata Metadata { get; set; }
 
         #region IDataServiceQueryProvider Members
 
@@ -74,7 +84,7 @@ namespace DataServiceProvider
         /// <param name="resourceProperty">The name of the property to get.</param>
         /// <returns>The value of the property.</returns>
         /// <remarks>The returned value's type should match the type declared in the resource's resource type.</remarks>
-        public object GetPropertyValue(object target, ResourceProperty resourceProperty)
+        public virtual object GetPropertyValue(object target, ResourceProperty resourceProperty)
         {
             DSPResource entity = target as DSPResource;
             if (entity != null)
@@ -94,14 +104,14 @@ namespace DataServiceProvider
         /// to return an <see cref="IQueryable"/> which can handle such queries. If the resource set is not recognized by the provider it should return null.</remarks>
         public System.Linq.IQueryable GetQueryRootForResourceSet(ResourceSet resourceSet)
         {
-            return DSPLinqQueryProvider.CreateQuery(this.dataSource.GetResourceSetEntities(resourceSet.Name).AsQueryable());
+            return DSPLinqQueryProvider.CreateQuery(this.dataSource.GetQueryable(resourceSet.Name), this.expressionVisitor);
         }
 
         /// <summary>Returns a resource type for the specified resource.</summary>
         /// <param name="target">The target resource for which to determine its type.</param>
         /// <returns>The <see cref="ResourceType"/> of the specified resource.</returns>
         /// <remarks>The method should throw if the resource is not recognized. If it returns null the data service will throw instead.</remarks>
-        public ResourceType GetResourceType(object target)
+        public virtual ResourceType GetResourceType(object target)
         {
             DSPResource entity = target as DSPResource;
             if (entity != null)

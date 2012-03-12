@@ -10,26 +10,21 @@ using DataServiceProvider;
 using MongoDB.Bson;
 using Mongo.Context;
 
-namespace Mongo.Context
+namespace Mongo.Context.InMemory
 {
-    public abstract class MongoDataService<TDSPContext, TDSPMetadata> : DSPDataService<DSPContext>
-        where TDSPContext : IMongoDSPContext, new()
-        where TDSPMetadata : IMongoDSPMetadata, new()
+    public abstract class MongoInMemoryDataService : DSPDataService<DSPInMemoryContext, DSPResourceQueryProvider>
     {
-        private string connectionString;
-        private static DSPContext context;
-        private static DSPMetadata metadata;
+        protected string connectionString;
+        protected static Action<string> ResetDataContext;
+        private static DSPInMemoryContext context;
 
         /// <summary>Constructor</summary>
-        public MongoDataService(string connectionString)
+        public MongoInMemoryDataService(string connectionString)
         {
             this.connectionString = connectionString;
-            context = CreateDataContext(connectionString);
-        }
 
-        public static void ResetDataContext(string connectionString)
-        {
-            context = CreateDataContext(connectionString);
+            ResetDataContext = x => MongoInMemoryDataService.context = new MongoInMemoryContext().CreateContext(base.Metadata, x);
+            ResetDataContext(connectionString);
         }
 
         public static IDisposable RestoreDataContext(string connectionString)
@@ -52,20 +47,21 @@ namespace Mongo.Context
             }
         }
 
-        protected override DSPContext CreateDataSource()
+        protected override DSPInMemoryContext CreateDataSource()
         {
             return context;
         }
 
         protected override DSPMetadata CreateDSPMetadata()
         {
+            lock(this)
+            {
+                if (this.metadata == null)
+                {
+                    this.metadata = new MongoMetadata().CreateMetadata(this.connectionString);
+                }
+            }
             return metadata;
-        }
-
-        internal static DSPContext CreateDataContext(string connectionString)
-        {
-            metadata = new TDSPMetadata().CreateMetadata(connectionString);
-            return new TDSPContext().CreateContext(metadata, connectionString);
         }
     }
 }

@@ -4,10 +4,11 @@ using System.Configuration;
 using System.Data.Services;
 using System.Data.Services.Common;
 using Mongo.Context;
+using Mongo.Context.Queryable;
 
 namespace Mongo.DataService
 {
-    public class MongOData : MongoDataService<MongoStrongTypeContext, MongoStrongTypeMetadata>
+    public class MongOData : MongoQueryableDataService
     {
         public MongOData()
             : base(ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString)

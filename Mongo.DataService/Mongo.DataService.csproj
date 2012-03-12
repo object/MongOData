@@ -58,7 +58,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="MongODataKV.svc" />
     <Content Include="MongOData.svc" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -69,9 +68,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MongODataKV.svc.cs">
-      <DependentUpon>MongODataKV.svc</DependentUpon>
-    </Compile>
     <Compile Include="MongOData.svc.cs">
       <DependentUpon>MongOData.svc</DependentUpon>
     </Compile>

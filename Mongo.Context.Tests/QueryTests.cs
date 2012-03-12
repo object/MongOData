@@ -71,6 +71,13 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void AllEntitiesCountVerifyResult()
+        {
+            var q = ctx.Products.All().Count();
+            Assert.AreEqual(3, q, "The count is not correctly computed.");
+        }
+
+        [Test]
         public void AllEntitiesVerifyID()
         {
             var q = ctx.Products.All().ToList();
@@ -127,6 +134,12 @@ namespace Mongo.Context.Tests
         public void FilterNameLength()
         {
             Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.Name.Length() == 4).Count());
+        }
+
+        [Test]
+        public void FilterNameContains()
+        {
+            Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.Name.Contains("i") == true).Count());
         }
 
         [Test]

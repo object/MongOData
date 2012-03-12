@@ -95,7 +95,7 @@ namespace Mongo.Context.Queryable
                 && (c.Test is BinaryExpression) && (c.Test as BinaryExpression).Method.Name == "op_Equality"
                 && (c.Test as BinaryExpression).Right is ConstantExpression && ((c.Test as BinaryExpression).Right as ConstantExpression).Value == null)
             {
-                return c.IfFalse;
+                return Visit(c.IfFalse);
             }
             else
             {
@@ -115,7 +115,7 @@ namespace Mongo.Context.Queryable
             }
             else
             {
-                return expression as Expression;
+                return expression;
             }
         }
 

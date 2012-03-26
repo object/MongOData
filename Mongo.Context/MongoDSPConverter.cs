@@ -10,6 +10,8 @@ namespace Mongo.Context
 {
     internal static class MongoDSPConverter
     {
+        private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         public static DSPResource CreateDSPResource(BsonDocument document, DSPMetadata metadata, string namespaceName, string collectionName)
         {
             ResourceType resourceType;
@@ -41,13 +43,34 @@ namespace Mongo.Context
                     //    //}
                     //}
                 }
-                else if (element.Value.RawValue != null)
-                {
-                    resource.SetValue(element.Name, element.Value.RawValue);
-                }
                 else
                 {
-                    resource.SetValue(element.Name, null);
+                    object value = null;
+                    if (element.Value.RawValue != null)
+                    {
+                        switch (element.Value.BsonType)
+                        {
+                            case BsonType.DateTime:
+                                value = UnixEpoch + TimeSpan.FromMilliseconds(element.Value.AsBsonDateTime.MillisecondsSinceEpoch);
+                                break;
+                            default:
+                                value = element.Value.RawValue;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (element.Value.BsonType)
+                        {
+                            case BsonType.Binary:
+                                value = element.Value.AsBsonBinaryData.Bytes;
+                                break;
+                            default:
+                                value = element.Value.RawValue;
+                                break;
+                        }
+                    }
+                    resource.SetValue(element.Name, value);
                 }
             }
             return resource;

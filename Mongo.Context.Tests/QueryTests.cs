@@ -92,6 +92,13 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void AllEntitiesVerifyReleaseDate()
+        {
+            var q = ctx.Products.All().ToList();
+            Assert.AreEqual(new DateTime(1992, 1, 1), q[0].ReleaseDate, "The ReleaseDate is not correctly filled.");
+        }
+
+        [Test]
         public void AllEntitiesOrderby()
         {
             var q = ctx.Products.All().OrderBy(ctx.Products.Name).ToList();
@@ -152,6 +159,29 @@ namespace Mongo.Context.Tests
         public void FilterGreaterIDAndNameLength()
         {
             Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.ID > 0 && ctx.Products.Name.Length() == 4).Count());
+        }
+
+        [Test]
+        public void VerifyClrTypes()
+        {
+            var clr = ctx.ClrTypes.All().First();
+            Assert.AreEqual(new[] { (byte)1 }, clr.BinaryValue, "The BinaryValue is not correctly filled.");
+            Assert.AreEqual(true, clr.BoolValue, "The BoolValue is not correctly filled.");
+            Assert.AreEqual(new DateTime(2012, 1, 1), clr.DateTimeValue, "The DateTimeValue is not correctly filled.");
+            Assert.AreEqual("01:02:03", clr.TimeSpanValue, "The TimeSpan is not correctly filled.");
+            Assert.AreEqual(Guid.Empty, clr.GuidValue, "The GuidValue is not correctly filled.");
+            Assert.AreEqual(1, clr.ByteValue, "The ByteValue is not correctly filled.");
+            Assert.AreEqual(2, clr.SByteValue, "The SByteValue is not correctly filled.");
+            Assert.AreEqual(3, clr.Int16Value, "The Int16Value is not correctly filled.");
+            Assert.AreEqual(4, clr.UInt16Value, "The UInt16Value is not correctly filled.");
+            Assert.AreEqual(5, clr.Int32Value, "The Int32Value is not correctly filled.");
+            Assert.AreEqual(6, clr.UInt32Value, "The UInt32Value is not correctly filled.");
+            Assert.AreEqual(7, clr.Int64Value, "The Int64Value is not correctly filled.");
+            Assert.AreEqual(8, clr.UInt64Value, "The UInt64Value is not correctly filled.");
+            Assert.AreEqual(9, clr.SingleValue, "The SingleValue is not correctly filled.");
+            Assert.AreEqual(10, clr.DoubleValue, "The DoubleValue is not correctly filled.");
+            Assert.AreEqual("11", clr.DecimalValue, "The DecimalValue is not correctly filled.");
+            Assert.AreEqual("abc", clr.StringValue, "The StringValue is not correctly filled.");
         }
 
         //[Test]

@@ -128,7 +128,13 @@ namespace Mongo.Context
             }
             else if (element.Value.RawValue != null)
             {
-                return element.Value.RawValue.GetType();
+                switch (element.Value.BsonType)
+                {
+                    case BsonType.DateTime:
+                        return typeof(DateTime);
+                    default:
+                        return element.Value.RawValue.GetType();
+                }
             }
             else if (element.Value.GetType() == typeof(BsonArray) || element.Value.GetType() == typeof(BsonDocument))
             {
@@ -136,7 +142,13 @@ namespace Mongo.Context
             }
             else
             {
-                return typeof(string);
+                switch (element.Value.BsonType)
+                {
+                    case BsonType.Binary:
+                        return typeof(byte[]);
+                    default:
+                        return typeof(string);
+                }
             }
         }
     }

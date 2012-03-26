@@ -67,6 +67,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MongoMetadata.cs" />
     <Compile Include="Queryable\QueryExpressionVisitor.cs" />
+    <Compile Include="Queryable\DocumentTypeBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataServiceProvider\DataServiceProvider.csproj">

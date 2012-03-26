@@ -32,29 +32,46 @@ namespace Mongo.Context.Queryable
                 {
                     var constExpression = Expression.Constant(((m.Arguments[1] as ConstantExpression).Value as ResourceProperty).Name);
 
-                    return Expression.Call(
+                    return Visit(Expression.Call(
                         SwapParameterType(m.Arguments[0]),
                         typeof(BsonDocument).GetMethod("get_Item", new Type[] { typeof(string) }),
-                        constExpression);
+                        constExpression));
                 }
                 else
                 {
-                    return m;
+                    return base.VisitMethodCall(m);
                 }
             }
-            else if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending")
+            else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
-                return Expression.Call(
-                    ReplaceGenericMethodType(m.Method, typeof(BsonValue)),
-                    this.instanceExpression,
-                    Visit(ReplaceFieldLambda(m.Arguments[1])));
+                if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending") 
+                {
+                    return Visit(Expression.Call(
+                        ReplaceGenericMethodType(m.Method, typeof(BsonValue)),
+                        this.instanceExpression,
+                        Visit(ReplaceFieldLambda(m.Arguments[1]))));
+                }
+                else
+                {
+                    return Visit(Expression.Call(
+                        ReplaceGenericMethodType(m.Method),
+                        this.instanceExpression,
+                        Visit(m.Arguments[1])));
+                }
             }
-            else if (m.Method.GetGenericArguments().Count() > 0 && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
+            else if (m.Method.Name == "Contains" && m.Method.GetParameters().Count() == 1 && m.Method.GetParameters()[0].ParameterType == typeof(string))
             {
-                return Expression.Call(
-                    ReplaceGenericMethodType(m.Method),
-                    this.instanceExpression,
-                    Visit(m.Arguments[1]));
+                if (IsConvertWithMethod(m.Object, "get_Item"))
+                {
+                    return Visit(Expression.Call(
+                        Visit(ReplaceContainsAccessor(m.Object)),
+                        m.Method,
+                        m.Arguments));
+                }
+                else
+                {
+                    return base.VisitMethodCall(m);
+                }
             }
             else
             {
@@ -78,9 +95,9 @@ namespace Mongo.Context.Queryable
         {
             if (lambda.Parameters.Count > 0 && lambda.Parameters[0].Type == typeof(DSPResource))
             {
-                return Expression.Lambda(
+                return Visit(Expression.Lambda(
                     Visit(lambda.Body),
-                    ReplaceLambdaParameterType(lambda));
+                    ReplaceLambdaParameterType(lambda)));
             }
             else
             {
@@ -90,16 +107,60 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitConditional(ConditionalExpression c)
         {
-            // Swallow property tests for nullability
-            if (c.IfTrue is ConstantExpression && (c.IfTrue as ConstantExpression).Value == null 
-                && (c.Test is BinaryExpression) && (c.Test as BinaryExpression).Method.Name == "op_Equality"
-                && (c.Test as BinaryExpression).Right is ConstantExpression && ((c.Test as BinaryExpression).Right as ConstantExpression).Value == null)
+            if (IsEqualityWithNullability(c))
             {
-                return Visit(c.IfFalse);
+                if (IsConvertWithMethod(c.IfFalse, "Contains"))
+                {
+                    return Visit((c.IfFalse as UnaryExpression).Operand);
+                }
+                else
+                {
+                    return Visit(c.IfFalse);
+                }
             }
             else
             {
                 return base.VisitConditional(c);
+            }
+        }
+
+        public override Expression VisitBinary(BinaryExpression b)
+        {
+            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>))
+            {
+                return Visit(b.Left);
+            }
+            else
+            {
+                return base.VisitBinary(b);
+            }
+        }
+
+        private bool IsEqualityWithNullability(ConditionalExpression c)
+        {
+            if (c.IfTrue is ConstantExpression && (c.IfTrue as ConstantExpression).Value == null
+                && c.Test is BinaryExpression && (c.Test as BinaryExpression).Method.Name == "op_Equality"
+                && (c.Test as BinaryExpression).Right is ConstantExpression && ((c.Test as BinaryExpression).Right as ConstantExpression).Value == null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool IsConvertWithMethod(Expression e, string methodName)
+        {
+            if (e is UnaryExpression && e.NodeType == ExpressionType.Convert
+                && (e as UnaryExpression).Operand is MethodCallExpression &&
+                ((e as UnaryExpression).Operand as MethodCallExpression).Method.Name == methodName)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -146,6 +207,27 @@ namespace Mongo.Context.Queryable
             return Expression.Lambda(
                 (lambda.Body as UnaryExpression).Operand,
                 lambda.Parameters);
+        }
+
+        //private Expression ReplaceContainsAccessor(Expression expression)
+        //{
+        //    var parameterExpression = ((expression as UnaryExpression).Operand as MethodCallExpression).Object as ParameterExpression;
+        //    var member = typeof(BsonDocument).GetMember("AsString").First();
+
+        //    return Expression.MakeMemberAccess(parameterExpression, member);
+        //}
+
+        private Expression ReplaceContainsAccessor(Expression expression)
+        {
+            var callExpression = (expression as UnaryExpression).Operand as MethodCallExpression;
+            var fieldName = (callExpression.Arguments[0] as ConstantExpression).Value.ToString();
+
+            var dynamicType = DocumentTypeBuilder.CompileResultType(typeof(BsonDocument), new Dictionary<string, Type>() { { fieldName, typeof(string) } });
+
+            var parameterExpression = Expression.Parameter(dynamicType, (callExpression.Object as ParameterExpression).Name);
+            var member = dynamicType.GetMember(fieldName).First();
+
+            return Expression.MakeMemberAccess(parameterExpression, member);
         }
     }
 }

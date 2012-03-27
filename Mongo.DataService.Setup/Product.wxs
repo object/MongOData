@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+   xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+
+  <Product Id="*"
+       Name="MongOData - MongoDB OData Service"
+       Language="1033"
+       Version="0.1.0.0"
+       Manufacturer="Vagif Abilov"
+       UpgradeCode="{3195809d-be6b-49d0-9802-042a73dea824}">
+
+    <Package InstallerVersion="200" Compressed="yes" />
+
+    <Media Id="1" Cabinet="MongOData.cab" EmbedCab="yes" />
+
+    <Upgrade Id="{3195809d-be6b-49d0-9802-042a73dea824}">
+      <UpgradeVersion OnlyDetect="yes" Minimum="1.0.0.0" Property="NEWERVERSIONDETECTED" IncludeMinimum="no" />
+      <UpgradeVersion OnlyDetect="no" Maximum="9.9.9.9" Property="OLDERVERSIONBEINGUPGRADED" IncludeMaximum="no" />
+    </Upgrade>
+
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallInitialize" />
+    </InstallExecuteSequence>
+
+    <!-- 
+      * Variables 
+     -->
+
+    <!-- Configurable install location -->
+    <PropertyRef Id="NETFRAMEWORK30_SP_LEVEL" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLLOCATION" />
+
+    <Property Id="INSTALLLOCATION">
+      <RegistrySearch Id="FindInetPubFolder" Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Name="PathWWWRoot" Type="directory" />
+    </Property>
+
+    <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+
+    <!-- Creating directories -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="INSTALLLOCATION">
+        <!-- This is the folder where the website content will be located -->
+        <Directory Id="WebSiteDirectory" Name="MongOData">
+          <Directory Id="WebSiteBinDirectory" Name="bin" >
+          </Directory>
+          <Directory Id="WebSiteAppData" Name="App_Data">
+            <Component Id="WebSiteAppData" Guid="{0DC85496-E350-468B-A617-AA8D7555368C}" SharedDllRefCount="no" KeyPath="no" NeverOverwrite="no" Permanent="no" Transitive="no" Location="either">
+              <CreateFolder />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="WebSiteContentDirectory" Name="MongOData">
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Complete feature which will be installed. -->
+    <Feature Id="Complete"
+             Title="WebSite"
+             Level="1"
+             Display="expand"
+             ConfigurableDirectory="INSTALLLOCATION">
+
+      <!-- Main content of the Complete feature. -->
+      <Feature Id="MainContent"
+           Title="Website"
+           Description="The website content"
+           Level="1">
+
+        <!-- Include IIS Configuration. -->
+        <ComponentGroupRef Id="WebSiteIssConfiguration" />
+
+        <!-- Include web content. -->
+        <ComponentGroupRef Id="WebSiteContent" />
+
+        <!-- Include binaries. -->
+        <ComponentGroupRef Id="WebSiteBinaries" />
+
+        <!-- Create App_Data. -->
+        <ComponentRef Id="WebSiteAppData" />
+
+        <!-- Perform changes in the web.config file. -->
+        <ComponentRef Id="ConnectionStringsCmp" />
+
+      </Feature>
+    </Feature>
+
+    <DirectoryRef Id="WebSiteDirectory">
+      <!-- Component handling the web.config -->
+      <Component Id="ConnectionStringsCmp" Guid="">
+        <!-- Copy web.config to MYWEBWEBSITE folder. -->
+        <File Id="ConnectionStringsFile" KeyPath="yes"
+          Source="$(var.Mongo.DataService.ProjectDir)\..\ConnectionStrings.config" Vital="yes" />
+        <util:XmlFile Id="ModifyConnectionString"
+                 Action="setValue"
+                 Permanent="yes"
+                 ElementPath="/connectionStrings/add[\[]@name=&quot;MongoDB&quot;[\]]/@connectionString"
+                 File="[WebSiteContentDirectory]ConnectionStrings.config"
+                 Value="[CONNECTION_STRING]"
+                 SelectionLanguage="XPath"
+                 Sequence="1" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- .NET Framework 3.0 SP 1 must be installed -->
+    <Property Id="FRAMEWORKBASEPATH">
+      <RegistrySearch Id="FindFrameworkDir" Root="HKLM"
+        Key="SOFTWARE\Microsoft\.NETFramework"
+        Name="InstallRoot" Type="raw"/>
+    </Property>
+
+    <!-- Specify UI -->
+    <UIRef Id="WixUI_MondoNoLicense" />
+
+  </Product>
+</Wix>

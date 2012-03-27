@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+	 xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+	
+	<Fragment>
+		<?include ConfigurationInitialize.wxi ?>
+
+		<!-- Install to default web site -->
+		<iis:WebSite Id="DefaultWebSite" Description='Default Web Site'>
+			<iis:WebAddress Id="AllUnassigned" Port="80" />
+		</iis:WebSite>
+
+		<DirectoryRef Id="WebSiteDirectory">
+			<!-- Configure virtual dir -->
+			<Component Id="WebSiteVirtualDirCmp" Guid="{1091AEDD-4444-4C58-9637-57A875811537}" KeyPath="yes" >
+				<iis:WebVirtualDir Id="WebSiteVirtualDir" Alias="[VIRTUAL_DIR_VAL]" Directory="WebSiteDirectory" WebSite="DefaultWebSite">
+					<iis:WebDirProperties Id="WebSiteVirtDirProperties" AnonymousAccess="yes" BasicAuthentication="no" WindowsAuthentication="no" />
+					<iis:WebApplication Id="WebSiteWebApplication" Name="[VIRTUAL_DIR_VAL]" />
+				</iis:WebVirtualDir>
+			</Component>
+		</DirectoryRef>
+
+		<ComponentGroup Id="WebSiteIssConfiguration">
+			<ComponentRef Id="WebSiteVirtualDirCmp" />
+		</ComponentGroup>
+		
+	</Fragment>
+</Wix>

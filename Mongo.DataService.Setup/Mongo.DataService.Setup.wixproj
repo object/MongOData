@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.5</ProductVersion>
+    <ProjectGuid>{fd0bc7e5-01f3-4a89-9422-5bb2597272be}</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>Mongo.DataService.Setup</OutputName>
+    <OutputType>Package</OutputType>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TempDir>$(IntermediateOutputPath)temp\</TempDir>
+    <WebProjectName>Mongo.DataService</WebProjectName>
+    <WebProjectDir>..\Mongo.DataService\</WebProjectDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="IisConfiguration.wxs" />
+    <Compile Include="Product.wxs" />
+    <Compile Include="UIDialogs.wxs" />
+    <Compile Include="WixUI.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ConfigurationInitialize.wxi" />
+    <Content Include="ContentFilter.xsl" />
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <Target Name="CoreBuild">
+    <ItemGroup>
+      <WebProject Include="$(WebProjectDir)$(WebProjectName).csproj">
+        <ProjectOutputGroups>Content</ProjectOutputGroups>
+        <Transforms>ContentFilter.xsl</Transforms>
+        <WixFragmentFile>$(WebProjectName).Content</WixFragmentFile>
+      </WebProject>
+    </ItemGroup>
+    <ItemGroup>
+      <BinDirectory Include="$(TempDir)">
+        <WixFragmentFile>$(WebProjectName).Binaries</WixFragmentFile>
+      </BinDirectory>
+    </ItemGroup>
+    <HeatProject ToolPath="$(WixToolPath)" RunAsSeparateProcess="true" GenerateGuidsNow="true" Project="@(WebProject)" ProjectOutputGroups="%(WebProject.ProjectOutputGroups)" OutputFile="$(IntermediateOutputPath)%(WebProject.WixFragmentFile).wxs" Transforms="%(WebProject.Transforms)" DirectoryIds="WebSiteContentDirectory" AdditionalOptions="-dr WebSiteContentDirectory -cg WebSiteContent">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+    </HeatProject>
+    <HeatDirectory ToolPath="$(WixToolPath)" RunAsSeparateProcess="true" GenerateGuidsNow="true" Directory="@(BinDirectory)" OutputFile="$(IntermediateOutputPath)%(BinDirectory.WixFragmentFile).wxs" Transforms="%(BinDirectory.Transforms)" DirectoryRefId="WebSiteBinDirectory" PreprocessorVariable="var.TempBinDirectory" AdditionalOptions="-cg WebSiteBinaries -ke -srd -sreg">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+    </HeatDirectory>
+    <Candle ToolPath="$(WixToolPath)" DefineConstants="$(WebProjectName).ProjectDir=$(WebProjectDir);TempBinDirectory=$(TempDir)" Extensions="WixIISExtension;WixUtilExtension;WiXNetFxExtension" SourceFiles="%(Compile.Identity)" OutputFile="$(IntermediateOutputPath)%(Compile.Filename).wixobj">
+      <Output TaskParameter="OutputFile" ItemName="ObjectFiles" />
+    </Candle>
+    <Light ToolPath="$(WixToolPath)" Extensions="WixIISExtension;WixUtilExtension;WiXNetFxExtension;WixUIExtension" Cultures="en-us" ObjectFiles="@(ObjectFiles)" OutputFile="$(OutputPath)$(OutputName).msi" />
+  </Target>
+  <Target Name="BeforeBuild">
+    <RemoveDir Directories="$(TempDir)" ContinueOnError="true" />
+    <MakeDir Directories="$(TempDir)" ContinueOnError="false" />
+    <ItemGroup>
+      <BinFiles Include="$(WebProjectDir)bin\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BinFiles)" DestinationFolder="$(TempDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="AfterBuild">
+    <Delete Files="$(TempDir)*.*" />
+    <RemoveDir Directories="$(TempDir)" ContinueOnError="true" />
+  </Target>
+</Project>

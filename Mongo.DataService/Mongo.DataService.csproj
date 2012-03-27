@@ -68,6 +68,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="MongOData.svc.cs">
       <DependentUpon>MongOData.svc</DependentUpon>
     </Compile>

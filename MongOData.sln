@@ -3,6 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D0D2CB2F-C630-4ABF-A298-3744D1CC44E6}"
 	ProjectSection(SolutionItems) = preProject
+		CommonAssemblyInfo.cs = CommonAssemblyInfo.cs
 		ConnectionStrings.config = ConnectionStrings.config
 	EndProjectSection
 EndProject

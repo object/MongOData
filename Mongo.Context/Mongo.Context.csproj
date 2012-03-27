@@ -53,6 +53,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Queryable\ExpressionUtils.cs" />
     <Compile Include="MongoContext.cs" />
     <Compile Include="MongoDSPConverter.cs" />

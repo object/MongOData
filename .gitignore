@@ -4,6 +4,7 @@ bin
 deploy
 deploy/*
 test-results/
+packages/*
 _ReSharper.*
 *.csproj.user
 *.resharper.user

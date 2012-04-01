@@ -11,7 +11,7 @@ namespace Mongo.Context.Queryable
     public class MongoDSPResourceQueryProvider : DSPResourceQueryProvider
     {
         public MongoDSPResourceQueryProvider()
-            : base(new ResultExpressionVisitor())
+            : base(new QueryTypeTranslatingVisitor())
         {
         }
 

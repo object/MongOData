@@ -104,7 +104,7 @@ namespace Mongo.Context.Tests
             var q = ctx.Products.All().OrderBy(ctx.Products.Name).ToList();
             for (int i = 0; i < 2; i++)
             {
-                Assert.Greater(q[i+1].Name, q[i].Name, "Names are not in correct order");
+                Assert.Greater(q[i + 1].Name, q[i].Name, "Names are not in correct order.");
             }
         }
 
@@ -114,7 +114,7 @@ namespace Mongo.Context.Tests
             var q = ctx.Products.All().OrderByDescending(ctx.Products.Name).ToList();
             for (int i = 0; i < 2; i++)
             {
-                Assert.Less(q[i + 1].Name, q[i].Name, "Names are not in correct order");
+                Assert.Less(q[i + 1].Name, q[i].Name, "Names are not in correct order.");
             }
         }
 
@@ -162,6 +162,62 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void ProjectionVerifyExcluded()
+        {
+            var product = ctx.Products.All().Select(ctx.Products.ID).First();
+            var id = product.ID;
+            try
+            {
+                var name = product.Name;
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+            {
+            }
+        }
+
+        [Test]
+        public void ProjectionVerifyID()
+        {
+            var products = ctx.Products.FindAll(ctx.Products.ID > 0).Select(ctx.Products.ID).ToList();
+            foreach (var product in products)
+            {
+                Assert.Greater(product.ID, 0, "The ID is not correctly filled.");
+            }
+        }
+
+        [Test]
+        public void ProjectionVerifyName()
+        {
+            var products = ctx.Products.All().Select(ctx.Products.Name).ToList();
+            foreach (var product in products)
+            {
+                Assert.IsNotNull(product.Name, "The Name is not correctly filled.");
+            }
+        }
+
+        [Test]
+        public void ProjectionVerifyQuantity()
+        {
+            var products = ctx.Products.All().Select(ctx.Products.Quantity).ToList();
+            foreach (var product in products)
+            {
+                Assert.Greater(product.Quantity.Value, 0, "The Quantity is not correctly filled.");
+            }
+        }
+
+        [Test]
+        public void ProjectionVerifyNameDescriptionRating()
+        {
+            var products = ctx.Products.All().Select(ctx.Products.Name, ctx.Products.Description, ctx.Products.Rating).ToList();
+            foreach (var product in products)
+            {
+                Assert.IsNotNull(product.Name, "The Name is not correctly filled.");
+                Assert.IsNotNull(product.Description, "The Description is not correctly filled.");
+                Assert.Greater(product.Rating, 0, "The Rating is not correctly filled.");
+            }
+        }
+
+        [Test]
         public void VerifyClrTypes()
         {
             var clr = ctx.ClrTypes.All().First();
@@ -183,16 +239,6 @@ namespace Mongo.Context.Tests
             Assert.AreEqual("11", clr.DecimalValue, "The DecimalValue is not correctly filled.");
             Assert.AreEqual("abc", clr.StringValue, "The StringValue is not correctly filled.");
         }
-
-        //[Test]
-        //public void Projections()
-        //{
-        //    VerifySelectedProperties<ClientProduct>("/Products?$select=ID&$filter=ID gt 0", "ID");
-        //    VerifySelectedProperties<ClientProduct>("/Products?$select=Name", "Name");
-        //    VerifySelectedProperties<ClientProduct>("/Products?$select=Quantity", "Quantity");
-        //    VerifySelectedProperties<ClientProduct>("/Products?$select=Name,Description,Rating", "Name", "Description", "Rating");
-        //    VerifySelectedProperties<ClientProduct>("/Products?$select=*&$filter=ID eq 2", "ID", "Name", "Description", "ReleaseDate", "DiscontinueDate", "Rating", "Quantity");
-        //}
 
         //[Test]
         //public void ResourceReferenceProperty()

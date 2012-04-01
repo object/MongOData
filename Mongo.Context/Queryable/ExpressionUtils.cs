@@ -21,12 +21,28 @@ namespace Mongo.Context.Queryable
                 MethodCallExpression call = (MethodCallExpression)expr;
                 LambdaExpression lambda = (LambdaExpression)ExpressionUtils.RemoveQuotes(call.Arguments[1]);
                 Expression body = ExpressionUtils.RemoveQuotes(lambda.Body);
+
+                var memberInitExpression = (body as ConditionalExpression).IfFalse as MemberInitExpression;
+                var bindings = new MemberBinding[memberInitExpression.Bindings.Count];
+                for (int index = 0; index < bindings.Length; index++)
+                {
+                    if (index < 2)
+                    {
+                        bindings[index] = memberInitExpression.Bindings[index];
+                    }
+                    else
+                    {
+                        bindings[index] = memberInitExpression.Bindings[index];
+                    }
+                }
+                var newLambda = Expression.Lambda(memberInitExpression);
+
                 return new SelectCallMatch
                 {
                     MethodCall = call,
                     Source = call.Arguments[0],
-                    Lambda = lambda,
-                    LambdaBody = body
+                    Lambda = newLambda,
+                    LambdaBody = newLambda.Body,
                 };
             }
             else
@@ -101,6 +117,12 @@ namespace Mongo.Context.Queryable
             public Expression LambdaBody { get; set; }
         }
 
+        internal static bool IsExpressionLinqSelect(Expression expression)
+        {
+            return expression.NodeType == ExpressionType.Call &&
+                   IsMethodLinqSelect(((MethodCallExpression) expression).Method);
+        }
+
         /// <summary>Checks whether the specified method is the IEnumerable.Select() with Func`T,T2.</summary>
         /// <param name="m">Method to check.</param>
         /// <returns>true if this is the method; false otherwise.</returns>
@@ -128,6 +150,51 @@ namespace Mongo.Context.Queryable
             {
                 return IsNamedMethodSecondArgumentExpressionFuncWithOneParameter(m, methodName);
             }
+        }
+
+        public static bool IsEqualityWithNullability(ConditionalExpression c)
+        {
+            if (c.IfTrue is ConstantExpression && (c.IfTrue as ConstantExpression).Value == null
+                && c.Test is BinaryExpression && (c.Test as BinaryExpression).Method.Name == "op_Equality"
+                && (c.Test as BinaryExpression).Right is ConstantExpression && ((c.Test as BinaryExpression).Right as ConstantExpression).Value == null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool IsConvertWithMethod(Expression e, string methodName)
+        {
+            if (e is UnaryExpression && e.NodeType == ExpressionType.Convert
+                && (e as UnaryExpression).Operand is MethodCallExpression &&
+                ((e as UnaryExpression).Operand as MethodCallExpression).Method.Name == methodName)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static Expression ReplaceParameterType(Expression expression, Type replacementType, Func<Expression, Expression> Visit)
+        {
+            if (expression is ParameterExpression)
+            {
+                return Expression.Parameter(
+                    replacementType,
+                    (expression as ParameterExpression).Name);
+            }
+            else if (expression is UnaryExpression && expression.NodeType == ExpressionType.TypeAs)
+            {
+                return Expression.TypeAs(
+                    Visit((expression as UnaryExpression).Operand),
+                    replacementType);
+            }
+            return expression;
         }
 
         /// <summary>Checks whether the specified method takes a Expression`Func`T1,T2 as its second argument.</summary>

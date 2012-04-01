@@ -9,11 +9,10 @@ using DataServiceProvider;
 using FluentMongo.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using ExpressionVisitor = DataServiceProvider.ExpressionVisitor;
 
 namespace Mongo.Context.Queryable
 {
-    public class QueryExpressionVisitor : DSPMethodTranslatingVisitor
+    public class QueryExpressionVisitor : QueryTypeTranslatingVisitor
     {
         private MongoCollection<BsonDocument> collection;
         private Expression instanceExpression;
@@ -26,23 +25,7 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method == GetValueMethodInfo)
-            {
-                if (m.Arguments[0].Type == typeof(DSPResource) && m.Arguments[1].Type == typeof(ResourceProperty))
-                {
-                    var constExpression = Expression.Constant(((m.Arguments[1] as ConstantExpression).Value as ResourceProperty).Name);
-
-                    return Visit(Expression.Call(
-                        SwapParameterType(m.Arguments[0]),
-                        typeof(BsonDocument).GetMethod("get_Item", new Type[] { typeof(string) }),
-                        constExpression));
-                }
-                else
-                {
-                    return base.VisitMethodCall(m);
-                }
-            }
-            else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
+            if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
                 if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending") 
                 {
@@ -61,22 +44,15 @@ namespace Mongo.Context.Queryable
             }
             else if (m.Method.Name == "Contains" && m.Method.GetParameters().Count() == 1 && m.Method.GetParameters()[0].ParameterType == typeof(string))
             {
-                if (IsConvertWithMethod(m.Object, "get_Item"))
+                if (ExpressionUtils.IsConvertWithMethod(m.Object, "get_Item"))
                 {
                     return Visit(Expression.Call(
                         Visit(ReplaceContainsAccessor(m.Object)),
                         m.Method,
                         m.Arguments));
                 }
-                else
-                {
-                    return base.VisitMethodCall(m);
-                }
             }
-            else
-            {
-                return base.VisitMethodCall(m);
-            }
+            return base.VisitMethodCall(m);
         }
 
         public override Expression VisitConstant(ConstantExpression c)
@@ -107,9 +83,9 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitConditional(ConditionalExpression c)
         {
-            if (IsEqualityWithNullability(c))
+            if (ExpressionUtils.IsEqualityWithNullability(c))
             {
-                if (IsConvertWithMethod(c.IfFalse, "Contains"))
+                if (ExpressionUtils.IsConvertWithMethod(c.IfFalse, "Contains"))
                 {
                     return Visit((c.IfFalse as UnaryExpression).Operand);
                 }
@@ -133,50 +109,6 @@ namespace Mongo.Context.Queryable
             else
             {
                 return base.VisitBinary(b);
-            }
-        }
-
-        private bool IsEqualityWithNullability(ConditionalExpression c)
-        {
-            if (c.IfTrue is ConstantExpression && (c.IfTrue as ConstantExpression).Value == null
-                && c.Test is BinaryExpression && (c.Test as BinaryExpression).Method.Name == "op_Equality"
-                && (c.Test as BinaryExpression).Right is ConstantExpression && ((c.Test as BinaryExpression).Right as ConstantExpression).Value == null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private bool IsConvertWithMethod(Expression e, string methodName)
-        {
-            if (e is UnaryExpression && e.NodeType == ExpressionType.Convert
-                && (e as UnaryExpression).Operand is MethodCallExpression &&
-                ((e as UnaryExpression).Operand as MethodCallExpression).Method.Name == methodName)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private Expression SwapParameterType(Expression expression)
-        {
-            if (expression.Type == typeof(BsonDocument))
-            {
-                return Expression.Parameter(typeof(DSPResource), (expression as ParameterExpression).Name);
-            }
-            else if (expression.Type == typeof(DSPResource))
-            {
-                return Expression.Parameter(typeof(BsonDocument), (expression as ParameterExpression).Name);
-            }
-            else
-            {
-                return expression;
             }
         }
 
@@ -208,14 +140,6 @@ namespace Mongo.Context.Queryable
                 (lambda.Body as UnaryExpression).Operand,
                 lambda.Parameters);
         }
-
-        //private Expression ReplaceContainsAccessor(Expression expression)
-        //{
-        //    var parameterExpression = ((expression as UnaryExpression).Operand as MethodCallExpression).Object as ParameterExpression;
-        //    var member = typeof(BsonDocument).GetMember("AsString").First();
-
-        //    return Expression.MakeMemberAccess(parameterExpression, member);
-        //}
 
         private Expression ReplaceContainsAccessor(Expression expression)
         {

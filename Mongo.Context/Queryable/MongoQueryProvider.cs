@@ -25,7 +25,14 @@ namespace Mongo.Context.Queryable
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            return new MongoQueryableResource(this, expression) as IQueryable<TElement>;
+            if (ExpressionUtils.IsExpressionLinqSelect(expression))
+            {
+                return CreateProjectionQuery<TElement>(expression);
+            }
+            else
+            {
+                return new MongoQueryableResource(this, expression) as IQueryable<TElement>;
+            }
         }
 
         public IQueryable CreateQuery(Expression expression)
@@ -51,6 +58,7 @@ namespace Mongo.Context.Queryable
             var mongoExpression = new QueryExpressionVisitor(mongoCollection, queryableCollection.Expression).Visit(expression);
             var mongoEnumerator = queryableCollection.Provider.CreateQuery<BsonDocument>(mongoExpression).GetEnumerator();
             var resourceEnumerable = GetEnumerableCollection(mongoEnumerator);
+
             return resourceEnumerable.GetEnumerator() as IEnumerator<TElement>;
         }
 
@@ -61,6 +69,40 @@ namespace Mongo.Context.Queryable
                 yield return MongoDSPConverter.CreateDSPResource(enumerator.Current, MongoQueryableDataService.Metadata, MongoMetadata.RootNamespace, this.collectionName);
             }
             yield break;
+        }
+
+        private IQueryable<TElement> CreateProjectionQuery<TElement>(Expression expression)
+        {
+            //var projectionExpression = new ProjectionExpressionVisitor().Visit(expression);
+            //var callExpression = projectionExpression as MethodCallExpression;
+            var callExpression = expression as MethodCallExpression;
+
+            MethodInfo methodInfo = typeof(MongoQueryProvider)
+                .GetMethod("ProcessProjection", BindingFlags.Instance | BindingFlags.NonPublic)
+                .MakeGenericMethod(typeof(DSPResource), typeof(TElement));
+
+            return
+                (IQueryable<TElement>)methodInfo.Invoke(this,
+                    new object[]
+                        {
+                            callExpression.Arguments[0],
+                            ExpressionUtils.RemoveQuotes(callExpression.Arguments[1])
+                        });
+        }
+
+        private IQueryable<TResultElement> ProcessProjection<TSourceElement, TResultElement>(Expression source, LambdaExpression lambda)
+        {
+            var dataSourceQuery = this.CreateQuery<TSourceElement>(source);
+            var dataSourceQueryResults = dataSourceQuery.AsEnumerable();
+            var newLambda = new ProjectionExpressionVisitor().Visit(lambda) as LambdaExpression;
+            var projectionFunc = (Func<TSourceElement, TResultElement>)newLambda.Compile();
+
+            var r = dataSourceQueryResults.FirstOrDefault();
+            var u = projectionFunc(r);
+            var q = dataSourceQueryResults.Select(sourceItem => projectionFunc(sourceItem));
+            var z = q.FirstOrDefault();
+
+            return dataSourceQueryResults.Select(sourceItem => projectionFunc(sourceItem)).AsQueryable();
         }
     }
 }

@@ -47,7 +47,7 @@ namespace DataServiceProvider
             Expression expression)
         {
             return _underlyingProvider.CreateQuery<TElement>(
-                InterceptExpr(expression)).GetEnumerator();;
+                Intercept(expression)).GetEnumerator();
         }
 
         public IQueryable<TElement> CreateQuery<TElement>(
@@ -77,18 +77,18 @@ namespace DataServiceProvider
         public TResult Execute<TResult>(Expression expression)
         {
             return this._underlyingProvider.Execute<TResult>(
-                InterceptExpr(expression)
+                Intercept(expression)
             );
         }
 
         public object Execute(Expression expression)
         {
             return this._underlyingProvider.Execute(
-                InterceptExpr(expression)
+                Intercept(expression)
             );
         }
 
-        private Expression InterceptExpr(Expression expression)
+        private Expression Intercept(Expression expression)
         {
             Expression exp = expression;
             foreach (var visitor in _visitors)

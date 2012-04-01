@@ -60,7 +60,9 @@
     <Compile Include="MongoContext.cs" />
     <Compile Include="MongoDSPConverter.cs" />
     <Compile Include="Queryable\MongoDSPResourceQueryProvider.cs" />
-    <Compile Include="Queryable\ResultExpressionVisitor.cs" />
+    <Compile Include="Queryable\QueryTypeTranslatingVisitor.cs" />
+    <Compile Include="Queryable\ProjectionExpressionVisitor.cs" />
+    <Compile Include="Queryable\ResultTypeTranslatingVisitor.cs" />
     <Compile Include="Queryable\MongoQueryableContext.cs" />
     <Compile Include="Queryable\MongoQueryableDataService.cs" />
     <Compile Include="Queryable\MongoQueryableResource.cs" />

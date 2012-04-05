@@ -15,6 +15,7 @@ namespace Mongo.Context
         public static readonly Type MappedObjectIdType = typeof(string);
         public static readonly string ContainerName = "MongoContext";
         public static readonly string RootNamespace = "Mongo";
+        public static readonly bool UseGlobalComplexTypeNames = true;
 
         public DSPMetadata CreateMetadata(string connectionString)
         {
@@ -80,7 +81,8 @@ namespace Mongo.Context
                     else
                     {
                         resourceType = RegisterResourceType(metadata, context, 
-                            string.Join(".", collectionName, element.Name), element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
+                            GetComplexTypeName(collectionName, element.Name), 
+                            element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
                     }
                     metadata.AddComplexProperty(collectionType, element.Name, resourceType);
                 }
@@ -150,6 +152,16 @@ namespace Mongo.Context
                         return typeof(string);
                 }
             }
+        }
+
+        internal static string GetComplexTypePrefix(string ownerName)
+        {
+            return UseGlobalComplexTypeNames ? string.Empty : ownerName;
+        }
+
+        internal static string GetComplexTypeName(string collectionName, string resourceName)
+        {
+            return UseGlobalComplexTypeNames ? resourceName : string.Join("__", collectionName, resourceName);
         }
     }
 }

@@ -90,11 +90,10 @@
     <Compile Include="TestService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ConnectionStrings.config">
-      <Link>ConnectionStrings.config</Link>
+    <None Include="App.config" />
+    <None Include="ConnectionStrings.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -66,7 +66,7 @@ namespace Mongo.Context.Queryable
         {
             while (enumerator.MoveNext())
             {
-                yield return MongoDSPConverter.CreateDSPResource(enumerator.Current, MongoQueryableDataService.Metadata, MongoMetadata.RootNamespace, this.collectionName);
+                yield return MongoDSPConverter.CreateDSPResource(enumerator.Current, MongoQueryableDataService.Metadata, this.collectionName);
             }
             yield break;
         }

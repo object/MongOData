@@ -81,18 +81,18 @@
         <!-- Create App_Data. -->
         <ComponentRef Id="WebSiteAppData" />
 
-        <!-- Perform changes in the web.config file. -->
+        <!-- Perform changes in the ConnectionStrings.config file. -->
         <ComponentRef Id="ConnectionStringsCmp" />
 
       </Feature>
     </Feature>
 
     <DirectoryRef Id="WebSiteDirectory">
-      <!-- Component handling the web.config -->
+      <!-- Component handling the ConnectionStrings.config -->
       <Component Id="ConnectionStringsCmp" Guid="">
-        <!-- Copy web.config to MYWEBWEBSITE folder. -->
+        <!-- Copy web.config to WebSiteDirectory folder. -->
         <File Id="ConnectionStringsFile" KeyPath="yes"
-          Source="$(var.Mongo.DataService.ProjectDir)\..\ConnectionStrings.config" Vital="yes" />
+          Source="$(var.Mongo.DataService.ProjectDir)\ConnectionStrings.config" Vital="yes" />
         <util:XmlFile Id="ModifyConnectionString"
                  Action="setValue"
                  Permanent="yes"

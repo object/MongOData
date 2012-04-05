@@ -31,7 +31,7 @@ namespace Mongo.Context.InMemory
                 var collection = mongoContext.Database.GetCollection(resourceSet.Name);
                 foreach (var document in collection.FindAll())
                 {
-                    var resource = MongoDSPConverter.CreateDSPResource(document, metadata, MongoMetadata.RootNamespace, resourceSet.Name);
+                    var resource = MongoDSPConverter.CreateDSPResource(document, metadata, resourceSet.Name);
                     storage.Add(resource);
                 }
             }

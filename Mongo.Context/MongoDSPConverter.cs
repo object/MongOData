@@ -12,10 +12,11 @@ namespace Mongo.Context
     {
         private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        public static DSPResource CreateDSPResource(BsonDocument document, DSPMetadata metadata, string namespaceName, string collectionName)
+        public static DSPResource CreateDSPResource(BsonDocument document, DSPMetadata metadata, string resourceName, string ownerPrefix = null)
         {
             ResourceType resourceType;
-            metadata.TryResolveResourceType(string.Format("{0}.{1}", namespaceName, collectionName), out resourceType);
+            string qualifiedResourceName = string.IsNullOrEmpty(ownerPrefix) ? resourceName : MongoMetadata.GetComplexTypeName(ownerPrefix, resourceName);
+            metadata.TryResolveResourceType(string.Join(".", MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
             var resource = new DSPResource(resourceType);
 
             foreach (var element in document.Elements)
@@ -26,7 +27,7 @@ namespace Mongo.Context
                 }
                 else if (element.Value.GetType() == typeof(BsonDocument))
                 {
-                    resource.SetValue(element.Name, CreateDSPResource(element.Value.AsBsonDocument, metadata, string.Join(".", namespaceName, collectionName), element.Name));
+                    resource.SetValue(element.Name, CreateDSPResource(element.Value.AsBsonDocument, metadata, element.Name, MongoMetadata.GetComplexTypePrefix(resourceName)));
                 }
                 else if (element.Value.GetType() == typeof(BsonArray))
                 {

@@ -17,7 +17,7 @@
   <xsl:template match="wix:Component[wix:File/@Source='$(var.Mongo.DataService.ProjectDir)\Web.Release.config']" >
     <xsl:value-of select="parent" />
   </xsl:template>
-  <xsl:template match="wix:Component[wix:File/@Source='$(var.Mongo.DataService.ProjectDir)\..\ConnectionStrings.config']" >
+  <xsl:template match="wix:Component[wix:File/@Source='$(var.Mongo.DataService.ProjectDir)\ConnectionStrings.config']" >
     <xsl:value-of select="parent" />
   </xsl:template>
 

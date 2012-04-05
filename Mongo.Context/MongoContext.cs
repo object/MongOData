@@ -27,6 +27,11 @@ namespace Mongo.Context
             get { return this.database; }
         }
 
+        public static IEnumerable<string> GetDatabaseNames(string connectionString)
+        {
+            return MongoServer.Create(connectionString).GetDatabaseNames();
+        }
+
         public void Dispose()
         {
             this.database.Server.Disconnect();

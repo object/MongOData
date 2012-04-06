@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DataServiceProvider;
-using FluentMongo.Linq;
-using MongoDB.Bson;
 
 namespace Mongo.Context.Queryable
 {

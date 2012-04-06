@@ -4,9 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using DataServiceProvider;
-using FluentMongo.Linq;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace Mongo.Context.Queryable
 {

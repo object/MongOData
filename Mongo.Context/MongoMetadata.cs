@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace Mongo.Context
 {

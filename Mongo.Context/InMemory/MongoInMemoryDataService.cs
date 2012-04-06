@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Data.Services;
-using System.Data.Services.Providers;
 using DataServiceProvider;
-using MongoDB.Bson;
-using Mongo.Context;
 
 namespace Mongo.Context.InMemory
 {

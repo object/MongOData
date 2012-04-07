@@ -7,7 +7,7 @@ using MongoDB.Bson;
 
 namespace Mongo.Context.Queryable
 {
-    public class ResultTypeTranslatingVisitor : DSPMethodTranslatingVisitor
+    public class ResultExpressionVisitor : DSPMethodTranslatingVisitor
     {
         public override Expression VisitMethodCall(MethodCallExpression m)
         {

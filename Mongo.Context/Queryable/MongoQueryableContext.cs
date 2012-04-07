@@ -19,7 +19,7 @@ namespace Mongo.Context.Queryable
         {
             return InterceptingProvider.Intercept(
                 new MongoQueryableResource(connectionString, collectionName),
-                new ResultTypeTranslatingVisitor());
+                new ResultExpressionVisitor());
         }
     }
 }

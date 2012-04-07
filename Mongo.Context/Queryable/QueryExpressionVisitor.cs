@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Services.Providers;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,7 +11,7 @@ using MongoDB.Driver;
 
 namespace Mongo.Context.Queryable
 {
-    public class QueryExpressionVisitor : QueryTypeTranslatingVisitor
+    public class QueryExpressionVisitor : DSPMethodTranslatingVisitor
     {
         private MongoCollection<BsonDocument> collection;
         private Expression instanceExpression;
@@ -23,9 +24,18 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
+            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess && (m.Arguments[0] as MemberExpression).Expression.Type == typeof(ResourceProperty))
             {
-                if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending") 
+                var constExpression = Expression.Constant((((m.Arguments[0] as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty).Name);
+
+                return Expression.Call(
+                    ExpressionUtils.ReplaceParameterType(m.Object, typeof(BsonDocument), Visit),
+                    typeof(BsonDocument).GetMethod("get_Item", new Type[] { typeof(string) }),
+                    constExpression);
+            }
+            else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
+            {
+                if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending")
                 {
                     return Visit(Expression.Call(
                         ReplaceGenericMethodType(m.Method, typeof(BsonValue)),
@@ -108,6 +118,16 @@ namespace Mongo.Context.Queryable
             {
                 return base.VisitBinary(b);
             }
+        }
+
+        public override Expression VisitUnary(UnaryExpression u)
+        {
+            if (u.NodeType == ExpressionType.Convert && u.Type == typeof(DSPResource))
+            {
+                return Expression.Convert(Visit(u.Operand), typeof(BsonDocument));
+            }
+
+            return base.VisitUnary(u);
         }
 
         private MethodInfo ReplaceGenericMethodType(MethodInfo method, params Type[] genericTypes)

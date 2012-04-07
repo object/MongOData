@@ -10,11 +10,6 @@ namespace Mongo.Context.Queryable
 {
     public class MongoDSPResourceQueryProvider : DSPResourceQueryProvider
     {
-        public MongoDSPResourceQueryProvider()
-            : base(new QueryTypeTranslatingVisitor())
-        {
-        }
-
         public override ResourceType GetResourceType(object target)
         {
             if (target is DSPResource)

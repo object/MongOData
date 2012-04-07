@@ -50,11 +50,9 @@ namespace Mongo.Context.Queryable
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
-            var mongoContext = new MongoContext(this.connectionString);
-            var mongoCollection = mongoContext.Database.GetCollection<BsonDocument>(collectionName);
-            var queryableCollection = mongoCollection.AsQueryable();
-            var mongoExpression = new QueryExpressionVisitor(mongoCollection, queryableCollection.Expression).Visit(expression);
-            var mongoEnumerator = queryableCollection.Provider.CreateQuery<BsonDocument>(mongoExpression).GetEnumerator();
+            var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection<BsonDocument>(collectionName);
+            var mongoExpression = new QueryExpressionVisitor(mongoCollection).Visit(expression);
+            var mongoEnumerator = mongoCollection.AsQueryable().Provider.CreateQuery<BsonDocument>(mongoExpression).GetEnumerator();
             var resourceEnumerable = GetEnumerableCollection(mongoEnumerator);
 
             return resourceEnumerable.GetEnumerator() as IEnumerator<TElement>;

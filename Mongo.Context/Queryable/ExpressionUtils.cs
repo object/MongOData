@@ -180,6 +180,19 @@ namespace Mongo.Context.Queryable
             }
         }
 
+        public static bool IsConvertWithMember(Expression e)
+        {
+            if (e is UnaryExpression && e.NodeType == ExpressionType.Convert
+                && (e as UnaryExpression).Operand is MemberExpression)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public static Expression ReplaceParameterType(Expression expression, Type replacementType, Func<Expression, Expression> Visit)
         {
             if (expression is ParameterExpression)

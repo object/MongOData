@@ -16,24 +16,28 @@ namespace Mongo.Context.Queryable
         private MongoCollection<BsonDocument> collection;
         private Expression instanceExpression;
 
-        public QueryExpressionVisitor(MongoCollection<BsonDocument> collection, Expression instanceExpression)
+        public QueryExpressionVisitor(MongoCollection<BsonDocument> collection)
         {
             this.collection = collection;
-            this.instanceExpression = instanceExpression;
+            this.instanceExpression = collection.AsQueryable().Expression;
+        }
+
+        public override Expression Visit(Expression exp)
+        {
+            var fieldVisitor = new ResourcePropertyExpressionVisitor();
+            var newExp = fieldVisitor.Visit(exp);
+            if (fieldVisitor.QueryFields.Count > 0)
+            {
+                fieldVisitor.QueryDocumentType = DocumentTypeBuilder.CompileDocumentType(typeof(BsonDocument), fieldVisitor.QueryFields);
+                newExp = fieldVisitor.Visit(exp);
+            }
+
+            return base.Visit(newExp);
         }
 
         public override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess && (m.Arguments[0] as MemberExpression).Expression.Type == typeof(ResourceProperty))
-            {
-                var constExpression = Expression.Constant((((m.Arguments[0] as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty).Name);
-
-                return Expression.Call(
-                    ExpressionUtils.ReplaceParameterType(m.Object, typeof(BsonDocument), Visit),
-                    typeof(BsonDocument).GetMethod("get_Item", new Type[] { typeof(string) }),
-                    constExpression);
-            }
-            else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
+            if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
                 if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending")
                 {
@@ -52,7 +56,7 @@ namespace Mongo.Context.Queryable
             }
             else if (m.Method.Name == "Contains" && m.Method.GetParameters().Count() == 1 && m.Method.GetParameters()[0].ParameterType == typeof(string))
             {
-                if (ExpressionUtils.IsConvertWithMethod(m.Object, "get_Item"))
+                if (ExpressionUtils.IsConvertWithMember(m.Object))
                 {
                     return Visit(Expression.Call(
                         Visit(ReplaceContainsAccessor(m.Object)),
@@ -60,6 +64,7 @@ namespace Mongo.Context.Queryable
                         m.Arguments));
                 }
             }
+
             return base.VisitMethodCall(m);
         }
 
@@ -161,12 +166,12 @@ namespace Mongo.Context.Queryable
 
         private Expression ReplaceContainsAccessor(Expression expression)
         {
-            var callExpression = (expression as UnaryExpression).Operand as MethodCallExpression;
-            var fieldName = (callExpression.Arguments[0] as ConstantExpression).Value.ToString();
+            var memberExpression = (expression as UnaryExpression).Operand as MemberExpression;
+            var fieldName = memberExpression.Member.Name;
 
-            var dynamicType = DocumentTypeBuilder.CompileResultType(typeof(BsonDocument), new Dictionary<string, Type>() { { fieldName, typeof(string) } });
+            var dynamicType = DocumentTypeBuilder.CompileDocumentType(typeof(BsonDocument), new Dictionary<string, Type>() { { fieldName, typeof(string) } });
 
-            var parameterExpression = Expression.Parameter(dynamicType, (callExpression.Object as ParameterExpression).Name);
+            var parameterExpression = Expression.Parameter(dynamicType, fieldName);
             var member = dynamicType.GetMember(fieldName).First();
 
             return Expression.MakeMemberAccess(parameterExpression, member);

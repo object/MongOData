@@ -132,6 +132,18 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void FilterEqualName()
+        {
+            Assert.AreEqual(1, ctx.Products.FindAll(ctx.Products.Name == "Bread").Count());
+        }
+
+        [Test]
+        public void FilterEqualIDAndEqualName()
+        {
+            Assert.AreEqual(1, ctx.Products.FindAll(ctx.Products.ID == 1 && ctx.Products.Name == "Bread").Count());
+        }
+
+        [Test]
         public void FilterGreaterID()
         {
             Assert.AreEqual(3, ctx.Products.FindAll(ctx.Products.ID > 0).Count());

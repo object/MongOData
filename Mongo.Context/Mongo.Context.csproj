@@ -63,6 +63,7 @@
     <Compile Include="MongoDSPConverter.cs" />
     <Compile Include="Queryable\MongoDSPResourceQueryProvider.cs" />
     <Compile Include="Queryable\ProjectionExpressionVisitor.cs" />
+    <Compile Include="Queryable\ResourcePropertyExpressionVisitor.cs" />
     <Compile Include="Queryable\ResultExpressionVisitor.cs" />
     <Compile Include="Queryable\MongoQueryableContext.cs" />
     <Compile Include="Queryable\MongoQueryableDataService.cs" />

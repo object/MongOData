@@ -9,7 +9,7 @@ namespace Mongo.Context.Queryable
 {
     public static class DocumentTypeBuilder
     {
-        public static Type CompileResultType(Type baseType, IDictionary<string, Type> fields)
+        public static Type CompileDocumentType(Type baseType, IDictionary<string, Type> fields)
         {
             TypeBuilder tb = GetTypeBuilder(baseType);
             ConstructorBuilder constructor = tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName);

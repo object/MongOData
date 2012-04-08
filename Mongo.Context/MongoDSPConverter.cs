@@ -76,5 +76,10 @@ namespace Mongo.Context
             }
             return resource;
         }
+
+        public static DSPResource CreateDSPResource<TSource>(TSource document, DSPMetadata metadata, string resourceName, string ownerPrefix = null)
+        {
+            return CreateDSPResource(document.ToBsonDocument(), metadata, resourceName, ownerPrefix);
+        }
     }
 }

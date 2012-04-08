@@ -4,6 +4,8 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using Mongo.Context.Tests;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 
 namespace Mongo.Context.Tests

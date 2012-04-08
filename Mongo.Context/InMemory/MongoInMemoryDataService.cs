@@ -52,7 +52,7 @@ namespace Mongo.Context.InMemory
             {
                 if (this.metadata == null)
                 {
-                    this.metadata = new MongoMetadata().CreateMetadata(this.connectionString);
+                    this.metadata = new MongoMetadata(this.connectionString).Metadata;
                 }
             }
             return metadata;

@@ -5,8 +5,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using DataServiceProvider;
-using FluentMongo.Linq;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace Mongo.Context.Queryable
 {
@@ -14,11 +15,13 @@ namespace Mongo.Context.Queryable
     {
         private string connectionString;
         private string collectionName;
+        private Type collectionType;
 
-        public MongoQueryProvider(string connectionString, string collectionName)
+        public MongoQueryProvider(string connectionString, string collectionName, Type collectionType)
         {
             this.connectionString = connectionString;
             this.collectionName = collectionName;
+            this.collectionType = collectionType;
         }
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -50,15 +53,22 @@ namespace Mongo.Context.Queryable
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
-            var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection<BsonDocument>(collectionName);
-            var mongoExpression = new QueryExpressionVisitor(mongoCollection).Visit(expression);
-            var mongoEnumerator = mongoCollection.AsQueryable().Provider.CreateQuery<BsonDocument>(mongoExpression).GetEnumerator();
-            var resourceEnumerable = GetEnumerableCollection(mongoEnumerator);
+            var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection(collectionType, collectionName);
+            var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
+            var genericMethod = this.GetType().GetMethod("GetEnumerableCollection");
+            var method = genericMethod.MakeGenericMethod(collectionType);
+            var resourceEnumerable = method.Invoke(this, new object[] { mongoCollection, collectionType, mongoExpression }) as IEnumerable<DSPResource>;
 
             return resourceEnumerable.GetEnumerator() as IEnumerator<TElement>;
         }
 
-        public IEnumerable<DSPResource> GetEnumerableCollection(IEnumerator<BsonDocument> enumerator)
+        public IEnumerable<DSPResource> GetEnumerableCollection<TSource>(MongoCollection mongoCollection, Type collectionType, Expression expression)
+        {
+            var mongoEnumerator = mongoCollection.AsQueryable<TSource>().Provider.CreateQuery<TSource>(expression).GetEnumerator();
+            return GetEnumerable(mongoEnumerator);
+        }
+
+        public IEnumerable<DSPResource> GetEnumerable<TSource>(IEnumerator<TSource> enumerator)
         {
             while (enumerator.MoveNext())
             {
@@ -69,8 +79,6 @@ namespace Mongo.Context.Queryable
 
         private IQueryable<TElement> CreateProjectionQuery<TElement>(Expression expression)
         {
-            //var projectionExpression = new ProjectionExpressionVisitor().Visit(expression);
-            //var callExpression = projectionExpression as MethodCallExpression;
             var callExpression = expression as MethodCallExpression;
 
             MethodInfo methodInfo = typeof(MongoQueryProvider)

@@ -12,10 +12,12 @@ namespace Mongo.Context.Queryable
         public static Type CompileDocumentType(Type baseType, IDictionary<string, Type> fields)
         {
             TypeBuilder tb = GetTypeBuilder(baseType);
-            ConstructorBuilder constructor = tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName);
+            tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName);
 
             foreach (var field in fields)
+            {
                 CreateProperty(tb, field.Key, field.Value);
+            }
 
             Type objectType = tb.CreateType();
             return objectType;

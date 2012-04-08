@@ -52,125 +52,133 @@ namespace Mongo.Context.Tests
         [Test]
         public void AllEntitiesVerifyResultCount()
         {
-            var q = ctx.Products.All().ToList();
-            Assert.AreEqual(3, q.Count, "The service returned unexpected number of results.");
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual(3, result.Count, "The service returned unexpected number of results.");
         }
 
         [Test]
         public void AllEntitiesTakeOneVerifyResultCount()
         {
-            var q = ctx.Products.All().Take(1).ToList();
-            Assert.AreEqual(1, q.Count, "The service returned unexpected number of results.");
+            var result = ctx.Products.All().Take(1).ToList();
+            Assert.AreEqual(1, result.Count, "The service returned unexpected number of results.");
         }
 
         [Test]
         public void AllEntitiesSkipOneVerifyResultCount()
         {
-            var q = ctx.Products.All().Skip(1).ToList();
-            Assert.AreEqual(2, q.Count, "The service returned unexpected number of results.");
+            var result = ctx.Products.All().Skip(1).ToList();
+            Assert.AreEqual(2, result.Count, "The service returned unexpected number of results.");
         }
 
         [Test]
         public void AllEntitiesCountVerifyResult()
         {
-            var q = ctx.Products.All().Count();
-            Assert.AreEqual(3, q, "The count is not correctly computed.");
+            var result = ctx.Products.All().Count();
+            Assert.AreEqual(3, result, "The count is not correctly computed.");
         }
 
         [Test]
         public void AllEntitiesVerifyID()
         {
-            var q = ctx.Products.All().ToList();
-            Assert.AreEqual(3, q[2].ID, "The ID is not correctly filled.");
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual(3, result[2].ID, "The ID is not correctly filled.");
         }
 
         [Test]
         public void AllEntitiesVerifyName()
         {
-            var q = ctx.Products.All().ToList();
-            Assert.AreEqual("Milk", q[1].Name, "The Name is not correctly filled.");
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual("Milk", result[1].Name, "The Name is not correctly filled.");
         }
 
         [Test]
         public void AllEntitiesVerifyReleaseDate()
         {
-            var q = ctx.Products.All().ToList();
-            Assert.AreEqual(new DateTime(1992, 1, 1), q[0].ReleaseDate, "The ReleaseDate is not correctly filled.");
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual(new DateTime(1992, 1, 1), result[0].ReleaseDate, "The ReleaseDate is not correctly filled.");
         }
 
         [Test]
         public void AllEntitiesOrderby()
         {
-            var q = ctx.Products.All().OrderBy(ctx.Products.Name).ToList();
+            var result = ctx.Products.All().OrderBy(ctx.Products.Name).ToList();
             for (int i = 0; i < 2; i++)
             {
-                Assert.Greater(q[i + 1].Name, q[i].Name, "Names are not in correct order.");
+                Assert.Greater(result[i + 1].Name, result[i].Name, "Names are not in correct order.");
             }
         }
 
         [Test]
         public void AllEntitiesOrderbyDescending()
         {
-            var q = ctx.Products.All().OrderByDescending(ctx.Products.Name).ToList();
+            var result = ctx.Products.All().OrderByDescending(ctx.Products.Name).ToList();
             for (int i = 0; i < 2; i++)
             {
-                Assert.Less(q[i + 1].Name, q[i].Name, "Names are not in correct order.");
+                Assert.Less(result[i + 1].Name, result[i].Name, "Names are not in correct order.");
             }
         }
 
         [Test]
         public void AllEntitiesVerifyQuantityValue()
         {
-            var q = ctx.Products.All().ToList();
-            Assert.AreEqual(12, q[0].Quantity.Value, "Unexpected quantity value.");
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual(12, result[0].Quantity.Value, "Unexpected quantity value.");
         }
 
         [Test]
         public void FilterEqualID()
         {
-            Assert.AreEqual(1, ctx.Products.FindAll(ctx.Products.ID == 1).Count());
+            var result = ctx.Products.FindAll(ctx.Products.ID == 1).ToList();
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
         public void FilterEqualName()
         {
-            Assert.AreEqual(1, ctx.Products.FindAll(ctx.Products.Name == "Bread").Count());
+            var result = ctx.Products.FindAll(ctx.Products.Name == "Bread").ToList();
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
         public void FilterEqualIDAndEqualName()
         {
-            Assert.AreEqual(1, ctx.Products.FindAll(ctx.Products.ID == 1 && ctx.Products.Name == "Bread").Count());
+            var result = ctx.Products.FindAll(ctx.Products.ID == 1 && ctx.Products.Name == "Bread").ToList();
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
         public void FilterGreaterID()
         {
-            Assert.AreEqual(3, ctx.Products.FindAll(ctx.Products.ID > 0).Count());
+            var result = ctx.Products.FindAll(ctx.Products.ID > 0).ToList();
+            Assert.AreEqual(3, result.Count);
         }
 
         [Test]
         public void FilterNameLength()
         {
-            Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.Name.Length() == 4).Count());
+            var result = ctx.Products.FindAll(ctx.Products.Name.Length() == 4).ToList();
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
         public void FilterNameContains()
         {
-            Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.Name.Contains("i") == true).Count());
+            var result = ctx.Products.FindAll(ctx.Products.Name.Contains("i") == true).ToList();
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
         public void FilterGreaterRating()
         {
-            Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.Rating > 3).Count());
+            var result = ctx.Products.FindAll(ctx.Products.Rating > 3).ToList();
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
         public void FilterGreaterIDAndNameLength()
         {
-            Assert.AreEqual(2, ctx.Products.FindAll(ctx.Products.ID > 0 && ctx.Products.Name.Length() == 4).Count());
+            var result = ctx.Products.FindAll(ctx.Products.ID > 0 && ctx.Products.Name.Length() == 4).ToList();
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]

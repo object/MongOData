@@ -12,9 +12,9 @@ namespace Mongo.Context.Queryable
         private MongoQueryProvider provider;
         private Expression expression;
 
-        public MongoQueryableResource(string connectionString, string collectionName)
+        public MongoQueryableResource(string connectionString, string collectionName, Type collectionType)
         {
-            this.provider = new MongoQueryProvider(connectionString, collectionName);
+            this.provider = new MongoQueryProvider(connectionString, collectionName, collectionType);
             this.expression = (new DSPResource[0]).AsQueryable().Expression;
         }
 

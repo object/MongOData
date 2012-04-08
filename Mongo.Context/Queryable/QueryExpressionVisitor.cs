@@ -5,63 +5,53 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using DataServiceProvider;
-using FluentMongo.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace Mongo.Context.Queryable
 {
     public class QueryExpressionVisitor : DSPMethodTranslatingVisitor
     {
-        private MongoCollection<BsonDocument> collection;
-        private Expression instanceExpression;
+        private IQueryable queryableCollection;
+        private Type collectionType;
 
-        public QueryExpressionVisitor(MongoCollection<BsonDocument> collection)
+        public QueryExpressionVisitor(MongoCollection mongoCollection, Type queryDocumentType)
         {
-            this.collection = collection;
-            this.instanceExpression = collection.AsQueryable().Expression;
-        }
-
-        public override Expression Visit(Expression exp)
-        {
-            var fieldVisitor = new ResourcePropertyExpressionVisitor();
-            var newExp = fieldVisitor.Visit(exp);
-            if (fieldVisitor.QueryFields.Count > 0)
-            {
-                fieldVisitor.QueryDocumentType = DocumentTypeBuilder.CompileDocumentType(typeof(BsonDocument), fieldVisitor.QueryFields);
-                newExp = fieldVisitor.Visit(exp);
-            }
-
-            return base.Visit(newExp);
+            var genericMethod = typeof(LinqExtensionMethods).GetMethod("AsQueryable");
+            var method = genericMethod.MakeGenericMethod(queryDocumentType);
+            this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
+            this.collectionType = queryDocumentType;
         }
 
         public override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
+            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess && (m.Arguments[0] as MemberExpression).Expression.Type == typeof(ResourceProperty))
+            {
+                var fieldName = (((m.Arguments[0] as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty).Name;
+                var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
+                var member = this.collectionType.GetMember(fieldName).First();
+
+                return Expression.MakeMemberAccess(parameterExpression, member);
+            }
+            else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
                 if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending")
                 {
+                    var lambda = Visit(ReplaceFieldLambda(m.Arguments[1]));
+                    var method = ReplaceGenericMethodType(m.Method, (lambda as LambdaExpression).ReturnType);
+
                     return Visit(Expression.Call(
-                        ReplaceGenericMethodType(m.Method, typeof(BsonValue)),
-                        this.instanceExpression,
-                        Visit(ReplaceFieldLambda(m.Arguments[1]))));
+                        method,
+                        this.queryableCollection.Expression,
+                        lambda));
                 }
                 else
                 {
                     return Visit(Expression.Call(
                         ReplaceGenericMethodType(m.Method),
-                        this.instanceExpression,
+                        this.queryableCollection.Expression,
                         Visit(m.Arguments[1])));
-                }
-            }
-            else if (m.Method.Name == "Contains" && m.Method.GetParameters().Count() == 1 && m.Method.GetParameters()[0].ParameterType == typeof(string))
-            {
-                if (ExpressionUtils.IsConvertWithMember(m.Object))
-                {
-                    return Visit(Expression.Call(
-                        Visit(ReplaceContainsAccessor(m.Object)),
-                        m.Method,
-                        m.Arguments));
                 }
             }
 
@@ -72,12 +62,14 @@ namespace Mongo.Context.Queryable
         {
             if (c.Value != null && c.Value.GetType() == typeof(EnumerableQuery<DSPResource>))
             {
-                return Expression.Constant(collection.AsQueryable());
+                return Expression.Constant(this.queryableCollection);
             }
-            else
+            else if (c.Type.IsGenericType && c.Type.BaseType == typeof(ValueType) && c.Type.UnderlyingSystemType.Name == "Nullable`1")
             {
-                return base.VisitConstant(c);
+                return Expression.Constant(c.Value);
             }
+
+            return base.VisitConstant(c);
         }
 
         public override Expression VisitLambda(LambdaExpression lambda)
@@ -88,10 +80,23 @@ namespace Mongo.Context.Queryable
                     Visit(lambda.Body),
                     ReplaceLambdaParameterType(lambda)));
             }
-            else
-            {
-                return base.VisitLambda(lambda);
-            }
+
+            return base.VisitLambda(lambda);
+        }
+
+        public override Expression VisitMemberAccess(MemberExpression m)
+        {
+            //if (m.Type == typeof(Int32) && m.Member.Name == "Length" && m.Expression is MemberExpression && (m.Expression as MemberExpression).Type == typeof(string))
+            //{
+            //    var genericMethod = typeof (Enumerable).GetMethods().Where(x => x.Name == "Count" && x.GetParameters().Count() == 1).Single();
+            //    var method = genericMethod.MakeGenericMethod(typeof (char));
+
+            //    return Expression.Call(
+            //        method,
+            //        m.Expression);
+            //}
+
+            return base.VisitMemberAccess(m);
         }
 
         public override Expression VisitConditional(ConditionalExpression c)
@@ -107,10 +112,8 @@ namespace Mongo.Context.Queryable
                     return Visit(c.IfFalse);
                 }
             }
-            else
-            {
-                return base.VisitConditional(c);
-            }
+
+            return base.VisitConditional(c);
         }
 
         public override Expression VisitBinary(BinaryExpression b)
@@ -119,17 +122,18 @@ namespace Mongo.Context.Queryable
             {
                 return Visit(b.Left);
             }
-            else
-            {
-                return base.VisitBinary(b);
-            }
+            
+            return base.VisitBinary(b);
         }
 
         public override Expression VisitUnary(UnaryExpression u)
         {
-            if (u.NodeType == ExpressionType.Convert && u.Type == typeof(DSPResource))
+            if (u.NodeType == ExpressionType.Convert)
             {
-                return Expression.Convert(Visit(u.Operand), typeof(BsonDocument));
+                if (u.Type.IsValueType || u.Type == typeof(string))
+                {
+                    return Visit(u.Operand);
+                }
             }
 
             return base.VisitUnary(u);
@@ -138,7 +142,7 @@ namespace Mongo.Context.Queryable
         private MethodInfo ReplaceGenericMethodType(MethodInfo method, params Type[] genericTypes)
         {
             var genericArguments = new List<Type>();
-            genericArguments.Add(typeof(BsonDocument));
+            genericArguments.Add(this.collectionType);
             genericArguments.AddRange(genericTypes);
             genericArguments.AddRange(method.GetGenericArguments().Skip(1 + genericTypes.Count()));
 
@@ -149,7 +153,7 @@ namespace Mongo.Context.Queryable
         private IEnumerable<ParameterExpression> ReplaceLambdaParameterType(LambdaExpression lambda)
         {
             var parameterExpressions = new List<ParameterExpression>();
-            parameterExpressions.Add(Expression.Parameter(typeof(BsonDocument)));
+            parameterExpressions.Add(Expression.Parameter(this.collectionType, lambda.Parameters[0].Name));
             parameterExpressions.AddRange(lambda.Parameters.Skip(1));
 
             return parameterExpressions;
@@ -162,19 +166,6 @@ namespace Mongo.Context.Queryable
             return Expression.Lambda(
                 (lambda.Body as UnaryExpression).Operand,
                 lambda.Parameters);
-        }
-
-        private Expression ReplaceContainsAccessor(Expression expression)
-        {
-            var memberExpression = (expression as UnaryExpression).Operand as MemberExpression;
-            var fieldName = memberExpression.Member.Name;
-
-            var dynamicType = DocumentTypeBuilder.CompileDocumentType(typeof(BsonDocument), new Dictionary<string, Type>() { { fieldName, typeof(string) } });
-
-            var parameterExpression = Expression.Parameter(dynamicType, fieldName);
-            var member = dynamicType.GetMember(fieldName).First();
-
-            return Expression.MakeMemberAccess(parameterExpression, member);
         }
     }
 }

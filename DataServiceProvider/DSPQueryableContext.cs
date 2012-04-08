@@ -8,10 +8,12 @@ namespace DataServiceProvider
 {
     public class DSPQueryableContext : DSPContext
     {
+        private DSPMetadata metadata;
         private Func<string, IQueryable> queryProviderFactory;
 
-        public DSPQueryableContext(Func<string, IQueryable> queryProviderFactory)
+        public DSPQueryableContext(DSPMetadata metadata, Func<string, IQueryable> queryProviderFactory)
         {
+            this.metadata = metadata;
             this.queryProviderFactory = queryProviderFactory;
         }
 

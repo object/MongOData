@@ -19,8 +19,9 @@ namespace Mongo.Context.Queryable
 
             ResetDataContext = x =>
                                    {
-                                       MongoQueryableDataService.metadata = new MongoMetadata().CreateMetadata(x);
-                                       MongoQueryableDataService.context = new MongoQueryableContext().CreateContext(metadata, x);
+                                       var mongoMetadata = new MongoMetadata(x);
+                                       MongoQueryableDataService.metadata = mongoMetadata.Metadata;
+                                       MongoQueryableDataService.context = new MongoQueryableContext().CreateContext(metadata, mongoMetadata.ProviderTypes, x);
                                    };
             ResetDataContext(connectionString);
         }

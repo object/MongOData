@@ -46,12 +46,18 @@ namespace Mongo.Context.Queryable
                         this.queryableCollection.Expression,
                         lambda));
                 }
-                else
+                else if (m.Arguments.Count == 2)
                 {
                     return Visit(Expression.Call(
                         ReplaceGenericMethodType(m.Method),
                         this.queryableCollection.Expression,
                         Visit(m.Arguments[1])));
+                }
+                else
+                {
+                    return Visit(Expression.Call(
+                        ReplaceGenericMethodType(m.Method),
+                        this.queryableCollection.Expression));
                 }
             }
 

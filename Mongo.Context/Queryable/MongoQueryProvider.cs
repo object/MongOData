@@ -43,32 +43,56 @@ namespace Mongo.Context.Queryable
 
         public TResult Execute<TResult>(Expression expression)
         {
-            throw new NotImplementedException();
+            if (expression == null)
+            {
+                throw new ArgumentNullException("expression");
+            }
+            if (!typeof(TResult).IsAssignableFrom(expression.Type))
+            {
+                throw new ArgumentException("Argument expression is not valid.");
+            }
+            return (TResult)Execute(expression);
         }
 
         public object Execute(Expression expression)
         {
-            throw new NotImplementedException();
+            return ExecuteNonQuery(expression);
         }
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
             var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection(collectionType, collectionName);
             var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
-            var genericMethod = this.GetType().GetMethod("GetEnumerableCollection");
+            var genericMethod = this.GetType().GetMethod("GetEnumerableCollection", BindingFlags.NonPublic | BindingFlags.Instance);
             var method = genericMethod.MakeGenericMethod(collectionType);
-            var resourceEnumerable = method.Invoke(this, new object[] { mongoCollection, collectionType, mongoExpression }) as IEnumerable<DSPResource>;
+            var resourceEnumerable = method.Invoke(this, new object[] { mongoCollection, mongoExpression }) as IEnumerable<DSPResource>;
 
             return resourceEnumerable.GetEnumerator() as IEnumerator<TElement>;
         }
 
-        public IEnumerable<DSPResource> GetEnumerableCollection<TSource>(MongoCollection mongoCollection, Type collectionType, Expression expression)
+        public object ExecuteNonQuery(Expression expression)
+        {
+            var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection(collectionType, collectionName);
+            var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
+
+            var genericMethod = this.GetType().GetMethod("GetExecutionResult", BindingFlags.NonPublic | BindingFlags.Instance);
+            var method = genericMethod.MakeGenericMethod(collectionType);
+
+            return method.Invoke(this, new object[] { mongoCollection, mongoExpression });
+        }
+
+        private IEnumerable<DSPResource> GetEnumerableCollection<TSource>(MongoCollection mongoCollection, Expression expression)
         {
             var mongoEnumerator = mongoCollection.AsQueryable<TSource>().Provider.CreateQuery<TSource>(expression).GetEnumerator();
             return GetEnumerable(mongoEnumerator);
         }
 
-        public IEnumerable<DSPResource> GetEnumerable<TSource>(IEnumerator<TSource> enumerator)
+        private object GetExecutionResult<TSource>(MongoCollection mongoCollection, Expression expression)
+        {
+            return mongoCollection.AsQueryable<TSource>().Provider.Execute(expression);
+        }
+
+        private IEnumerable<DSPResource> GetEnumerable<TSource>(IEnumerator<TSource> enumerator)
         {
             while (enumerator.MoveNext())
             {

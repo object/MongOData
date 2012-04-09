@@ -154,30 +154,23 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void FilterNameLength()
-        {
-            var result = ctx.Products.FindAll(ctx.Products.Name.Length() == 4).ToList();
-            Assert.AreEqual(2, result.Count);
-        }
-
-        [Test]
-        public void FilterNameContains()
+        public void FilterNameContainsEqualsTrue()
         {
             var result = ctx.Products.FindAll(ctx.Products.Name.Contains("i") == true).ToList();
             Assert.AreEqual(2, result.Count);
         }
 
         [Test]
-        public void FilterGreaterRating()
+        public void FilterNameContainsEqualsFalse()
         {
-            var result = ctx.Products.FindAll(ctx.Products.Rating > 3).ToList();
-            Assert.AreEqual(2, result.Count);
+            var result = ctx.Products.FindAll(ctx.Products.Name.Contains("i") == false).ToList();
+            Assert.AreEqual(1, result.Count);
         }
 
         [Test]
-        public void FilterGreaterIDAndNameLength()
+        public void FilterGreaterRating()
         {
-            var result = ctx.Products.FindAll(ctx.Products.ID > 0 && ctx.Products.Name.Length() == 4).ToList();
+            var result = ctx.Products.FindAll(ctx.Products.Rating > 3).ToList();
             Assert.AreEqual(2, result.Count);
         }
 
@@ -291,6 +284,19 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class InMemoryServiceQueryTests : QueryTests<ProductInMemoryService>
     {
+        [Test]
+        public void FilterNameLength()
+        {
+            var result = ctx.Products.FindAll(ctx.Products.Name.Length() == 4).ToList();
+            Assert.AreEqual(2, result.Count);
+        }
+
+        [Test]
+        public void FilterGreaterIDAndNameLength()
+        {
+            var result = ctx.Products.FindAll(ctx.Products.ID > 0 && ctx.Products.Name.Length() == 4).ToList();
+            Assert.AreEqual(2, result.Count);
+        }
     }
 
     [TestFixture]

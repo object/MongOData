@@ -41,28 +41,23 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\ThirdParties\mongodb-mongo-csharp-driver-055744e\Driver\bin\Debug\MongoDB.Driver.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework, Version=2.5.10.11092, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+    <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NUnit.2.5.10.11092\lib\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.mocks, Version=2.5.10.11092, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NUnit.2.5.10.11092\lib\nunit.mocks.dll</HintPath>
-    </Reference>
-    <Reference Include="pnunit.framework">
-      <HintPath>..\packages\NUnit.2.5.10.11092\lib\pnunit.framework.dll</HintPath>
+      <HintPath>..\packages\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="Simple.Data">
       <HintPath>..\packages\Simple.Data.Core.0.16.0.0\lib\net40\Simple.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.Data.OData">
-      <HintPath>..\packages\Simple.Data.OData.0.2.1.0\lib\net40\Simple.Data.OData.dll</HintPath>
+    <Reference Include="Simple.Data.OData, Version=0.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Simple.Data.OData.0.2.2.0\lib\net40\Simple.Data.OData.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.NExtLib">
-      <HintPath>..\packages\Simple.Data.OData.0.2.1.0\lib\net40\Simple.NExtLib.dll</HintPath>
+    <Reference Include="Simple.NExtLib, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Simple.Data.OData.0.2.2.0\lib\net40\Simple.NExtLib.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.OData">
-      <HintPath>..\packages\Simple.Data.OData.0.2.1.0\lib\net40\Simple.OData.dll</HintPath>
+    <Reference Include="Simple.OData, Version=0.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Simple.Data.OData.0.2.2.0\lib\net40\Simple.OData.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

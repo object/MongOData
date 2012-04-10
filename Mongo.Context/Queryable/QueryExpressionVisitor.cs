@@ -90,21 +90,6 @@ namespace Mongo.Context.Queryable
             return base.VisitLambda(lambda);
         }
 
-        public override Expression VisitMemberAccess(MemberExpression m)
-        {
-            //if (m.Type == typeof(Int32) && m.Member.Name == "Length" && m.Expression is MemberExpression && (m.Expression as MemberExpression).Type == typeof(string))
-            //{
-            //    var genericMethod = typeof (Enumerable).GetMethods().Where(x => x.Name == "Count" && x.GetParameters().Count() == 1).Single();
-            //    var method = genericMethod.MakeGenericMethod(typeof (char));
-
-            //    return Expression.Call(
-            //        method,
-            //        m.Expression);
-            //}
-
-            return base.VisitMemberAccess(m);
-        }
-
         public override Expression VisitConditional(ConditionalExpression c)
         {
             if (ExpressionUtils.IsEqualityWithNullability(c))
@@ -124,11 +109,12 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitBinary(BinaryExpression b)
         {
-            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>))
+            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>) && 
+                b.NodeType == ExpressionType.Equal && (b.Right as UnaryExpression).NodeType == ExpressionType.Convert)
             {
-                return Visit(b.Left);
+                return Visit(ReplaceBinaryComparison(b));
             }
-            
+
             return base.VisitBinary(b);
         }
 
@@ -172,6 +158,19 @@ namespace Mongo.Context.Queryable
             return Expression.Lambda(
                 (lambda.Body as UnaryExpression).Operand,
                 lambda.Parameters);
+        }
+
+        private Expression ReplaceBinaryComparison(BinaryExpression b)
+        {
+            var consantExpression = (b.Right as UnaryExpression).Operand as ConstantExpression;
+            if (consantExpression != null && consantExpression.Type == typeof(bool))
+            {
+                if ((bool)consantExpression.Value)
+                    return b.Left;
+                else
+                    return Expression.MakeUnary(ExpressionType.Not, b.Left, b.Type);
+            }
+            return b;
         }
     }
 }

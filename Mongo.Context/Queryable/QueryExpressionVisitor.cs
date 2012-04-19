@@ -18,7 +18,9 @@ namespace Mongo.Context.Queryable
 
         public QueryExpressionVisitor(MongoCollection mongoCollection, Type queryDocumentType)
         {
-            var genericMethod = typeof(LinqExtensionMethods).GetMethod("AsQueryable");
+            var genericMethod = typeof(LinqExtensionMethods).GetMethods()
+                .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
+                .Single();
             var method = genericMethod.MakeGenericMethod(queryDocumentType);
             this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
             this.collectionType = queryDocumentType;
@@ -138,7 +140,8 @@ namespace Mongo.Context.Queryable
             genericArguments.AddRange(genericTypes);
             genericArguments.AddRange(method.GetGenericArguments().Skip(1 + genericTypes.Count()));
 
-            return typeof(System.Linq.Queryable).GetMethods().Where(x => x.Name == method.Name).First()
+            return typeof(System.Linq.Queryable).GetMethods()
+                .Where(x => x.Name == method.Name).First()
                 .MakeGenericMethod(genericArguments.ToArray());
         }
 

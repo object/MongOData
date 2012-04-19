@@ -54,7 +54,8 @@ namespace Mongo.DataService
         private void RegisterRoutes()
         {
             DataServiceHostFactory factory = new DataServiceHostFactory();
-            var databaseNames = MongoContext.GetDatabaseNames(ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString);
+            string serverName = Utils.ExtractServerNameFromConnectionString(ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString);
+            var databaseNames = MongoContext.GetDatabaseNames(serverName);
             foreach (var databaseName in databaseNames)
             {
                 RouteTable.Routes.Add(new ServiceRoute(databaseName, factory, typeof(MongOData)));

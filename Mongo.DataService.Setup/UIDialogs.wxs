@@ -14,6 +14,8 @@
           Width="100" Height="15" TabSkip="no" Text="&amp;Connection String:" />
         <Control Id="ConnectionStringEdit" Type="Edit" X="55" Y="132"
           Width="237" Height="18" Property="CONNECTION_STRING" Text="{200}" />
+        <Control Id="ConnectionStringDescription" Type="Text" X="55" Y="156"
+          Width="220" Height="50" TabSkip="no" Text="Replace DATABASE_NAME with the name of the MongoDB database or use * to enable access to all server databases (e.g. mongodb://localhost/*?strict=true)" />
         <!-- Navigation buttons -->
         <Control Id="Back" Type="PushButton" X="180" Y="243"
                Width="56" Height="17" Default="yes" Text="&amp;Back">

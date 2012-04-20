@@ -140,6 +140,13 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void FilterEqualNameCountVerifyResult()
+        {
+            var result = ctx.Products.FindAll(ctx.Products.Name == "Bread").Count();
+            Assert.AreEqual(1, result, "The count is not correctly computed.");
+        }
+
+        [Test]
         public void FilterEqualIDAndEqualName()
         {
             var result = ctx.Products.FindAll(ctx.Products.ID == 1 && ctx.Products.Name == "Bread").ToList();

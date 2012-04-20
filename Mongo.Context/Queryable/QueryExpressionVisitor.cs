@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Services.Providers;
 using System.Linq;
 using System.Linq.Expressions;
@@ -48,18 +49,11 @@ namespace Mongo.Context.Queryable
                         this.queryableCollection.Expression,
                         lambda));
                 }
-                else if (m.Arguments.Count == 2)
-                {
-                    return Visit(Expression.Call(
-                        ReplaceGenericMethodType(m.Method),
-                        this.queryableCollection.Expression,
-                        Visit(m.Arguments[1])));
-                }
                 else
                 {
                     return Visit(Expression.Call(
                         ReplaceGenericMethodType(m.Method),
-                        this.queryableCollection.Expression));
+                        new ReadOnlyCollection<Expression>(m.Arguments.Select(x => Visit(x)).ToList())));
                 }
             }
 
@@ -111,7 +105,7 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitBinary(BinaryExpression b)
         {
-            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>) && 
+            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>) &&
                 b.NodeType == ExpressionType.Equal && (b.Right as UnaryExpression).NodeType == ExpressionType.Convert)
             {
                 return Visit(ReplaceBinaryComparison(b));

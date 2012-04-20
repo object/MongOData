@@ -180,6 +180,7 @@ namespace Mongo.Context.Tests
             var result = ctx.Products.FindAll(ctx.Products.Rating > 3).ToList();
             Assert.AreEqual(2, result.Count);
         }
+
         [Test]
         public void FilterNameLength()
         {
@@ -192,6 +193,13 @@ namespace Mongo.Context.Tests
         {
             var result = ctx.Products.FindAll(ctx.Products.ID > 0 && ctx.Products.Name.Length() == 4).ToList();
             Assert.AreEqual(2, result.Count);
+        }
+
+        [Test]
+        public void FilterNameLengthOrderByCountVerifyResult()
+        {
+            var result = ctx.Products.FindAll(ctx.Products.Name.Length() == 4).OrderBy(ctx.Products.Rating).Count();
+            Assert.AreEqual(2, result, "The count is not correctly computed.");
         }
 
         [Test]

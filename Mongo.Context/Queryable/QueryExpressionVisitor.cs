@@ -42,11 +42,10 @@ namespace Mongo.Context.Queryable
                 if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending")
                 {
                     var lambda = Visit(ReplaceFieldLambda(m.Arguments[1]));
-                    var method = ReplaceGenericMethodType(m.Method, (lambda as LambdaExpression).ReturnType);
 
                     return Visit(Expression.Call(
-                        method,
-                        this.queryableCollection.Expression,
+                        ReplaceGenericMethodType(m.Method, (lambda as LambdaExpression).ReturnType),
+                        Visit(m.Arguments[0]),
                         lambda));
                 }
                 else

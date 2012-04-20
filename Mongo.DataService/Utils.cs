@@ -62,16 +62,16 @@ namespace Mongo.DataService
 
         public static string ExtractDatabaseNameFromRequestPath(string requestPath)
         {
-            if (requestPath.StartsWith("/"))
+            var startIndex = requestPath.StartsWith("/") ? 1 : 0;
+            var endIndex = requestPath.IndexOf("/", startIndex);
+            if (endIndex > 0)
             {
-                var startIndex = 1;
-                var endIndex = requestPath.IndexOf("/", 1);
-                if (endIndex > 0)
-                {
-                    return requestPath.Substring(startIndex, endIndex - startIndex);
-                }
+                return requestPath.Substring(startIndex, endIndex - startIndex);
             }
-            return String.Empty;
+            else
+            {
+                return requestPath.Substring(startIndex);
+            }
         }
     }
 }

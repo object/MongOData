@@ -59,6 +59,16 @@ namespace Mongo.Context.Queryable
             return base.VisitMethodCall(m);
         }
 
+        public override Expression VisitMemberAccess(MemberExpression m)
+        {
+            if (m.Member.Name == "Value" && m.Member.DeclaringType == typeof(Nullable<bool>))
+            {
+                return ((m.Expression as ConditionalExpression).IfFalse as UnaryExpression).Operand;
+            }
+
+            return base.VisitMemberAccess(m);
+        }
+
         public override Expression VisitConstant(ConstantExpression c)
         {
             if (c.Value != null && c.Value.GetType() == typeof(EnumerableQuery<DSPResource>))
@@ -87,7 +97,7 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitConditional(ConditionalExpression c)
         {
-            if (ExpressionUtils.IsEqualityWithNullability(c))
+            if (ExpressionUtils.IsRedundantEqualityTest(c))
             {
                 if (ExpressionUtils.IsConvertWithMethod(c.IfFalse, "Contains"))
                 {
@@ -104,8 +114,8 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitBinary(BinaryExpression b)
         {
-            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>) &&
-                b.NodeType == ExpressionType.Equal && (b.Right as UnaryExpression).NodeType == ExpressionType.Convert)
+            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>) && b.NodeType == ExpressionType.Equal &&
+                (b.Right.NodeType == ExpressionType.Convert || b.Right.NodeType == ExpressionType.Constant))
             {
                 return Visit(ReplaceBinaryComparison(b));
             }
@@ -158,15 +168,18 @@ namespace Mongo.Context.Queryable
 
         private Expression ReplaceBinaryComparison(BinaryExpression b)
         {
-            var consantExpression = (b.Right as UnaryExpression).Operand as ConstantExpression;
-            if (consantExpression != null && consantExpression.Type == typeof(bool))
+            var consantExpression = (b.Right is ConstantExpression ? b.Right : (b.Right as UnaryExpression).Operand) as ConstantExpression;
+            if (consantExpression.Type == typeof(bool))
             {
                 if ((bool)consantExpression.Value)
                     return b.Left;
                 else
                     return Expression.MakeUnary(ExpressionType.Not, b.Left, b.Type);
             }
-            return b;
+            else // null
+            {
+                return b.Left;
+            }
         }
     }
 }

@@ -48,18 +48,23 @@ namespace Mongo.Context.Queryable
             }
         }
 
-        public static bool IsEqualityWithNullability(ConditionalExpression c)
+        public static bool IsRedundantEqualityTest(ConditionalExpression c)
         {
-            if (c.IfTrue is ConstantExpression && (c.IfTrue as ConstantExpression).Value == null
-                && c.Test is BinaryExpression && (c.Test as BinaryExpression).Method.Name == "op_Equality"
-                && (c.Test as BinaryExpression).Right is ConstantExpression && ((c.Test as BinaryExpression).Right as ConstantExpression).Value == null)
+            var constantExpression = c.IfTrue as ConstantExpression;
+            if (constantExpression == null) return false;
+            if (constantExpression.Value == null || constantExpression.Value.Equals(false))
             {
-                return true;
+                var binaryExpression = c.Test as BinaryExpression;
+                if (binaryExpression == null) return false;
+                if (binaryExpression.NodeType == ExpressionType.Equal || binaryExpression.Method != null && binaryExpression.Method.Name == "op_Equality")
+                {
+                    if (binaryExpression.Right is ConstantExpression && (binaryExpression.Right as ConstantExpression).Value == null)
+                    {
+                        return true;
+                    }
+                }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         public static bool IsConvertWithMethod(Expression e, string methodName)

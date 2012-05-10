@@ -39,7 +39,7 @@ namespace Mongo.Context.Queryable
             }
             else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
-                if (m.Method.Name == "OrderBy" || m.Method.Name == "OrderByDescending")
+                if (ExpressionUtils.IsOrderMethod(m))
                 {
                     var lambda = Visit(ReplaceFieldLambda(m.Arguments[1]));
 

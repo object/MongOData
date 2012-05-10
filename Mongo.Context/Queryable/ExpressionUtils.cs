@@ -23,7 +23,7 @@ namespace Mongo.Context.Queryable
         internal static bool IsExpressionLinqSelect(Expression expression)
         {
             return expression.NodeType == ExpressionType.Call &&
-                   IsMethodLinqSelect(((MethodCallExpression) expression).Method);
+                   IsMethodLinqSelect(((MethodCallExpression)expression).Method);
         }
 
         public static bool IsMethodLinqSelect(MethodInfo m)
@@ -56,9 +56,11 @@ namespace Mongo.Context.Queryable
             {
                 var binaryExpression = c.Test as BinaryExpression;
                 if (binaryExpression == null) return false;
-                if (binaryExpression.NodeType == ExpressionType.Equal || binaryExpression.Method != null && binaryExpression.Method.Name == "op_Equality")
+                if (binaryExpression.NodeType == ExpressionType.Equal ||
+                    binaryExpression.Method != null && binaryExpression.Method.Name == "op_Equality")
                 {
-                    if (binaryExpression.Right is ConstantExpression && (binaryExpression.Right as ConstantExpression).Value == null)
+                    if (binaryExpression.Right is ConstantExpression &&
+                        (binaryExpression.Right as ConstantExpression).Value == null)
                     {
                         return true;
                     }
@@ -92,6 +94,13 @@ namespace Mongo.Context.Queryable
             {
                 return false;
             }
+        }
+
+        public static bool IsOrderMethod(MethodCallExpression m)
+        {
+            var orderMethods = new string[] {"OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending"};
+
+            return orderMethods.Contains(m.Method.Name);
         }
 
         public static Expression ReplaceParameterType(Expression expression, Type replacementType, Func<Expression, Expression> Visit)

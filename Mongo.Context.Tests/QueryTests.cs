@@ -119,6 +119,13 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void AllEntitiesOrderbyTakeOneVerifyResultCount()
+        {
+            var result = ctx.Products.All().OrderBy(ctx.Products.Name).Take(1).ToList();
+            Assert.AreEqual(1, result.Count, "The service returned unexpected number of results.");
+        }
+
+        [Test]
         public void AllEntitiesVerifyQuantityValue()
         {
             var result = ctx.Products.All().ToList();

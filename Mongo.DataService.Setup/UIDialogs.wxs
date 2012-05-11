@@ -8,14 +8,14 @@
         <Control Id="VirtualDirLabel" Type="Text" X="55" Y="80"
            Width="100" Height="15" TabSkip="no" Text="&amp;Virtual Directory:" />
         <Control Id="VirtualDirEdit" Type="Edit" X="55" Y="92" 
-           Width="237" Height="18" Property="VIRTUAL_DIR_VAL" Text="{80}" />
+           Width="240" Height="18" Property="VIRTUAL_DIR_VAL" Text="{80}" />
         <!-- Connection string -->
         <Control Id="ConnectionStringLabel" Type="Text" X="55" Y="120"
           Width="100" Height="15" TabSkip="no" Text="&amp;Connection String:" />
         <Control Id="ConnectionStringEdit" Type="Edit" X="55" Y="132"
-          Width="237" Height="18" Property="CONNECTION_STRING" Text="{200}" />
+          Width="240" Height="18" Property="CONNECTION_STRING" Text="{200}" />
         <Control Id="ConnectionStringDescription" Type="Text" X="55" Y="156"
-          Width="220" Height="50" TabSkip="no" Text="Replace DATABASE_NAME with the name of the MongoDB database or use * to enable access to all server databases (e.g. mongodb://localhost/*?strict=true)" />
+          Width="240" Height="50" TabSkip="no" Text="Keep wildcard '*' in connection string to enable access to all server databases or replace it with the name of the specific MongoDB database (e.g. mongodb://localhost/MyData?strict=true)" />
         <!-- Navigation buttons -->
         <Control Id="Back" Type="PushButton" X="180" Y="243"
                Width="56" Height="17" Default="yes" Text="&amp;Back">

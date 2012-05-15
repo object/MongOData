@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D0D2CB2F-C630-4ABF-A298-3744D1CC44E6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{D0D2CB2F-C630-4ABF-A298-3744D1CC44E6}"
 	ProjectSection(SolutionItems) = preProject
 		CommonAssemblyInfo.cs = CommonAssemblyInfo.cs
 	EndProjectSection
@@ -13,6 +13,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mongo.Context.Tests", "Mongo.Context.Tests\Mongo.Context.Tests.csproj", "{8C580647-C8E4-40A3-ACF3-E35387E08225}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mongo.DataService", "Mongo.DataService\Mongo.DataService.csproj", "{ECE470FB-5707-4CF7-AF81-B07A01E43EF8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuspec", "Nuspec", "{368A815B-7F32-4541-890A-106372ACB71E}"
+	ProjectSection(SolutionItems) = preProject
+		Nuspec\MongOData.nuspec = Nuspec\MongOData.nuspec
+		Nuspec\MongoDataService.cs.pp = Nuspec\MongoDataService.cs.pp
+		Nuspec\MongoDataService.svc.pp = Nuspec\MongoDataService.svc.pp
+		Nuspec\NugetPack.cmd = Nuspec\NugetPack.cmd
+		Nuspec\NugetPush.cmd = Nuspec\NugetPush.cmd
+		Nuspec\web.config.transform = Nuspec\web.config.transform
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

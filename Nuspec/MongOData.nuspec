@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>MongOData</id>
+    <version>0.3.1</version>
+    <title>MongOData</title>
+    <authors>Vagif Abilov</authors>
+    <owners>Vagif Abilov</owners>
+    <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+    <projectUrl>http://github.com/object/MongOData</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>MongoDB OData provider</description>
+    <summary></summary>
+    <releaseNotes></releaseNotes>
+    <language>en-US</language>
+    <tags>mongodata mongodb odata</tags>
+	<frameworkAssemblies>
+		<frameworkAssembly assemblyName="System.Data.Services" />
+    <frameworkAssembly assemblyName="System.Data.Services.Client" />
+  </frameworkAssemblies>	
+    <dependencies>
+      <dependency id="mongocsharpdriver" version="1.4.1" />
+    </dependencies>
+  </metadata>
+  <files>
+	<file src="..\Mongo.Context\bin\Release\Mongo.Context.dll" target="lib\net40" />
+  <file src="..\Mongo.Context\bin\Release\DataServiceProvider.dll" target="lib\net40" />
+  <file src="web.config.transform" target="content\web.config.transform" />
+	<file src="MongoDataService.svc.pp" target="content" />
+	<file src="MongoDataService.cs.pp" target="content" />
+  </files>
+</package>

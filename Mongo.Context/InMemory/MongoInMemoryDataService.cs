@@ -6,7 +6,7 @@ using DataServiceProvider;
 
 namespace Mongo.Context.InMemory
 {
-    public abstract class MongoInMemoryDataService : DSPDataService<DSPInMemoryContext, DSPResourceQueryProvider>
+    public abstract class MongoInMemoryDataService : DSPDataService<DSPInMemoryContext, DSPResourceQueryProvider, DSPUpdateProvider>
     {
         protected string connectionString;
         protected static Action<string> ResetDataContext;
@@ -16,6 +16,7 @@ namespace Mongo.Context.InMemory
         public MongoInMemoryDataService(string connectionString)
         {
             this.connectionString = connectionString;
+            this.updateProviderFunc = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, this.metadata);
 
             ResetDataContext = x => MongoInMemoryDataService.context = new MongoInMemoryContext().CreateContext(base.Metadata, x);
             ResetDataContext(connectionString);

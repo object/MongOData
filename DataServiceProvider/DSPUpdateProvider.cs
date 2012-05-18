@@ -76,7 +76,7 @@ namespace DataServiceProvider
         /// in the parameters as the resource "handle".
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public void AddReferenceToCollection(object targetResource, string propertyName, object resourceToBeAdded)
+        public virtual void AddReferenceToCollection(object targetResource, string propertyName, object resourceToBeAdded)
         {
             // We don't use resource "handles" so both resources passed in as parameters are the real resource instances.
             DSPResource dspTargetResource = ValidateDSPResource(targetResource);
@@ -103,7 +103,7 @@ namespace DataServiceProvider
         /// <remarks>This method gets called if there was some problem applying changes specified by the request and the changes need to be reverted.
         /// All changes made by the methods on this class should be reverted when this method returns. Note that the class might get used to perform some more
         /// changes after this call.</remarks>
-        public void ClearChanges()
+        public virtual void ClearChanges()
         {
             // Simply clear the list of pending changes
             this.pendingChanges.Clear();
@@ -129,7 +129,7 @@ namespace DataServiceProvider
         ///       complex property.
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public object CreateResource(string containerName, string fullTypeName)
+        public virtual object CreateResource(string containerName, string fullTypeName)
         {
             ResourceType resourceType;
             if (!this.metadata.TryResolveResourceType(fullTypeName, out resourceType))
@@ -180,7 +180,7 @@ namespace DataServiceProvider
         /// should be deleted when the entity type which points to them is deleted.
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public void DeleteResource(object targetResource)
+        public virtual void DeleteResource(object targetResource)
         {
             DSPResource dspTargetResource = ValidateDSPResource(targetResource);
 
@@ -205,7 +205,7 @@ namespace DataServiceProvider
         /// The <paramref name="fullTypeName"/> is the expected FullName of the resource type of the resource to be retrieved. If this parameter is null
         /// the method should ignore it. If it's not null, the method should check that the resource returned by the query is of this resource type
         /// and fail if that's not the case.</remarks>
-        public object GetResource(System.Linq.IQueryable query, string fullTypeName)
+        public virtual object GetResource(System.Linq.IQueryable query, string fullTypeName)
         {
             // Since we're not using resource handles we're going to return the resource itself.
             object resource = null;
@@ -249,7 +249,7 @@ namespace DataServiceProvider
         /// <returns>the value of the property for the given target resource</returns>
         /// <remarks>The method gets a resource "handle" in the <paramref name="targetResource"/> and the name of a resource property
         /// defined on it and should return the value of that property.</remarks>
-        public object GetValue(object targetResource, string propertyName)
+        public virtual object GetValue(object targetResource, string propertyName)
         {
             DSPResource dspTargetResource = ValidateDSPResource(targetResource);
 
@@ -268,7 +268,7 @@ namespace DataServiceProvider
         /// in the parameters as the resource "handle".
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public void RemoveReferenceFromCollection(object targetResource, string propertyName, object resourceToBeRemoved)
+        public virtual void RemoveReferenceFromCollection(object targetResource, string propertyName, object resourceToBeRemoved)
         {
             // We don't use resource "handles" so both resources passed in as parameters are the real resource instances.
             DSPResource dspTargetResource = ValidateDSPResource(targetResource);
@@ -304,7 +304,7 @@ namespace DataServiceProvider
         /// The returned resource must have the same identity as the one on the input. That means all its key properties must have the same value.
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public object ResetResource(object resource)
+        public virtual object ResetResource(object resource)
         {
             DSPResource dspResource = ValidateDSPResource(resource);
 
@@ -328,7 +328,7 @@ namespace DataServiceProvider
         /// </summary>
         /// <param name="resource">object representing the resource whose instance needs to be fetched</param>
         /// <returns>The actual instance of the resource represented by the given resource object</returns>
-        public object ResolveResource(object resource)
+        public virtual object ResolveResource(object resource)
         {
             // We're not using resource handles, so the resource is also the handle itself
             // It is possible to represent resources with "handles" here instead. This method is meant to translate the resource handle 
@@ -342,7 +342,7 @@ namespace DataServiceProvider
         /// <remarks>All changes made by methods on this class should not be persisted until this SaveChanges method gets called.
         /// After this method returns the changes should be persited in the underlying data storage.
         /// Note that this class might be used to perform additional update operations after this method is called.</remarks>
-        public void SaveChanges()
+        public virtual void SaveChanges()
         {
             // Just run all the pending changes we gathered so far
             foreach (var pendingChange in this.pendingChanges)
@@ -365,7 +365,7 @@ namespace DataServiceProvider
         /// - Remove the reference if the old value of the reference property was non-null and the new value <paramref name="propertyValue"/> is null.
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public void SetReference(object targetResource, string propertyName, object propertyValue)
+        public virtual void SetReference(object targetResource, string propertyName, object propertyValue)
         {
             // Note that we don't support bi-directional relationships so we only handle the one resource reference property in isolation.
 
@@ -385,7 +385,7 @@ namespace DataServiceProvider
         /// to value specified by <paramref name="propertyValue"/> on the resource specified by the resource "handle" <paramref name="targetResource"/>.
         /// All changes made by this method should be creates as pending until SaveChanges is called which will commit them (or if it's not called and ClearChanges
         /// is called instead they should be discarded).</remarks>
-        public void SetValue(object targetResource, string propertyName, object propertyValue)
+        public virtual void SetValue(object targetResource, string propertyName, object propertyValue)
         {
             DSPResource dspTargetResource = ValidateDSPResource(targetResource);
 
@@ -400,7 +400,7 @@ namespace DataServiceProvider
 
         #region IDataServiceUpdateProvider Members
 
-        public void SetConcurrencyValues(object resourceCookie, bool? checkForEquality, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> concurrencyValues)
+        public virtual void SetConcurrencyValues(object resourceCookie, bool? checkForEquality, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> concurrencyValues)
         {
             throw new NotImplementedException();
         }

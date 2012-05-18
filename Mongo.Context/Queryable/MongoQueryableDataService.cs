@@ -6,7 +6,7 @@ using DataServiceProvider;
 
 namespace Mongo.Context.Queryable
 {
-    public abstract class MongoQueryableDataService : DSPDataService<DSPQueryableContext, MongoDSPResourceQueryProvider>
+    public abstract class MongoQueryableDataService : DSPDataService<DSPQueryableContext, MongoDSPResourceQueryProvider, MongoDSPUpdateProvider>
     {
         protected string connectionString;
         protected static Action<string> ResetDataContext;
@@ -16,6 +16,7 @@ namespace Mongo.Context.Queryable
         public MongoQueryableDataService(string connectionString)
         {
             this.connectionString = connectionString;
+            this.updateProviderFunc = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, Metadata);
 
             ResetDataContext = x =>
                                    {

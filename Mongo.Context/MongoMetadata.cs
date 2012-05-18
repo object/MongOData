@@ -64,50 +64,9 @@ namespace Mongo.Context
             foreach (var element in document.Elements)
             {
                 var elementType = GetElementType(element);
+                RegisterResourceProperty(metadata, context, collectionName, collectionType, elementType, element, resourceTypeKind);
                 if (IsObjectId(element))
-                {
-                    if (resourceTypeKind == ResourceTypeKind.EntityType)
-                        metadata.AddKeyProperty(collectionType, MappedObjectIdName, elementType);
-                    else
-                        metadata.AddPrimitiveProperty(collectionType, MappedObjectIdName, elementType);
-                    AddProviderType(collectionName, MappedObjectIdName, element.Value);
                     hasObjectId = true;
-                }
-                else if (elementType == typeof(BsonDocument))
-                {
-                    ResourceType resourceType = null;
-                    var resourceSet = metadata.ResourceSets.SingleOrDefault(x => x.Name == element.Name);
-                    if (resourceSet != null)
-                    {
-                        resourceType = resourceSet.ResourceType;
-                    }
-                    else
-                    {
-                        resourceType = RegisterResourceType(metadata, context,
-                            GetComplexTypeName(collectionName, element.Name),
-                            element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
-                    }
-                    metadata.AddComplexProperty(collectionType, element.Name, resourceType);
-                    AddProviderType(collectionName, element.Name, element.Value);
-                }
-                else if (elementType == typeof(BsonArray))
-                {
-                    var bsonArray = element.Value.AsBsonArray;
-                    if (bsonArray != null && bsonArray.Count > 0)
-                    {
-                        // TODO
-                        //var referencedCollection = GetDocumentCollection(context, bsonArray[0].AsBsonDocument);
-                        //if (referencedCollection != null)
-                        //{
-                        //    resourceReferences.Add(new Tuple<ResourceType, string, string>(collectionType, element.Name, referencedCollection.Name));
-                        //}
-                    }
-                }
-                else
-                {
-                    metadata.AddPrimitiveProperty(collectionType, element.Name, elementType);
-                    AddProviderType(collectionName, element.Name, element.Value);
-                }
             }
 
             if (resourceTypeKind == ResourceTypeKind.EntityType)
@@ -119,6 +78,54 @@ namespace Mongo.Context
             }
 
             return collectionType;
+        }
+
+        private void RegisterResourceProperty(DSPMetadata metadata, MongoContext context, 
+            string collectionName, ResourceType collectionType, Type elementType, BsonElement element, ResourceTypeKind resourceTypeKind)
+        {
+            if (IsObjectId(element))
+            {
+                if (resourceTypeKind == ResourceTypeKind.EntityType)
+                    metadata.AddKeyProperty(collectionType, MappedObjectIdName, elementType);
+                else
+                    metadata.AddPrimitiveProperty(collectionType, MappedObjectIdName, elementType);
+                AddProviderType(collectionName, MappedObjectIdName, element.Value);
+            }
+            else if (elementType == typeof (BsonDocument))
+            {
+                ResourceType resourceType = null;
+                var resourceSet = metadata.ResourceSets.SingleOrDefault(x => x.Name == element.Name);
+                if (resourceSet != null)
+                {
+                    resourceType = resourceSet.ResourceType;
+                }
+                else
+                {
+                    resourceType = RegisterResourceType(metadata, context,
+                                                        GetComplexTypeName(collectionName, element.Name),
+                                                        element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
+                }
+                metadata.AddComplexProperty(collectionType, element.Name, resourceType);
+                AddProviderType(collectionName, element.Name, element.Value);
+            }
+            else if (elementType == typeof (BsonArray))
+            {
+                var bsonArray = element.Value.AsBsonArray;
+                if (bsonArray != null && bsonArray.Count > 0)
+                {
+                    // TODO
+                    //var referencedCollection = GetDocumentCollection(context, bsonArray[0].AsBsonDocument);
+                    //if (referencedCollection != null)
+                    //{
+                    //    resourceReferences.Add(new Tuple<ResourceType, string, string>(collectionType, element.Name, referencedCollection.Name));
+                    //}
+                }
+            }
+            else
+            {
+                metadata.AddPrimitiveProperty(collectionType, element.Name, elementType);
+                AddProviderType(collectionName, element.Name, element.Value);
+            }
         }
 
         private void AddProviderType(string collectionName, string elementName, BsonValue elementValue)

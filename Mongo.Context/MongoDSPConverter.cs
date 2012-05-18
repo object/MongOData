@@ -81,5 +81,23 @@ namespace Mongo.Context
         {
             return CreateDSPResource(document.ToBsonDocument(), metadata, resourceName, ownerPrefix);
         }
+
+        public static BsonDocument CreateBSonDocument(DSPResource resource, DSPMetadata metadata, string resourceName)
+        {
+            var document = new BsonDocument();
+            var resourceSet = metadata.ResourceSets.SingleOrDefault(x => x.Name == resourceName);
+            if (resourceSet != null)
+            {
+                foreach (var property in resourceSet.ResourceType.Properties)
+                {
+                    var propertyValue = resource.GetValue(property.Name);
+                    if (propertyValue != null)
+                    {
+                        document.Set(property.Name, BsonValue.Create(propertyValue));
+                    }
+                }
+            }
+            return document;
+        }
     }
 }

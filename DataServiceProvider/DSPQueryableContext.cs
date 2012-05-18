@@ -9,17 +9,17 @@ namespace DataServiceProvider
     public class DSPQueryableContext : DSPContext
     {
         private DSPMetadata metadata;
-        private Func<string, IQueryable> queryProviderFactory;
+        private Func<string, IQueryable> queryProviderFunc;
 
-        public DSPQueryableContext(DSPMetadata metadata, Func<string, IQueryable> queryProviderFactory)
+        public DSPQueryableContext(DSPMetadata metadata, Func<string, IQueryable> queryProviderFunc)
         {
             this.metadata = metadata;
-            this.queryProviderFactory = queryProviderFactory;
+            this.queryProviderFunc = queryProviderFunc;
         }
 
         public override IQueryable GetQueryable(string resourceSetName)
         {
-            return this.queryProviderFactory(resourceSetName);
+            return this.queryProviderFunc(resourceSetName);
         }
 
         public override void AddResource(string resourceSetName, DSPResource resource)

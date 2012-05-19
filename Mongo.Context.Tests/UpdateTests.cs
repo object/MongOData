@@ -93,8 +93,8 @@ namespace Mongo.Context.Tests
     {
     }
 
-    //[TestFixture]
-    //public class QueryableServiceUpdateTests : UpdateTests<ProductQueryableService>
-    //{
-    //}
+    [TestFixture]
+    public class QueryableServiceUpdateTests : UpdateTests<ProductQueryableService>
+    {
+    }
 }

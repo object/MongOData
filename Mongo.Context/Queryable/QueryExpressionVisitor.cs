@@ -119,8 +119,19 @@ namespace Mongo.Context.Queryable
             {
                 return Visit(ReplaceBinaryComparison(b));
             }
-
-            return base.VisitBinary(b);
+            else
+            {
+                Expression left = this.Visit(b.Left);
+                Expression right = this.Visit(b.Right);
+                if (left.Type == typeof(ObjectId) && right.Type == typeof(string) && right is ConstantExpression)
+                {
+                    return Visit(Expression.MakeBinary(b.NodeType, left, Expression.Constant(ObjectId.Parse((right as ConstantExpression).Value.ToString()))));
+                }
+                else
+                {
+                    return base.VisitBinary(b);
+                }
+            }
         }
 
         public override Expression VisitUnary(UnaryExpression u)

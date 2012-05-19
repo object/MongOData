@@ -19,7 +19,7 @@ namespace DataServiceProvider
     /// <typeparam name="T">The type of the context to use. This must derive from the <see cref="DSPContext"/> class.</typeparam>
     public abstract class DSPDataService<T,Q,U> : DataService<T>, IServiceProvider 
         where T : DSPContext 
-        where Q : DSPResourceQueryProvider, new()
+        where Q : DSPResourceQueryProvider
         where U : DSPUpdateProvider
     {
         /// <summary>The metadata definition. This also provides the <see cref="IDataServiceMetadataProvider"/> implementation.</summary>
@@ -32,11 +32,13 @@ namespace DataServiceProvider
         /// <returns>The metadata definition for the service. Note that this is called only once per the service lifetime.</returns>
         protected abstract DSPMetadata CreateDSPMetadata();
 
-        protected Func<DSPUpdateProvider> updateProviderFunc;
+        protected Func<DSPResourceQueryProvider> createResourceQueryProvider;
+        protected Func<DSPUpdateProvider> createUpdateProvider;
 
         public DSPDataService()
         {
-            this.updateProviderFunc = () => new DSPUpdateProvider(this.CurrentDataSource, this.Metadata);
+            this.createResourceQueryProvider = () => new DSPResourceQueryProvider();
+            this.createUpdateProvider = () => new DSPUpdateProvider(this.CurrentDataSource, this.Metadata);
         }
 
         /// <summary>Returns the metadata definition for the service. It will create it if no metadata is available yet.</summary>
@@ -48,7 +50,7 @@ namespace DataServiceProvider
                 {
                     this.metadata = CreateDSPMetadata();
                     this.metadata.SetReadOnly();
-                    this.resourceQueryProvider = new Q();
+                    this.resourceQueryProvider = this.createResourceQueryProvider();
                     this.resourceQueryProvider.Metadata = this.metadata;
                 }
 
@@ -73,7 +75,7 @@ namespace DataServiceProvider
             }
             else if (serviceType == typeof(IDataServiceUpdateProvider))
             {
-                return updateProviderFunc();
+                return createUpdateProvider();
             }
             else
             {

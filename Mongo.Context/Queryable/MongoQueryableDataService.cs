@@ -16,7 +16,8 @@ namespace Mongo.Context.Queryable
         public MongoQueryableDataService(string connectionString)
         {
             this.connectionString = connectionString;
-            this.updateProviderFunc = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, Metadata);
+            this.createResourceQueryProvider = () => new MongoDSPResourceQueryProvider();
+            this.createUpdateProvider = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, Metadata);
 
             ResetDataContext = x =>
                                    {

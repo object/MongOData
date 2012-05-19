@@ -16,7 +16,7 @@ namespace Mongo.Context.InMemory
         public MongoInMemoryDataService(string connectionString)
         {
             this.connectionString = connectionString;
-            this.updateProviderFunc = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, this.metadata);
+            this.createUpdateProvider = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, this.metadata);
 
             ResetDataContext = x => MongoInMemoryDataService.context = new MongoInMemoryContext().CreateContext(base.Metadata, x);
             ResetDataContext(connectionString);

@@ -134,8 +134,8 @@ namespace Mongo.Context.Tests
         [Test]
         public void FilterEqualID()
         {
-            var result = ctx.Products.FindAll(ctx.Products.ID == 1).ToList();
-            Assert.AreEqual(1, result.Count);
+            var product = ctx.Products.Find(ctx.Products.ID == 1);
+            Assert.AreEqual(1, product.ID);
         }
 
         [Test]
@@ -206,6 +206,14 @@ namespace Mongo.Context.Tests
         {
             var result = ctx.Products.FindAll(ctx.Products.Name.Length() == 4).OrderBy(ctx.Products.Rating).Count();
             Assert.AreEqual(2, result, "The count is not correctly computed.");
+        }
+
+        [Test]
+        public void FilterEqualObjectID()
+        {
+            var product = ctx.Products.Find(ctx.Products.ID == 1);
+            product = ctx.Products.Find(ctx.Products.db_id == product.db_id);
+            Assert.AreEqual(1, product.ID);
         }
 
         [Test]

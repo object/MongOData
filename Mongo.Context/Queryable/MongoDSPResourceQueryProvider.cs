@@ -5,11 +5,16 @@ using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace Mongo.Context.Queryable
 {
     public class MongoDSPResourceQueryProvider : DSPResourceQueryProvider
     {
+        public MongoDSPResourceQueryProvider()
+        {
+        }
+
         public override ResourceType GetResourceType(object target)
         {
             if (target is DSPResource)

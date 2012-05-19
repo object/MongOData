@@ -25,7 +25,7 @@ namespace DataServiceProvider
 
         /// <summary>Constructor.</summary>
         public DSPResourceQueryProvider()
-            : this (new DSPMethodTranslatingVisitor())
+            : this(new DSPMethodTranslatingVisitor())
         {
         }
 

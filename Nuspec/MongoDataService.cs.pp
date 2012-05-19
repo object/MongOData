@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Services;
 using System.Data.Services.Common;
-using System.Linq;
-using System.ServiceModel.Web;
-using System.Web;
 using Mongo.Context.Queryable;
 
 namespace $rootnamespace$

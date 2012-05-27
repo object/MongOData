@@ -16,7 +16,7 @@ namespace Mongo.Context.Tests
         [TestFixtureSetUp]
         public void TestFixtureSetUp()
         {
-            TestData.Populate();
+            TestData.PopulateWithCategoriesAndProducts();
             service = new TestService(typeof(T));
         }
 

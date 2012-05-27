@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Services;
 using System.Data.Services.Common;
-using System.Text.RegularExpressions;
-using System.Web;
 using Mongo.Context;
 using Mongo.Context.Queryable;
 
@@ -13,7 +11,7 @@ namespace Mongo.DataService
     public class MongOData : MongoQueryableDataService
     {
         public MongOData()
-            : base(Utils.BuildConnectionString())
+            : base(Utils.BuildConnectionString(), ConfigurationManager.GetSection(MongoConfiguration.SectionName) as MongoConfiguration)
         {
         }
 

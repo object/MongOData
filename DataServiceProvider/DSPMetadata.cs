@@ -18,7 +18,7 @@ namespace DataServiceProvider
     using System.Linq;
 
     /// <summary>Metadata definition for the DSP. This also implements the <see cref="IDataServiceMetadataProvider"/>.</summary>
-    public class DSPMetadata : IDataServiceMetadataProvider
+    public class DSPMetadata : IDataServiceMetadataProvider, ICloneable
     {
         /// <summary>List of resource sets. Dictionary where key is the name of the resource set and value is the resource set itself.</summary>
         /// <remarks>Note that we store this such that we can quickly lookup a resource set based on its name.</remarks>
@@ -313,5 +313,49 @@ namespace DataServiceProvider
         }
 
         #endregion
+
+        #region ICloneable Members
+        public object Clone()
+        {
+            var dspMetadata = new DSPMetadata(this.containerName, this.namespaceName);
+
+            this.resourceTypes.ToList().ForEach(x => dspMetadata.resourceTypes.Add(x.Key, x.Value.Clone()));
+            this.resourceSets.ToList().ForEach(x => dspMetadata.resourceSets.Add(x.Key, x.Value.Clone(dspMetadata.resourceTypes)));
+
+            return dspMetadata;
+        }
+        #endregion
+    }
+
+    static class ExtensionMethods
+    {
+        public static ResourceSet Clone(this ResourceSet resourceSet, Dictionary<string, ResourceType> resourceTypes)
+        {
+            return new ResourceSet(
+                resourceSet.Name,
+                resourceTypes[resourceSet.ResourceType.FullName])
+                       {
+                           CustomState = resourceSet.CustomState
+                       };
+        }
+
+        public static ResourceType Clone(this ResourceType resourceType)
+        {
+            var clonedType = new ResourceType(
+                resourceType.InstanceType,
+                resourceType.ResourceTypeKind,
+                resourceType.BaseType,
+                resourceType.Namespace,
+                resourceType.Name,
+                resourceType.IsAbstract)
+                       {
+                           CanReflectOnInstanceType = resourceType.CanReflectOnInstanceType,
+                           CustomState = resourceType.CustomState,
+                           IsMediaLinkEntry = resourceType.IsMediaLinkEntry,
+                           IsOpenType = resourceType.IsOpenType,
+                       };
+            resourceType.Properties.ToList().ForEach(clonedType.AddProperty);
+            return clonedType;
+        }
     }
 }

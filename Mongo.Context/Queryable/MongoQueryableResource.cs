@@ -9,12 +9,14 @@ namespace Mongo.Context.Queryable
 {
     public class MongoQueryableResource : IQueryable<DSPResource>
     {
+        private MongoMetadata mongoMetadata;
         private MongoQueryProvider provider;
         private Expression expression;
 
-        public MongoQueryableResource(string connectionString, string collectionName, Type collectionType)
+        public MongoQueryableResource(MongoMetadata mongoMetadata, string connectionString, string collectionName, Type collectionType)
         {
-            this.provider = new MongoQueryProvider(connectionString, collectionName, collectionType);
+            this.mongoMetadata = mongoMetadata;
+            this.provider = new MongoQueryProvider(mongoMetadata, connectionString, collectionName, collectionType);
             this.expression = (new DSPResource[0]).AsQueryable().Expression;
         }
 

@@ -12,11 +12,9 @@ namespace Mongo.Context
     {
         private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        public static DSPResource CreateDSPResource(BsonDocument document, DSPMetadata metadata, string resourceName, string ownerPrefix = null)
+        public static DSPResource CreateDSPResource(BsonDocument document, MongoMetadata mongoMetadata, string resourceName, string ownerPrefix = null)
         {
-            ResourceType resourceType;
-            string qualifiedResourceName = string.IsNullOrEmpty(ownerPrefix) ? resourceName : MongoMetadata.GetComplexTypeName(ownerPrefix, resourceName);
-            metadata.TryResolveResourceType(string.Join(".", MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
+            var resourceType = mongoMetadata.ResolveResourceType(resourceName, ownerPrefix);
             var resource = new DSPResource(resourceType);
 
             foreach (var element in document.Elements)
@@ -27,7 +25,7 @@ namespace Mongo.Context
                 }
                 else if (element.Value.GetType() == typeof(BsonDocument))
                 {
-                    resource.SetValue(element.Name, CreateDSPResource(element.Value.AsBsonDocument, metadata, element.Name, MongoMetadata.GetComplexTypePrefix(resourceName)));
+                    resource.SetValue(element.Name, CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, element.Name, MongoMetadata.GetComplexTypePrefix(resourceName)));
                 }
                 else if (element.Value.GetType() == typeof(BsonArray))
                 {
@@ -77,15 +75,10 @@ namespace Mongo.Context
             return resource;
         }
 
-        public static DSPResource CreateDSPResource<TSource>(TSource document, DSPMetadata metadata, string resourceName, string ownerPrefix = null)
-        {
-            return CreateDSPResource(document.ToBsonDocument(), metadata, resourceName, ownerPrefix);
-        }
-
-        public static BsonDocument CreateBSonDocument(DSPResource resource, DSPMetadata metadata, string resourceName)
+        public static BsonDocument CreateBSonDocument(DSPResource resource, MongoMetadata mongoMetadata, string resourceName)
         {
             var document = new BsonDocument();
-            var resourceSet = metadata.ResourceSets.SingleOrDefault(x => x.Name == resourceName);
+            var resourceSet = mongoMetadata.ResolveResourceSet(resourceName);
             if (resourceSet != null)
             {
                 foreach (var property in resourceSet.ResourceType.Properties)

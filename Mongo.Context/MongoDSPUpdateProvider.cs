@@ -26,13 +26,15 @@ namespace Mongo.Context
         }
 
         private string connectionString;
+        private MongoMetadata mongoMetadata;
         private List<Tuple<ResourceChange, Action<MongoContext, ResourceChange>>> pendingChanges =
             new List<Tuple<ResourceChange, Action<MongoContext, ResourceChange>>>();
 
-        public MongoDSPUpdateProvider(string connectionString, DSPContext dataContext, DSPMetadata metadata)
-            : base(dataContext, metadata)
+        public MongoDSPUpdateProvider(string connectionString, DSPContext dataContext, MongoMetadata mongoMetadata)
+            : base(dataContext, mongoMetadata.CreateDSPMetadata())
         {
             this.connectionString = connectionString;
+            this.mongoMetadata = mongoMetadata;
         }
 
         public override object CreateResource(string containerName, string fullTypeName)
@@ -100,7 +102,7 @@ namespace Mongo.Context
         private void InsertDocument(MongoContext mongoContext, ResourceChange change)
         {
             var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.Metadata, change.CollectionName);
+            var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
             collection.Insert(document);
             change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
         }

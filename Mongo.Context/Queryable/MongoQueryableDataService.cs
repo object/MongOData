@@ -3,64 +3,46 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DataServiceProvider;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
 
 namespace Mongo.Context.Queryable
 {
-    public abstract class MongoQueryableDataService : DSPDataService<DSPQueryableContext, MongoDSPResourceQueryProvider, MongoDSPUpdateProvider>
+    public abstract class MongoQueryableDataService : MongoDataServiceBase<DSPQueryableContext, MongoDSPResourceQueryProvider>
     {
-        protected string connectionString;
-        protected static Action<string> ResetDataContext;
-        private static DSPQueryableContext context;
-        private static new DSPMetadata metadata;
-
-        public MongoQueryableDataService(string connectionString)
+        public MongoQueryableDataService(string connectionString, MongoConfiguration mongoConfiguration = null)
+            : base(connectionString, mongoConfiguration)
         {
-            this.connectionString = connectionString;
             this.createResourceQueryProvider = () => new MongoDSPResourceQueryProvider();
-            this.createUpdateProvider = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, Metadata);
-
-            ResetDataContext = x =>
-                                   {
-                                       var mongoMetadata = new MongoMetadata(x);
-                                       MongoQueryableDataService.metadata = mongoMetadata.Metadata;
-                                       MongoQueryableDataService.context = new MongoQueryableContext().CreateContext(metadata, mongoMetadata.ProviderTypes, x);
-                                   };
-            ResetDataContext(connectionString);
         }
 
-        public static IDisposable RestoreDataContext(string connectionString)
+        public override DSPQueryableContext CreateContext(string connectionString)
         {
-            return new MongoQueryableDataService.RestoreDataContextDisposable(connectionString);
+            Func<string, IQueryable> queryProviders = x => GetQueryableCollection(connectionString, this.mongoMetadata.ProviderTypes, x);
+            var dspContext = new DSPQueryableContext(this.Metadata, queryProviders);
+            return dspContext;
         }
 
-        private class RestoreDataContextDisposable : IDisposable
+        private IQueryable GetQueryableCollection(string connectionString, Dictionary<string, Type> providerTypes, string collectionName)
         {
-            private string connectionString;
+            var collectionType = CreateDynamicTypeForCollection(collectionName, providerTypes);
 
-            public RestoreDataContextDisposable(string connectionString)
-            {
-                this.connectionString = connectionString;
-            }
+            var conventions = new ConventionProfile();
+            conventions.SetIdMemberConvention(new NamedIdMemberConvention(MongoMetadata.MappedObjectIdName));
+            conventions.SetIgnoreExtraElementsConvention(new AlwaysIgnoreExtraElementsConvention());
+            BsonClassMap.RegisterConventions(conventions, t => t == collectionType);
 
-            public void Dispose()
-            {
-                ResetDataContext(this.connectionString);
-            }
+            return InterceptingProvider.Intercept(
+                new MongoQueryableResource(this.mongoMetadata, connectionString, collectionName, collectionType),
+                new ResultExpressionVisitor());
         }
 
-        protected override DSPQueryableContext CreateDataSource()
+        private Type CreateDynamicTypeForCollection(string collectionName, Dictionary<string, Type> providerTypes)
         {
-            return context;
-        }
-
-        protected override DSPMetadata CreateDSPMetadata()
-        {
-            return metadata;
-        }
-
-        internal static new DSPMetadata Metadata
-        {
-            get { return MongoQueryableDataService.metadata; }
+            var fields = new Dictionary<string, Type>();
+            providerTypes.Where(x => x.Key.StartsWith(collectionName + ".")).ToList()
+                .ForEach(x => fields.Add(x.Key.Split('.').Last(), x.Value));
+            return DocumentTypeBuilder.CompileDocumentType(typeof(object), fields);
         }
     }
 }

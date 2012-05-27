@@ -12,13 +12,9 @@ namespace Mongo.Context.Tests
 {
     public static class TestData
     {
-        public static void Populate()
+        public static void PopulateWithCategoriesAndProducts()
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
-            var server = MongoServer.Create(connectionString);
-            var databaseName = GetDatabaseName(connectionString);
-            server.DropDatabase(databaseName);
-            var database = server.GetDatabase(databaseName);
+            var database = CreateDatabase();
 
             var categories = database.GetCollection<ClientCategory>("Categories");
             var products = database.GetCollection<ClientProduct>("Products");
@@ -116,12 +112,31 @@ namespace Mongo.Context.Tests
                     });
         }
 
+        public static void PopulateWithVariableTypes()
+        {
+            var database = CreateDatabase();
+
+            var variableTypes = database.GetCollection("VariableTypes");
+            variableTypes.Insert(new TypeWithOneField { StringValue = "1" }.ToBsonDocument());
+            variableTypes.Insert(new TypeWithTwoFields { StringValue = "2", IntValue = 2 }.ToBsonDocument());
+            variableTypes.Insert(new TypeWithThreeFields { StringValue = "3", IntValue = 3, DecimalValue = 3m }.ToBsonDocument());
+        }
+
         public static void Clean()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
             var server = MongoServer.Create(connectionString);
 
             server.DropDatabase(GetDatabaseName(connectionString));
+        }
+
+        private static MongoDatabase CreateDatabase()
+        {
+            var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
+            var server = MongoServer.Create(connectionString);
+            var databaseName = GetDatabaseName(connectionString);
+            server.DropDatabase(databaseName);
+            return server.GetDatabase(databaseName);
         }
 
         private static string GetDatabaseName(string connectionString)

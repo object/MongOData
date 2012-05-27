@@ -63,4 +63,24 @@ namespace Mongo.Context.Tests
         public Decimal DecimalValue { get; set; }
         public String StringValue { get; set; }
     }
+
+    public class EmptyType
+    {
+        public ObjectId _id { get; set; }
+    }
+
+    public class TypeWithOneField : EmptyType
+    {
+        public string StringValue { get; set; }
+    }
+
+    public class TypeWithTwoFields : TypeWithOneField
+    {
+        public int IntValue { get; set; }
+    }
+
+    public class TypeWithThreeFields : TypeWithTwoFields
+    {
+        public decimal DecimalValue { get; set; }
+    }
 }

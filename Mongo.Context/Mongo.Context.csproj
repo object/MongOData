@@ -55,6 +55,8 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="MongoConfiguration.cs" />
+    <Compile Include="MongoDataServiceBase.cs" />
     <Compile Include="MongoDSPUpdateProvider.cs" />
     <Compile Include="Queryable\ExpressionUtils.cs" />
     <Compile Include="MongoContext.cs" />
@@ -62,11 +64,9 @@
     <Compile Include="Queryable\MongoDSPResourceQueryProvider.cs" />
     <Compile Include="Queryable\ProjectionExpressionVisitor.cs" />
     <Compile Include="Queryable\ResultExpressionVisitor.cs" />
-    <Compile Include="Queryable\MongoQueryableContext.cs" />
     <Compile Include="Queryable\MongoQueryableDataService.cs" />
     <Compile Include="Queryable\MongoQueryableResource.cs" />
     <Compile Include="Queryable\MongoQueryProvider.cs" />
-    <Compile Include="InMemory\MongoInMemoryContext.cs" />
     <Compile Include="InMemory\MongoInMemoryDataService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MongoMetadata.cs" />

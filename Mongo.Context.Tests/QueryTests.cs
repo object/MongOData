@@ -18,7 +18,7 @@ namespace Mongo.Context.Tests
         [TestFixtureSetUp]
         public void TestFixtureSetUp()
         {
-            TestData.Populate();
+            TestData.PopulateWithCategoriesAndProducts();
             service = new TestService(typeof(T));
         }
 
@@ -38,14 +38,6 @@ namespace Mongo.Context.Tests
         public void SetUp()
         {
             ctx = Database.Opener.Open(service.ServiceUri);
-        }
-
-        [Test]
-        public void Metadata()
-        {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(service.ServiceUri + "/$metadata");
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, "The $metadata didn't return success.");
         }
 
         [Test]

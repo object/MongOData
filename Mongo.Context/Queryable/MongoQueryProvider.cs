@@ -7,18 +7,23 @@ using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 
 namespace Mongo.Context.Queryable
 {
     public class MongoQueryProvider : IQueryProvider
     {
+        private MongoContext mongoContext;
+        private MongoMetadata mongoMetadata;
         private string connectionString;
         private string collectionName;
         private Type collectionType;
 
-        public MongoQueryProvider(string connectionString, string collectionName, Type collectionType)
+        public MongoQueryProvider(MongoMetadata mongoMetadata, string connectionString, string collectionName, Type collectionType)
         {
+            this.mongoContext = new MongoContext(connectionString);
+            this.mongoMetadata = mongoMetadata;
             this.connectionString = connectionString;
             this.collectionName = collectionName;
             this.collectionType = collectionType;
@@ -61,7 +66,7 @@ namespace Mongo.Context.Queryable
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
-            var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection(collectionType, collectionName);
+            var mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
             var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
             var genericMethod = this.GetType().GetMethod("GetEnumerableCollection", BindingFlags.NonPublic | BindingFlags.Instance);
             var method = genericMethod.MakeGenericMethod(collectionType);
@@ -72,7 +77,7 @@ namespace Mongo.Context.Queryable
 
         public object ExecuteNonQuery(Expression expression)
         {
-            var mongoCollection = new MongoContext(this.connectionString).Database.GetCollection(collectionType, collectionName);
+            var mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
             var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
 
             var genericMethod = this.GetType().GetMethod("GetExecutionResult", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -96,9 +101,34 @@ namespace Mongo.Context.Queryable
         {
             while (enumerator.MoveNext())
             {
-                yield return MongoDSPConverter.CreateDSPResource(enumerator.Current, MongoQueryableDataService.Metadata, this.collectionName);
+                yield return CreateDSPResource(enumerator.Current, this.collectionName);
             }
             yield break;
+        }
+
+        private DSPResource CreateDSPResource<TSource>(TSource document, string resourceName)
+        {
+            var typedDocument = document.ToBsonDocument();
+            var resource = MongoDSPConverter.CreateDSPResource(typedDocument, this.mongoMetadata, resourceName);
+
+            if (this.mongoMetadata.Configuration.UpdateDynamically)
+            {
+                var resourceType = mongoMetadata.ResolveResourceType(resourceName);
+                var collection = mongoContext.Database.GetCollection(resourceName);
+                var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
+                var bsonDocument = collection.FindOne(query);
+                foreach (var element in bsonDocument.Elements)
+                {
+                    var propertyName = MongoMetadata.GetResourcePropertyName(element);
+                    var resourceProperty = resourceType.Properties.Where(x => x.Name == propertyName).SingleOrDefault();
+                    if (resourceProperty == null)
+                    {
+                        mongoMetadata.UpdateResourceType(this.mongoContext, resourceType, element);
+                    }
+                }
+            }
+
+            return resource;
         }
 
         private IQueryable<TElement> CreateProjectionQuery<TElement>(Expression expression)

@@ -1,62 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Services.Providers;
 using System.Linq;
 using System.Text;
 using DataServiceProvider;
 
 namespace Mongo.Context.InMemory
 {
-    public abstract class MongoInMemoryDataService : DSPDataService<DSPInMemoryContext, DSPResourceQueryProvider, DSPUpdateProvider>
+    public abstract class MongoInMemoryDataService : MongoDataServiceBase<DSPInMemoryContext, DSPResourceQueryProvider>
     {
-        protected string connectionString;
-        protected static Action<string> ResetDataContext;
-        private static DSPInMemoryContext context;
-
         /// <summary>Constructor</summary>
-        public MongoInMemoryDataService(string connectionString)
+        public MongoInMemoryDataService(string connectionString, MongoConfiguration mongoConfiguration = null)
+            : base(connectionString, mongoConfiguration)
         {
-            this.connectionString = connectionString;
-            this.createUpdateProvider = () => new MongoDSPUpdateProvider(this.connectionString, this.CurrentDataSource, this.metadata);
-
-            ResetDataContext = x => MongoInMemoryDataService.context = new MongoInMemoryContext().CreateContext(base.Metadata, x);
-            ResetDataContext(connectionString);
         }
 
-        public static IDisposable RestoreDataContext(string connectionString)
+        public override DSPInMemoryContext CreateContext(string connectionString)
         {
-            return new RestoreDataContextDisposable(connectionString);
-        }
-
-        private class RestoreDataContextDisposable : IDisposable
-        {
-            private string connectionString;
-
-            public RestoreDataContextDisposable(string connectionString)
+            var dspContext = new DSPInMemoryContext();
+            using (MongoContext mongoContext = new MongoContext(connectionString))
             {
-                this.connectionString = connectionString;
+                PopulateData(dspContext, mongoContext);
             }
 
-            public void Dispose()
-            {
-                ResetDataContext(this.connectionString);
-            }
+            return dspContext;
         }
 
-        protected override DSPInMemoryContext CreateDataSource()
+        private void PopulateData(DSPInMemoryContext dspContext, MongoContext mongoContext)
         {
-            return context;
-        }
-
-        protected override DSPMetadata CreateDSPMetadata()
-        {
-            lock(this)
+            foreach (var resourceSet in this.Metadata.ResourceSets)
             {
-                if (this.metadata == null)
+                var storage = dspContext.GetResourceSetStorage(resourceSet.Name);
+                var collection = mongoContext.Database.GetCollection(resourceSet.Name);
+                foreach (var document in collection.FindAll())
                 {
-                    this.metadata = new MongoMetadata(this.connectionString).Metadata;
+                    var resource = MongoDSPConverter.CreateDSPResource(document, this.mongoMetadata, resourceSet.Name);
+                    storage.Add(resource);
+
+                    if (this.mongoMetadata.Configuration.UpdateDynamically)
+                    {
+                        var resourceType = mongoMetadata.ResolveResourceType(resourceSet.Name);
+                        foreach (var element in document.Elements)
+                        {
+                            var propertyName = MongoMetadata.GetResourcePropertyName(element);
+                            var resourceProperty = resourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
+                            if (resourceProperty == null)
+                            {
+                                mongoMetadata.UpdateResourceType(mongoContext, resourceType, element);
+                            }
+                        }
+                    }
                 }
             }
-            return metadata;
         }
     }
 }

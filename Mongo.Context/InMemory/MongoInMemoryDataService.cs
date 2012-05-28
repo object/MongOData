@@ -4,6 +4,7 @@ using System.Data.Services.Providers;
 using System.Linq;
 using System.Text;
 using DataServiceProvider;
+using MongoDB.Bson;
 
 namespace Mongo.Context.InMemory
 {
@@ -39,17 +40,21 @@ namespace Mongo.Context.InMemory
 
                     if (this.mongoMetadata.Configuration.UpdateDynamically)
                     {
-                        var resourceType = mongoMetadata.ResolveResourceType(resourceSet.Name);
-                        foreach (var element in document.Elements)
-                        {
-                            var propertyName = MongoMetadata.GetResourcePropertyName(element);
-                            var resourceProperty = resourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
-                            if (resourceProperty == null)
-                            {
-                                mongoMetadata.UpdateResourceType(mongoContext, resourceType, element);
-                            }
-                        }
+                        UpdateMetadataFromResourceSet(mongoContext, resourceSet, document);
                     }
+                }
+            }
+        }
+
+        private void UpdateMetadataFromResourceSet(MongoContext mongoContext, ResourceSet resourceSet, BsonDocument document)
+        {
+            var resourceType = mongoMetadata.ResolveResourceType(resourceSet.Name);
+            foreach (var element in document.Elements)
+            {
+                var resourceProperty = mongoMetadata.ResolveResourceProperty(resourceType, element);
+                if (resourceProperty == null)
+                {
+                    mongoMetadata.UpdateResourceType(mongoContext, resourceType, element);
                 }
             }
         }

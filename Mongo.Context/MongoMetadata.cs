@@ -81,6 +81,12 @@ namespace Mongo.Context
             return this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == resourceName);
         }
 
+        public ResourceProperty ResolveResourceProperty(ResourceType resourceType, BsonElement element)
+        {
+            var propertyName = MongoMetadata.GetResourcePropertyName(element);
+            return resourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
+        }
+
         private IEnumerable<string> GetCollectionNames(MongoContext context)
         {
             return context.Database.GetCollectionNames().Where(x => !x.StartsWith("system."));
@@ -98,7 +104,7 @@ namespace Mongo.Context
                 {
                     if (resourceSet == null)
                     {
-                        resourceSet = RegisterResourceSet(context, collectionName);
+                        RegisterResourceSet(context, collectionName);
                     }
                 }
                 else
@@ -167,7 +173,7 @@ namespace Mongo.Context
                 if (!hasObjectId)
                 {
                     this.dspMetadata.AddKeyProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
-                    AddProviderType(collectionName, MappedObjectIdName, BsonObjectId.Empty);
+                    AddProviderType(collectionName, MappedObjectIdName, BsonObjectId.Empty, true);
                 }
 
                 this.dspMetadata.AddResourceSet(collectionName, collectionType);
@@ -179,16 +185,24 @@ namespace Mongo.Context
         private void RegisterResourceProperty(MongoContext context, string collectionName, ResourceType collectionType,
             Type elementType, BsonElement element, ResourceTypeKind resourceTypeKind)
         {
+            if (ResolveProviderType(element.Value) == null)
+                return;
+
+            string propertyName = null;
+            var propertyValue = element.Value;
+            var isKey = false;
             if (IsObjectId(element))
             {
+                propertyName = MongoMetadata.MappedObjectIdName;
                 if (resourceTypeKind == ResourceTypeKind.EntityType)
-                    this.dspMetadata.AddKeyProperty(collectionType, MappedObjectIdName, elementType);
+                    this.dspMetadata.AddKeyProperty(collectionType, propertyName, elementType);
                 else
-                    this.dspMetadata.AddPrimitiveProperty(collectionType, MappedObjectIdName, elementType);
-                AddProviderType(collectionName, MappedObjectIdName, element.Value);
+                    this.dspMetadata.AddPrimitiveProperty(collectionType, propertyName, elementType);
+                isKey = true;
             }
             else if (elementType == typeof(BsonDocument))
             {
+                propertyName = element.Name;
                 ResourceType resourceType = null;
                 var resourceSet = this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == element.Name);
                 if (resourceSet != null)
@@ -201,7 +215,6 @@ namespace Mongo.Context
                                                         element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
                 }
                 this.dspMetadata.AddComplexProperty(collectionType, element.Name, resourceType);
-                AddProviderType(collectionName, element.Name, element.Value);
             }
             else if (elementType == typeof(BsonArray))
             {
@@ -218,41 +231,46 @@ namespace Mongo.Context
             }
             else
             {
+                propertyName = element.Name;
                 this.dspMetadata.AddPrimitiveProperty(collectionType, element.Name, elementType);
-                AddProviderType(collectionName, element.Name, element.Value);
+            }
+
+            if (!string.IsNullOrEmpty(propertyName))
+            {
+                AddProviderType(collectionName, propertyName, propertyValue, isKey);
             }
         }
 
-        private void AddProviderType(string collectionName, string elementName, BsonValue elementValue)
+        private void AddProviderType(string collectionName, string elementName, BsonValue elementValue, bool isKey = false)
         {
-            Type providerType = null;
-            if (TryResolveProviderType(elementValue, out providerType))
+            Type providerType = ResolveProviderType(elementValue);
+            if (providerType != null)
             {
+                if (providerType.IsValueType && !isKey)
+                {
+                    providerType = typeof (Nullable<>).MakeGenericType(providerType);
+                }
                 this.providerTypes.Add(string.Join(".", collectionName, elementName), providerType);
             }
         }
 
-        private bool TryResolveProviderType(BsonValue elementValue, out Type providerType)
+        private static Type ResolveProviderType(BsonValue elementValue)
         {
-            providerType = null;
             if (elementValue.BsonType == BsonType.Document)
             {
-                providerType = typeof(BsonDocument);
-                return true;
+                return typeof(BsonDocument);
             }
             else if (elementValue.RawValue != null)
             {
                 switch (elementValue.BsonType)
                 {
                     case BsonType.DateTime:
-                        providerType = typeof(DateTime);
-                        return true;
+                        return typeof(DateTime);
                     default:
-                        providerType = elementValue.RawValue.GetType();
-                        return true;
+                        return elementValue.RawValue.GetType();
                 }
             }
-            return false;
+            return null;
         }
 
         public static bool IsObjectId(BsonElement element)

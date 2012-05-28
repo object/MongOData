@@ -19,17 +19,29 @@ namespace Mongo.Context
 
             foreach (var element in document.Elements)
             {
+                var resourceProperty = mongoMetadata.ResolveResourceProperty(resourceType, element);
+                if (resourceProperty == null)
+                    continue;
+
+                string propertyName = null;
+                object propertyValue = null;
+
                 if (MongoMetadata.IsObjectId(element))
                 {
-                    resource.SetValue(MongoMetadata.MappedObjectIdName, element.Value.RawValue.ToString());
+                    propertyName = MongoMetadata.MappedObjectIdName;
+                    propertyValue = element.Value.RawValue.ToString();
                 }
                 else if (element.Value.GetType() == typeof(BsonDocument))
                 {
-                    resource.SetValue(element.Name, CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, element.Name, MongoMetadata.GetComplexTypePrefix(resourceName)));
+                    propertyName = element.Name;
+                    propertyValue = CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, element.Name,
+                                                      MongoMetadata.GetComplexTypePrefix(resourceName));
                 }
                 else if (element.Value.GetType() == typeof(BsonArray))
                 {
-                    resource.SetValue(element.Name, element.Value.RawValue);
+                    propertyName = element.Name;
+                    propertyValue = element.Value.RawValue;
+
                     //var bsonArray = element.Value.AsBsonArray;
                     //if (bsonArray != null && bsonArray.Count > 0)
                     //{
@@ -44,16 +56,16 @@ namespace Mongo.Context
                 }
                 else
                 {
-                    object value = null;
+                    propertyName = element.Name;
                     if (element.Value.RawValue != null)
                     {
                         switch (element.Value.BsonType)
                         {
                             case BsonType.DateTime:
-                                value = UnixEpoch + TimeSpan.FromMilliseconds(element.Value.AsBsonDateTime.MillisecondsSinceEpoch);
+                                propertyValue = UnixEpoch + TimeSpan.FromMilliseconds(element.Value.AsBsonDateTime.MillisecondsSinceEpoch);
                                 break;
                             default:
-                                value = element.Value.RawValue;
+                                propertyValue = element.Value.RawValue;
                                 break;
                         }
                     }
@@ -62,16 +74,22 @@ namespace Mongo.Context
                         switch (element.Value.BsonType)
                         {
                             case BsonType.Binary:
-                                value = element.Value.AsBsonBinaryData.Bytes;
+                                propertyValue = element.Value.AsBsonBinaryData.Bytes;
                                 break;
                             default:
-                                value = element.Value.RawValue;
+                                propertyValue = element.Value.RawValue;
                                 break;
                         }
                     }
-                    resource.SetValue(element.Name, value);
                 }
+
+                if (propertyValue != null)
+                {
+                    propertyValue = Convert.ChangeType(propertyValue, resourceProperty.ResourceType.InstanceType);
+                }
+                resource.SetValue(propertyName, propertyValue);
             }
+
             return resource;
         }
 

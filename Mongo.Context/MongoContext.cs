@@ -16,9 +16,7 @@ namespace Mongo.Context
         {
             this.connectionString = connectionString;
             this.server = MongoServer.Create(this.connectionString);
-            string databaseName = connectionString.Substring(
-                connectionString.IndexOf("localhost") + 10,
-                connectionString.IndexOf("?") - connectionString.IndexOf("localhost") - 10);
+            string databaseName = GetDatabaseName(this.connectionString);
             this.database = server.GetDatabase(databaseName);
         }
 
@@ -39,6 +37,25 @@ namespace Mongo.Context
 
         public void SaveChanges()
         {
+        }
+
+        private string GetDatabaseName(string connectionString)
+        {
+            var hostIndex = connectionString.IndexOf("//");
+            if (hostIndex > 0)
+            {
+                int startIndex = connectionString.IndexOf("/", hostIndex + 2) + 1;
+                int endIndex = connectionString.IndexOf("?", startIndex);
+                if (startIndex > 0)
+                {
+                    if (endIndex > 0)
+                        return connectionString.Substring(startIndex, endIndex - startIndex);
+                    else
+                        return connectionString.Substring(startIndex);
+                }
+            }
+
+            throw new ArgumentException("Unsupported MongoDB connection string", "connectionString");
         }
     }
 }

@@ -123,9 +123,15 @@ namespace Mongo.Context.Queryable
             {
                 Expression left = this.Visit(b.Left);
                 Expression right = this.Visit(b.Right);
-                if (left.Type == typeof(ObjectId) && right.Type == typeof(string) && right is ConstantExpression)
+                if (left.Type == typeof(ObjectId) && 
+                    right.Type == typeof(string) && right.NodeType == ExpressionType.Constant)
                 {
-                    return Visit(Expression.MakeBinary(b.NodeType, left, Expression.Constant(ObjectId.Parse((right as ConstantExpression).Value.ToString()))));
+                    return Visit(ReplaceObjectIdComparison(b.NodeType, right, left));
+                }
+                else if (left.Type.IsGenericType && left.Type.GetGenericTypeDefinition() == typeof(Nullable<>) && left.NodeType == ExpressionType.MemberAccess &&
+                    right.Type.IsValueType && right.NodeType == ExpressionType.Constant)
+                {
+                    return Visit(ReplaceNullableMemberComparison(b.NodeType, right, left));
                 }
                 else
                 {
@@ -138,7 +144,7 @@ namespace Mongo.Context.Queryable
         {
             if (u.NodeType == ExpressionType.Convert)
             {
-                if (u.Type.IsValueType || u.Type == typeof(string))
+                if (u.Operand.NodeType != ExpressionType.Constant && (u.Type.IsValueType || u.Type == typeof(string)))
                 {
                     return Visit(u.Operand);
                 }
@@ -154,8 +160,7 @@ namespace Mongo.Context.Queryable
             genericArguments.AddRange(genericTypes);
             genericArguments.AddRange(method.GetGenericArguments().Skip(1 + genericTypes.Count()));
 
-            return typeof(System.Linq.Queryable).GetMethods()
-                .Where(x => x.Name == method.Name).First()
+            return typeof(System.Linq.Queryable).GetMethods().First(x => x.Name == method.Name)
                 .MakeGenericMethod(genericArguments.ToArray());
         }
 
@@ -191,6 +196,18 @@ namespace Mongo.Context.Queryable
             {
                 return b.Left;
             }
+        }
+
+        private Expression ReplaceObjectIdComparison(ExpressionType nodeType, Expression right, Expression left)
+        {
+            right = Expression.Constant(ObjectId.Parse((right as ConstantExpression).Value.ToString()));
+            return Expression.MakeBinary(nodeType, left, right);
+        }
+
+        private Expression ReplaceNullableMemberComparison(ExpressionType nodeType, Expression right, Expression left)
+        {
+            right = Expression.MakeUnary(ExpressionType.Convert, right, typeof(Nullable<>).MakeGenericType(right.Type));
+            return Expression.MakeBinary(nodeType, left, right);
         }
     }
 }

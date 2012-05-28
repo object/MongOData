@@ -66,24 +66,34 @@ namespace Mongo.Context.Queryable
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
-            var mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
-            var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
-            var genericMethod = this.GetType().GetMethod("GetEnumerableCollection", BindingFlags.NonPublic | BindingFlags.Instance);
-            var method = genericMethod.MakeGenericMethod(collectionType);
-            var resourceEnumerable = method.Invoke(this, new object[] { mongoCollection, mongoExpression }) as IEnumerable<DSPResource>;
+            MongoCollection mongoCollection;
+            Expression mongoExpression;
+            MethodInfo method;
 
+            PrepareExecution(expression, "GetEnumerableCollection", out mongoCollection, out mongoExpression, out method);
+
+            var resourceEnumerable = method.Invoke(this, new object[] { mongoCollection, mongoExpression }) as IEnumerable<DSPResource>;
             return resourceEnumerable.GetEnumerator() as IEnumerator<TElement>;
         }
 
         public object ExecuteNonQuery(Expression expression)
         {
-            var mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
-            var mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
+            MongoCollection mongoCollection;
+            Expression mongoExpression;
+            MethodInfo method;
 
-            var genericMethod = this.GetType().GetMethod("GetExecutionResult", BindingFlags.NonPublic | BindingFlags.Instance);
-            var method = genericMethod.MakeGenericMethod(collectionType);
+            PrepareExecution(expression, "GetExecutionResult", out mongoCollection, out mongoExpression, out method);
 
             return method.Invoke(this, new object[] { mongoCollection, mongoExpression });
+        }
+
+        private void PrepareExecution(Expression expression, string methodName, out MongoCollection mongoCollection, out Expression mongoExpression, out MethodInfo method)
+        {
+            mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
+            mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
+
+            var genericMethod = this.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+            method = genericMethod.MakeGenericMethod(collectionType);
         }
 
         private IEnumerable<DSPResource> GetEnumerableCollection<TSource>(MongoCollection mongoCollection, Expression expression)
@@ -113,22 +123,27 @@ namespace Mongo.Context.Queryable
 
             if (this.mongoMetadata.Configuration.UpdateDynamically)
             {
-                var resourceType = mongoMetadata.ResolveResourceType(resourceName);
-                var collection = mongoContext.Database.GetCollection(resourceName);
-                var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
-                var bsonDocument = collection.FindOne(query);
-                foreach (var element in bsonDocument.Elements)
-                {
-                    var propertyName = MongoMetadata.GetResourcePropertyName(element);
-                    var resourceProperty = resourceType.Properties.Where(x => x.Name == propertyName).SingleOrDefault();
-                    if (resourceProperty == null)
-                    {
-                        mongoMetadata.UpdateResourceType(this.mongoContext, resourceType, element);
-                    }
-                }
+                UpdateMetadataFromResourceSet(resourceName, typedDocument);
             }
 
             return resource;
+        }
+
+        private void UpdateMetadataFromResourceSet(string resourceName, BsonDocument typedDocument)
+        {
+            var resourceType = mongoMetadata.ResolveResourceType(resourceName);
+            var collection = mongoContext.Database.GetCollection(resourceName);
+            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
+            var bsonDocument = collection.FindOne(query);
+            foreach (var element in bsonDocument.Elements)
+            {
+                var propertyName = MongoMetadata.GetResourcePropertyName(element);
+                var resourceProperty = resourceType.Properties.Where(x => x.Name == propertyName).SingleOrDefault();
+                if (resourceProperty == null)
+                {
+                    mongoMetadata.UpdateResourceType(this.mongoContext, resourceType, element);
+                }
+            }
         }
 
         private IQueryable<TElement> CreateProjectionQuery<TElement>(Expression expression)

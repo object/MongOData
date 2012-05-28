@@ -19,7 +19,7 @@ namespace Mongo.DataService
         {
             config.SetEntitySetAccessRule("*", EntitySetRights.AllRead);
             config.SetServiceOperationAccessRule("*", ServiceOperationRights.All);
-            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V3;
             config.DataServiceBehavior.AcceptCountRequests = true;
             config.DataServiceBehavior.AcceptProjectionRequests = true;
             config.UseVerboseErrors = true;

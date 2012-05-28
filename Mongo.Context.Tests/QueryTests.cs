@@ -37,7 +37,16 @@ namespace Mongo.Context.Tests
         [SetUp]
         public void SetUp()
         {
+            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
             ctx = Database.Opener.Open(service.ServiceUri);
+        }
+
+        [Test]
+        public void Metadata()
+        {
+            var request = (HttpWebRequest)WebRequest.Create(service.ServiceUri + "/$metadata");
+            var response = (HttpWebResponse)request.GetResponse();
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, "The $metadata didn't return success.");
         }
 
         [Test]
@@ -87,6 +96,21 @@ namespace Mongo.Context.Tests
         {
             var result = ctx.Products.All().ToList();
             Assert.AreEqual(new DateTime(1992, 1, 1), result[0].ReleaseDate, "The ReleaseDate is not correctly filled.");
+        }
+
+        [Test]
+        public void AllEntitiesVerifyNullDiscontinueDate()
+        {
+            var result = ctx.Products.All().ToList();
+            Assert.Null(result[0].DiscontinueDate, "The DiscontinueDate must be null.");
+            Assert.Null(result[1].DiscontinueDate, "The DiscontinueDate must be null.");
+        }
+
+        [Test]
+        public void AllEntitiesVerifyNonNullDiscontinueDate()
+        {
+            var result = ctx.Products.All().ToList();
+            Assert.NotNull(result[2].DiscontinueDate, "The DiscontinueDate must not be null.");
         }
 
         [Test]

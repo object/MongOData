@@ -22,7 +22,7 @@ namespace Mongo.Context.Tests
         public static void InitializeService(DataServiceConfiguration config)
         {
             config.SetEntitySetAccessRule("*", EntitySetRights.All);
-            config.DataServiceBehavior.MaxProtocolVersion = System.Data.Services.Common.DataServiceProtocolVersion.V2;
+            config.DataServiceBehavior.MaxProtocolVersion = System.Data.Services.Common.DataServiceProtocolVersion.V3;
             config.DataServiceBehavior.AcceptCountRequests = true;
             config.DataServiceBehavior.AcceptProjectionRequests = true;
             config.UseVerboseErrors = true;
@@ -39,7 +39,7 @@ namespace Mongo.Context.Tests
         public static void InitializeService(DataServiceConfiguration config)
         {
             config.SetEntitySetAccessRule("*", EntitySetRights.All);
-            config.DataServiceBehavior.MaxProtocolVersion = System.Data.Services.Common.DataServiceProtocolVersion.V2;
+            config.DataServiceBehavior.MaxProtocolVersion = System.Data.Services.Common.DataServiceProtocolVersion.V3;
             config.DataServiceBehavior.AcceptCountRequests = true;
             config.DataServiceBehavior.AcceptProjectionRequests = true;
             config.UseVerboseErrors = true;

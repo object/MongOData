@@ -16,19 +16,20 @@ namespace Mongo.Context
             public string CollectionName { get; set; }
             public DSPResource Resource { get; set; }
             public Dictionary<string, object> ModifiedProperties { get; private set; }
+            public Action<MongoContext, ResourceChange> Action { get; private set; }
 
-            public ResourceChange(string collectionName, DSPResource resource)
+            public ResourceChange(string collectionName, DSPResource resource, Action<MongoContext, ResourceChange> action)
             {
                 this.CollectionName = collectionName;
                 this.Resource = resource;
+                this.Action = action;
                 this.ModifiedProperties = new Dictionary<string, object>();
             }
         }
 
         private string connectionString;
         private MongoMetadata mongoMetadata;
-        private List<Tuple<ResourceChange, Action<MongoContext, ResourceChange>>> pendingChanges =
-            new List<Tuple<ResourceChange, Action<MongoContext, ResourceChange>>>();
+        private List<ResourceChange> pendingChanges = new List<ResourceChange>();
 
         public MongoDSPUpdateProvider(string connectionString, DSPContext dataContext, MongoMetadata mongoMetadata)
             : base(dataContext, mongoMetadata.CreateDSPMetadata())
@@ -40,40 +41,40 @@ namespace Mongo.Context
         public override object CreateResource(string containerName, string fullTypeName)
         {
             var resource = base.CreateResource(containerName, fullTypeName) as DSPResource;
-            this.pendingChanges.Add(new Tuple<ResourceChange, Action<MongoContext, ResourceChange>>(
-                new ResourceChange(containerName, resource), InsertDocument));
+
+            this.pendingChanges.Add(new ResourceChange(containerName, resource, InsertDocument));
             return resource;
         }
 
         public override void SetValue(object targetResource, string propertyName, object propertyValue)
         {
             base.SetValue(targetResource, propertyName, propertyValue);
+
             var resource = targetResource as DSPResource;
-            var pendingChange = this.pendingChanges.Where(x => x.Item1.Resource == resource && x.Item2 == InsertDocument).SingleOrDefault();
+            var pendingChange = this.pendingChanges.SingleOrDefault(x => x.Resource == resource && x.Action == InsertDocument);
             if (pendingChange == null)
             {
-                if (resource.GetValue(propertyName) != propertyValue)
+                pendingChange = this.pendingChanges.SingleOrDefault(x => x.Resource == resource && x.Action == UpdateDocument);
+                if (pendingChange == null)
                 {
-                    pendingChange = this.pendingChanges.Where(x => x.Item1.Resource == resource && x.Item2 == UpdateDocument).SingleOrDefault();
-                    if (pendingChange == null)
-                    {
-                        this.pendingChanges.Add(new Tuple<ResourceChange, Action<MongoContext, ResourceChange>>(
-                            new ResourceChange(resource.ResourceType.Name, resource), UpdateDocument));
-                    }
-                    else
-                    {
-                        pendingChange.Item1.ModifiedProperties.Add(propertyName, propertyValue);
-                    }
+                    pendingChange = new ResourceChange(resource.ResourceType.Name, resource, UpdateDocument);
+                    this.pendingChanges.Add(pendingChange);
                 }
             }
+
+            var properties = pendingChange.ModifiedProperties;
+            if (properties.ContainsKey(propertyName))
+                properties[propertyName] = propertyValue;
+            else
+                properties.Add(propertyName, propertyValue);
         }
 
         public override void DeleteResource(object targetResource)
         {
             base.DeleteResource(targetResource);
+
             var resource = targetResource as DSPResource;
-            this.pendingChanges.Add(new Tuple<ResourceChange, Action<MongoContext, ResourceChange>>(
-                new ResourceChange(resource.ResourceType.Name, resource), RemoveDocument));
+            this.pendingChanges.Add(new ResourceChange(resource.ResourceType.Name, resource, RemoveDocument));
         }
 
         public override void SaveChanges()
@@ -84,8 +85,8 @@ namespace Mongo.Context
             {
                 foreach (var pendingChange in this.pendingChanges)
                 {
-                    var action = pendingChange.Item2;
-                    action(mongoContext, pendingChange.Item1);
+                    var action = pendingChange.Action;
+                    action(mongoContext, pendingChange);
                 }
             }
 
@@ -109,6 +110,9 @@ namespace Mongo.Context
 
         private void UpdateDocument(MongoContext mongoContext, ResourceChange change)
         {
+            if (!change.ModifiedProperties.Any())
+                return;
+
             var collection = mongoContext.Database.GetCollection(change.CollectionName);
             var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
             UpdateBuilder update = null;

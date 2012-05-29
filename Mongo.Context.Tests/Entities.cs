@@ -15,8 +15,6 @@ namespace Mongo.Context.Tests
 
     public class ClientProduct
     {
-        public ObjectId _id { get; set; }
-
         public int ID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
@@ -29,8 +27,6 @@ namespace Mongo.Context.Tests
 
     public class ClientCategory
     {
-        public ObjectId _id { get; set; }
-
         public ClientCategory()
         {
             this.Products = new List<ClientProduct>();
@@ -43,8 +39,6 @@ namespace Mongo.Context.Tests
 
     public class ClrType
     {
-        public ObjectId _id { get; set; }
-
         public byte[] BinaryValue { get; set; }
         public bool BoolValue { get; set; }
         public DateTime DateTimeValue { get; set; }
@@ -66,7 +60,6 @@ namespace Mongo.Context.Tests
 
     public class EmptyType
     {
-        public ObjectId _id { get; set; }
     }
 
     public class TypeWithOneField : EmptyType

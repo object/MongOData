@@ -14,12 +14,9 @@
     <releaseNotes></releaseNotes>
     <language>en-US</language>
     <tags>mongodata mongodb odata</tags>
-	<frameworkAssemblies>
-		<frameworkAssembly assemblyName="System.Data.Services" />
-    <frameworkAssembly assemblyName="System.Data.Services.Client" />
-  </frameworkAssemblies>	
     <dependencies>
       <dependency id="mongocsharpdriver" version="1.4.1" />
+      <dependency id="Microsoft.Data.Services" version="5.0.1" />
     </dependencies>
   </metadata>
   <files>

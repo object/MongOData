@@ -1,1 +1,1 @@
-call nuget push MongOData.%1.nupkg %2
+call ..\.nuget\nuget.exe push MongOData.%1.nupkg %2

@@ -2,7 +2,7 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>MongOData</id>
-    <version>0.5.0.0</version>
+    <version>0.5.0</version>
     <title>MongOData</title>
     <authors>Vagif Abilov</authors>
     <owners>Vagif Abilov</owners>
@@ -20,10 +20,11 @@
     </dependencies>
   </metadata>
   <files>
-	<file src="..\Mongo.Context\bin\Release\Mongo.Context.dll" target="lib\net40" />
-  <file src="..\Mongo.Context\bin\Release\DataServiceProvider.dll" target="lib\net40" />
-  <file src="web.config.transform" target="content\web.config.transform" />
-	<file src="MongoDataService.svc.pp" target="content" />
-	<file src="MongoDataService.cs.pp" target="content" />
+    <file src="..\Mongo.Context\bin\Release\Mongo.Context.dll" target="lib\net40" />
+    <file src="..\Mongo.Context\bin\Release\DataServiceProvider.dll" target="lib\net40" />
+    <file src="web.config.transform" target="content\web.config.transform" />
+    <file src="MongoDataService.svc.pp" target="content" />
+    <file src="MongoDataService.cs.pp" target="content" />
+    <file src="Install.ps1" target="tools" />
   </files>
 </package>

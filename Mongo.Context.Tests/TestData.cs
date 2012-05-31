@@ -122,6 +122,36 @@ namespace Mongo.Context.Tests
             variableTypes.Insert(new TypeWithThreeFields { StringValue = "3", IntValue = 3, DecimalValue = 3m }.ToBsonDocument());
         }
 
+        public static void PopulateWithBsonIdTypes()
+        {
+            var database = CreateDatabase();
+
+            var typesWithoutExplicitId = database.GetCollection<TypeWithoutExplicitId>("TypeWithoutExplicitId");
+            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "A" }.ToBsonDocument());
+            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "B" }.ToBsonDocument());
+            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "C" }.ToBsonDocument());
+
+            var typeWithBsonId = database.GetCollection<TypeWithBsonId>("TypeWithBsonId");
+            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "A" }.ToBsonDocument());
+            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "B" }.ToBsonDocument());
+            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "C" }.ToBsonDocument());
+
+            var typeWithIntId = database.GetCollection<TypeWithIntId>("TypeWithIntId");
+            typeWithIntId.Insert(new TypeWithIntId { Id = 1, Name = "A" }.ToBsonDocument());
+            typeWithIntId.Insert(new TypeWithIntId { Id = 2, Name = "B" }.ToBsonDocument());
+            typeWithIntId.Insert(new TypeWithIntId { Id = 3, Name = "C" }.ToBsonDocument());
+
+            var typeWithStringId = database.GetCollection<TypeWithStringId>("TypeWithStringId");
+            typeWithStringId.Insert(new TypeWithStringId { Id = "1", Name = "A" }.ToBsonDocument());
+            typeWithStringId.Insert(new TypeWithStringId { Id = "2", Name = "B" }.ToBsonDocument());
+            typeWithStringId.Insert(new TypeWithStringId { Id = "3", Name = "C" }.ToBsonDocument());
+
+            var typeWithGuidId = database.GetCollection<TypeWithGuidId>("TypeWithGuidId");
+            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "A" }.ToBsonDocument());
+            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "B" }.ToBsonDocument());
+            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "C" }.ToBsonDocument());
+        }
+
         public static void Clean()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;

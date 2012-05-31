@@ -275,8 +275,9 @@ namespace Mongo.Context
 
         public static bool IsObjectId(BsonElement element)
         {
-            return element.Value.RawValue != null &&
-                (element.Value.RawValue.GetType() == typeof(ObjectId) || element.Value.RawValue.GetType() == typeof(BsonObjectId));
+            return element.Name == MongoMetadata.ProviderObjectIdName;
+            //return element.Value.RawValue != null &&
+            //    (element.Value.RawValue.GetType() == typeof(ObjectId) || element.Value.RawValue.GetType() == typeof(BsonObjectId));
         }
 
         private static Type GetElementType(BsonElement element)

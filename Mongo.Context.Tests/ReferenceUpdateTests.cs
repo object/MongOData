@@ -7,8 +7,7 @@ using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
-    [TestFixture]
-    public class ReferenceUpdateTests<T>
+    public abstract class ReferenceUpdateTests<T>
     {
         protected TestService service;
         protected dynamic ctx;

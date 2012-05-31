@@ -4,6 +4,7 @@ using System.Data.Services.Common;
 using System.Linq;
 using System.Text;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Mongo.Context.Tests
 {
@@ -56,6 +57,39 @@ namespace Mongo.Context.Tests
         public Double DoubleValue { get; set; }
         public Decimal DecimalValue { get; set; }
         public String StringValue { get; set; }
+    }
+
+    public class TypeWithoutExplicitId
+    {
+        public string Name { get; set; }
+    }
+
+    public class TypeWithBsonId
+    {
+        [BsonId]
+        public ObjectId Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TypeWithIntId
+    {
+        [BsonId]
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TypeWithStringId
+    {
+        [BsonId]
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TypeWithGuidId
+    {
+        [BsonId]
+        public Guid Id { get; set; }
+        public string Name { get; set; }
     }
 
     public class EmptyType

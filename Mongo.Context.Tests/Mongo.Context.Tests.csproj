@@ -90,6 +90,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="BsonIdTests.cs" />
     <Compile Include="Entities.cs" />
     <Compile Include="MetadataTests.cs" />
     <Compile Include="ProductService.cs" />

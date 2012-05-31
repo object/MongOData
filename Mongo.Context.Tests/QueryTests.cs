@@ -10,35 +10,18 @@ using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
-    public abstract class QueryTests<T>
+    public abstract class QueryTests<T> : TestBase<T>
     {
-        protected TestService service;
-        protected dynamic ctx;
-
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        protected override void PopulateTestData()
         {
             TestData.PopulateWithCategoriesAndProducts();
-            service = new TestService(typeof(T));
-        }
-
-        [TestFixtureTearDown]
-        public void TestFixtureTearDown()
-        {
-            if (service != null)
-            {
-                service.Dispose();
-                service = null;
-            }
-
-            TestData.Clean();
         }
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
             TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
-            ctx = Database.Opener.Open(service.ServiceUri);
+            base.SetUp();
         }
 
         [Test]

@@ -7,34 +7,11 @@ using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
-    public abstract class ReferenceUpdateTests<T>
+    public abstract class ReferenceUpdateTests<T> : TestBase<T>
     {
-        protected TestService service;
-        protected dynamic ctx;
-
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        protected override void PopulateTestData()
         {
             TestData.PopulateWithCategoriesAndProducts();
-            service = new TestService(typeof(T));
-        }
-
-        [TestFixtureTearDown]
-        public void TestFixtureTearDown()
-        {
-            if (service != null)
-            {
-                service.Dispose();
-                service = null;
-            }
-
-            TestData.Clean();
-        }
-
-        [SetUp]
-        public void SetUp()
-        {
-            ctx = Database.Opener.Open(service.ServiceUri);
         }
 
         //[Test]

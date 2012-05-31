@@ -12,36 +12,19 @@ using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
-    public abstract class MetadataTests<T>
+    public abstract class MetadataTests<T> : TestBase<T>
     {
-        protected TestService service;
-        protected dynamic ctx;
-
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        protected override void PopulateTestData()
         {
             TestData.PopulateWithVariableTypes();
-            service = new TestService(typeof(T));
-        }
-
-        [TestFixtureTearDown]
-        public void TestFixtureTearDown()
-        {
-            if (service != null)
-            {
-                service.Dispose();
-                service = null;
-            }
-
-            TestData.Clean();
         }
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
             ProductInMemoryService.ResetDSPMetadata();
             ProductQueryableService.ResetDSPMetadata();
-            ctx = Database.Opener.Open(service.ServiceUri);
+            base.SetUp();
         }
 
         protected void ResetService()

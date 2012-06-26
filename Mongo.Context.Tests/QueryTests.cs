@@ -320,5 +320,11 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class QueryableServiceQueryTests : QueryTests<ProductQueryableService>
     {
+        [Test]
+        public void AllEntitiesOrderbyTakeOneVerifyResultCount1()
+        {
+            var result = ctx.Products.All().OrderBy(ctx.Products.Name).Take(1).ToList();
+            Assert.AreEqual(1, result.Count, "The service returned unexpected number of results.");
+        }
     }
 }

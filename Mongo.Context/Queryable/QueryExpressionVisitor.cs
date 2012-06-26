@@ -43,10 +43,17 @@ namespace Mongo.Context.Queryable
                 {
                     var lambda = Visit(ReplaceFieldLambda(m.Arguments[1]));
 
-                    return Visit(Expression.Call(
-                        ReplaceGenericMethodType(m.Method, (lambda as LambdaExpression).ReturnType),
-                        Visit(m.Arguments[0]),
-                        lambda));
+                    if (ExpressionUtils.IsRedundantOrderMethod(m, lambda as LambdaExpression))
+                    {
+                        return Visit(m.Arguments[0]);
+                    }
+                    else
+                    {
+                        return Visit(Expression.Call(
+                            ReplaceGenericMethodType(m.Method, (lambda as LambdaExpression).ReturnType),
+                            Visit(m.Arguments[0]),
+                            lambda));
+                    }
                 }
                 else
                 {

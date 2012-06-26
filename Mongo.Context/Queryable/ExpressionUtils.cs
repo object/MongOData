@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using DataServiceProvider;
+using MongoDB.Bson;
 
 namespace Mongo.Context.Queryable
 {
@@ -101,6 +102,21 @@ namespace Mongo.Context.Queryable
             var orderMethods = new string[] {"OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending"};
 
             return orderMethods.Contains(m.Method.Name);
+        }
+
+        public static bool IsRedundantOrderMethod(MethodCallExpression m, LambdaExpression lambda)
+        {
+            if (m.Method.Name == "ThenBy" && lambda.Body.NodeType == ExpressionType.MemberAccess && lambda.ReturnType == typeof(ObjectId))
+            {
+                var member = lambda.Body as MemberExpression;
+                return member.Expression.NodeType == ExpressionType.Parameter &&
+                       (member.Expression as ParameterExpression).Name == "element" &&
+                       member.Member.Name == MongoMetadata.MappedObjectIdName;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public static Expression ReplaceParameterType(Expression expression, Type replacementType, Func<Expression, Expression> Visit)

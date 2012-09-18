@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Linq;
+using System.Net;
+using System.Reflection;
 using NUnit.Framework;
 using Simple.Data;
 using Simple.Data.OData;
@@ -35,6 +38,13 @@ namespace Mongo.Context.Tests
         public virtual void SetUp()
         {
             ctx = Database.Opener.Open(service.ServiceUri);
+        }
+
+        protected void RequestAndValidateMetadata()
+        {
+            var request = (HttpWebRequest)WebRequest.Create(service.ServiceUri + "$metadata");
+            var response = (HttpWebResponse)request.GetResponse();
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, "The $metadata didn't return success.");
         }
     }
 }

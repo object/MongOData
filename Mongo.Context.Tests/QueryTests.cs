@@ -27,9 +27,7 @@ namespace Mongo.Context.Tests
         [Test]
         public void Metadata()
         {
-            var request = (HttpWebRequest)WebRequest.Create(service.ServiceUri + "/$metadata");
-            var response = (HttpWebResponse)request.GetResponse();
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, "The $metadata didn't return success.");
+            base.RequestAndValidateMetadata();
         }
 
         [Test]

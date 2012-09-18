@@ -61,16 +61,16 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Simple.Data.Core.0.16.2.1\lib\net40\Simple.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.Data.OData, Version=0.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Simple.Data.OData, Version=0.2.5.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.OData.0.2.4.0\lib\net40\Simple.Data.OData.dll</HintPath>
+      <HintPath>..\packages\Simple.Data.OData.0.2.5.2\lib\net40\Simple.Data.OData.dll</HintPath>
     </Reference>
     <Reference Include="Simple.NExtLib, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Simple.Data.OData.0.2.4.0\lib\net40\Simple.NExtLib.dll</HintPath>
+      <HintPath>..\packages\Simple.Data.OData.0.2.5.2\lib\net40\Simple.NExtLib.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.OData, Version=0.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Simple.OData, Version=0.2.5.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.OData.0.2.4.0\lib\net40\Simple.OData.dll</HintPath>
+      <HintPath>..\packages\Simple.Data.OData.0.2.5.2\lib\net40\Simple.OData.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -92,6 +92,7 @@
     </Compile>
     <Compile Include="BsonIdTests.cs" />
     <Compile Include="Entities.cs" />
+    <Compile Include="JsonSamplesTests.cs" />
     <Compile Include="MetadataTests.cs" />
     <Compile Include="ProductService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -109,6 +110,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\ArrayOfNested.json" />
+    <EmbeddedResource Include="Resources\Colors.json" />
+    <EmbeddedResource Include="Resources\Facebook.json" />
+    <EmbeddedResource Include="Resources\Flickr.json" />
+    <EmbeddedResource Include="Resources\GoogleMaps.json" />
+    <EmbeddedResource Include="Resources\iPhone.json" />
+    <EmbeddedResource Include="Resources\Nested.json" />
+    <EmbeddedResource Include="Resources\Twitter.json" />
+    <EmbeddedResource Include="Resources\YouTube.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataServiceProvider\DataServiceProvider.csproj">

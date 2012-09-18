@@ -21,7 +21,8 @@ namespace Mongo.Context
         public static readonly Type MappedObjectIdType = typeof(string);
         public static readonly string ContainerName = "MongoContext";
         public static readonly string RootNamespace = "Mongo";
-        public static readonly bool UseGlobalComplexTypeNames = true;
+        public static readonly bool UseGlobalComplexTypeNames = false;
+        internal static readonly string WordSeparator = "__";
 
         private string connectionString;
         private DSPMetadata dspMetadata;
@@ -149,8 +150,7 @@ namespace Mongo.Context
             }
         }
 
-        private ResourceType RegisterResourceType(MongoContext context, string collectionName,
-            BsonDocument document, ResourceTypeKind resourceTypeKind)
+        private ResourceType RegisterResourceType(MongoContext context, string collectionName, BsonDocument document, ResourceTypeKind resourceTypeKind)
         {
             var collectionType = resourceTypeKind == ResourceTypeKind.EntityType
                                      ? this.dspMetadata.AddEntityType(collectionName)
@@ -221,12 +221,26 @@ namespace Mongo.Context
                 var bsonArray = element.Value.AsBsonArray;
                 if (bsonArray != null && bsonArray.Count > 0)
                 {
-                    // TODO
-                    //var referencedCollection = GetDocumentCollection(context, bsonArray[0].AsBsonDocument);
-                    //if (referencedCollection != null)
-                    //{
-                    //    resourceReferences.Add(new Tuple<ResourceType, string, string>(collectionType, element.Name, referencedCollection.Name));
-                    //}
+                    var arrayElement = bsonArray.First();
+                    if (arrayElement.BsonType == BsonType.Document)
+                    {
+                        ResourceType resourceType = null;
+                        var resourceSet = this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == element.Name);
+                        if (resourceSet != null)
+                        {
+                            resourceType = resourceSet.ResourceType;
+                        }
+                        else
+                        {
+                            resourceType = RegisterResourceType(context, GetCollectionTypeName(collectionName, element.Name),
+                                                                arrayElement.AsBsonDocument, ResourceTypeKind.ComplexType);
+                        }
+                        this.dspMetadata.AddCollectionProperty(collectionType, element.Name, resourceType);
+                    }
+                    else
+                    {
+                        this.dspMetadata.AddCollectionProperty(collectionType, element.Name, arrayElement.RawValue.GetType());
+                    }
                 }
             }
             else
@@ -256,9 +270,9 @@ namespace Mongo.Context
 
         private static Type ResolveProviderType(BsonValue elementValue)
         {
-            if (elementValue.BsonType == BsonType.Document)
+            if (elementValue.GetType() == typeof(BsonArray) || elementValue.GetType() == typeof(BsonDocument))
             {
-                return typeof(BsonDocument);
+                return elementValue.GetType();
             }
             else if (elementValue.RawValue != null)
             {
@@ -317,7 +331,17 @@ namespace Mongo.Context
 
         internal static string GetComplexTypeName(string collectionName, string resourceName)
         {
-            return UseGlobalComplexTypeNames ? resourceName : string.Join("__", collectionName, resourceName);
+            return UseGlobalComplexTypeNames ? resourceName : string.Join(WordSeparator, collectionName, resourceName);
+        }
+
+        internal static string GetCollectionTypePrefix(string ownerName)
+        {
+            return UseGlobalComplexTypeNames ? string.Empty : ownerName;
+        }
+
+        internal static string GetCollectionTypeName(string collectionName, string resourceName)
+        {
+            return UseGlobalComplexTypeNames ? resourceName : string.Join(WordSeparator, collectionName, resourceName);
         }
 
         internal static string GetResourcePropertyName(BsonElement element)

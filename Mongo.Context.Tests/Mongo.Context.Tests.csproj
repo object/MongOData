@@ -65,12 +65,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Simple.Data.Core.0.18\lib\net40\Simple.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.Data.OData, Version=0.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Simple.Data.OData, Version=0.5.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.OData.0.5.0.0\lib\net40\Simple.Data.OData.dll</HintPath>
+      <HintPath>..\packages\Simple.Data.OData.0.5.1.0\lib\net40\Simple.Data.OData.dll</HintPath>
     </Reference>
     <Reference Include="Simple.NExtLib, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Simple.Data.OData.0.5.0.0\lib\net40\Simple.NExtLib.dll</HintPath>
+      <HintPath>..\packages\Simple.Data.OData.0.5.1.0\lib\net40\Simple.NExtLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

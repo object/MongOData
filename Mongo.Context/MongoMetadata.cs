@@ -188,7 +188,7 @@ namespace Mongo.Context
             if (ResolveProviderType(element.Value) == null)
                 return;
 
-            string propertyName = null;
+            string propertyName = element.Name;
             var propertyValue = element.Value;
             var isKey = false;
             if (IsObjectId(element))
@@ -202,19 +202,18 @@ namespace Mongo.Context
             }
             else if (elementType == typeof(BsonDocument))
             {
-                propertyName = element.Name;
                 ResourceType resourceType = null;
-                var resourceSet = this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == element.Name);
+                var resourceSet = this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == propertyName);
                 if (resourceSet != null)
                 {
                     resourceType = resourceSet.ResourceType;
                 }
                 else
                 {
-                    resourceType = RegisterResourceType(context, GetComplexTypeName(collectionName, element.Name),
+                    resourceType = RegisterResourceType(context, GetComplexTypeName(collectionName, propertyName),
                                                         element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
                 }
-                this.dspMetadata.AddComplexProperty(collectionType, element.Name, resourceType);
+                this.dspMetadata.AddComplexProperty(collectionType, propertyName, resourceType);
             }
             else if (elementType == typeof(BsonArray))
             {
@@ -225,28 +224,27 @@ namespace Mongo.Context
                     if (arrayElement.BsonType == BsonType.Document)
                     {
                         ResourceType resourceType = null;
-                        var resourceSet = this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == element.Name);
+                        var resourceSet = this.dspMetadata.ResourceSets.SingleOrDefault(x => x.Name == propertyName);
                         if (resourceSet != null)
                         {
                             resourceType = resourceSet.ResourceType;
                         }
                         else
                         {
-                            resourceType = RegisterResourceType(context, GetCollectionTypeName(collectionName, element.Name),
+                            resourceType = RegisterResourceType(context, GetCollectionTypeName(collectionName, propertyName),
                                                                 arrayElement.AsBsonDocument, ResourceTypeKind.ComplexType);
                         }
-                        this.dspMetadata.AddCollectionProperty(collectionType, element.Name, resourceType);
+                        this.dspMetadata.AddCollectionProperty(collectionType, propertyName, resourceType);
                     }
                     else
                     {
-                        this.dspMetadata.AddCollectionProperty(collectionType, element.Name, arrayElement.RawValue.GetType());
+                        this.dspMetadata.AddCollectionProperty(collectionType, propertyName, arrayElement.RawValue.GetType());
                     }
                 }
             }
             else
             {
-                propertyName = element.Name;
-                this.dspMetadata.AddPrimitiveProperty(collectionType, element.Name, elementType);
+                this.dspMetadata.AddPrimitiveProperty(collectionType, propertyName, elementType);
             }
 
             if (!string.IsNullOrEmpty(propertyName))

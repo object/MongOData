@@ -7,7 +7,9 @@
   <Product Id="*"
        Name="MongOData - MongoDB OData Service"
        Language="1033"
-       Version="0.5.1.0"
+
+       Version="0.6.0.0"
+
        Manufacturer="Vagif Abilov"
        UpgradeCode="{3195809d-be6b-49d0-9802-042a73dea824}">
 

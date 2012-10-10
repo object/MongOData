@@ -2,6 +2,7 @@
 using System.Data.Services.Client;
 using System.Linq;
 using System.Net;
+using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
 using Simple.Data;
 using Simple.Data.OData;
@@ -68,30 +69,52 @@ namespace Mongo.Context.Tests
         public void iPhone()
         {
             var result = ctx.iPhone.All().First();
+            Assert.AreEqual(18, result.menu.items.Count);
+            Assert.AreEqual("Open", result.menu.items.First().id);
+            Assert.Throws<RuntimeBinderException>(() => { var x = result.menu.items.First().label; });
+            Assert.AreEqual("About", result.menu.items.Last().id);
+            // The next line will work when dynamic schema update is available
+            //Assert.AreEqual("About xProgress CVG Viewer...", result.menu.items.Last().label);
         }
 
         [Test]
         public void Twitter()
         {
             var result = ctx.Twitter.All().First();
+            Assert.AreEqual("@twitterapi  http://tinyurl.com/ctrefg", result.results.text);
+            Assert.AreEqual("popular", result.results.metadata.result_type);
+            Assert.AreEqual(109, result.results.metadata.recent_retweets);
         }
 
         [Test]
         public void YouTube()
         {
             var result = ctx.YouTube.All().First();
+            Assert.AreEqual(@"Talk On Travel Pool", result.title);
+            Assert.AreEqual(1, result.items.Count);
+            Assert.AreEqual("View from the hotel", result.items.First().title);
         }
 
         [Test]
         public void Nested()
         {
             var result = ctx.Nested.All().First();
+            Assert.AreEqual("0001", result.id);
+            Assert.AreEqual(4, result.batters.batter.Count);
+            Assert.AreEqual("1001", result.batters.batter.First().id);
+            Assert.AreEqual(7, result.topping.Count);
+            Assert.AreEqual("5001", result.topping.First().id);
         }
 
         [Test]
         public void ArrayOfNested()
         {
             var result = ctx.ArrayOfNested.All().First();
+            Assert.AreEqual("0001", result.nestedArray.First().id);
+            Assert.AreEqual(4, result.nestedArray.First().batters.batter.Count);
+            Assert.AreEqual("1001", result.nestedArray.First().batters.batter.First().id);
+            Assert.AreEqual(7, result.nestedArray.First().topping.Count);
+            Assert.AreEqual("5001", result.nestedArray.First().topping.First().id);
         }
     }
 

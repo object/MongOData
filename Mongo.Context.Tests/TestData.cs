@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 using Mongo.Context.Tests;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Options;
@@ -122,6 +125,51 @@ namespace Mongo.Context.Tests
             variableTypes.Insert(new TypeWithThreeFields { StringValue = "3", IntValue = 3, DecimalValue = 3m }.ToBsonDocument());
         }
 
+        public static void PopulateWithBsonIdTypes()
+        {
+            var database = CreateDatabase();
+
+            var typesWithoutExplicitId = database.GetCollection<TypeWithoutExplicitId>("TypeWithoutExplicitId");
+            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "A" }.ToBsonDocument());
+            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "B" }.ToBsonDocument());
+            typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "C" }.ToBsonDocument());
+
+            var typeWithBsonId = database.GetCollection<TypeWithBsonId>("TypeWithBsonId");
+            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "A" }.ToBsonDocument());
+            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "B" }.ToBsonDocument());
+            typeWithBsonId.Insert(new TypeWithBsonId { Id = ObjectId.GenerateNewId(), Name = "C" }.ToBsonDocument());
+
+            var typeWithIntId = database.GetCollection<TypeWithIntId>("TypeWithIntId");
+            typeWithIntId.Insert(new TypeWithIntId { Id = 1, Name = "A" }.ToBsonDocument());
+            typeWithIntId.Insert(new TypeWithIntId { Id = 2, Name = "B" }.ToBsonDocument());
+            typeWithIntId.Insert(new TypeWithIntId { Id = 3, Name = "C" }.ToBsonDocument());
+
+            var typeWithStringId = database.GetCollection<TypeWithStringId>("TypeWithStringId");
+            typeWithStringId.Insert(new TypeWithStringId { Id = "1", Name = "A" }.ToBsonDocument());
+            typeWithStringId.Insert(new TypeWithStringId { Id = "2", Name = "B" }.ToBsonDocument());
+            typeWithStringId.Insert(new TypeWithStringId { Id = "3", Name = "C" }.ToBsonDocument());
+
+            var typeWithGuidId = database.GetCollection<TypeWithGuidId>("TypeWithGuidId");
+            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "A" }.ToBsonDocument());
+            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "B" }.ToBsonDocument());
+            typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "C" }.ToBsonDocument());
+        }
+
+        public static void PopulateWithJsonSamples()
+        {
+            var database = CreateDatabase();
+
+            var jsonSamples = new[] { "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", /*"Nested", /*"ArrayOfNested"*/ };
+
+            foreach (var collectionName in jsonSamples)
+            {
+                var json = GetResourceAsString(collectionName + ".json");
+                var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
+                var collection = database.GetCollection(collectionName);
+                collection.Insert(doc);
+            }
+        }
+
         public static void Clean()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
@@ -144,6 +192,18 @@ namespace Mongo.Context.Tests
             return connectionString.Substring(
                 connectionString.IndexOf("localhost") + 10,
                 connectionString.IndexOf("?") - connectionString.IndexOf("localhost") - 10);
+        }
+
+        private static string GetResourceAsString(string resourceName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var completeResourceName = assembly.GetManifestResourceNames().Single(o => o.EndsWith(resourceName));
+            using (Stream resourceStream = assembly.GetManifestResourceStream(completeResourceName))
+            {
+                TextReader reader = new StreamReader(resourceStream);
+                string result = reader.ReadToEnd();
+                return result;
+            }
         }
     }
 }

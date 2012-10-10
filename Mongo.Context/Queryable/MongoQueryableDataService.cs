@@ -40,7 +40,9 @@ namespace Mongo.Context.Queryable
         private Type CreateDynamicTypeForCollection(string collectionName, Dictionary<string, Type> providerTypes)
         {
             var fields = new Dictionary<string, Type>();
-            providerTypes.Where(x => x.Key.StartsWith(collectionName + ".")).ToList()
+            providerTypes.Where(x =>
+                x.Key.StartsWith(collectionName + ".") || 
+                MongoMetadata.UseGlobalComplexTypeNames && x.Key.StartsWith(collectionName + MongoMetadata.WordSeparator)).ToList()
                 .ForEach(x => fields.Add(x.Key.Split('.').Last(), x.Value));
             return DocumentTypeBuilder.CompileDocumentType(typeof(object), fields);
         }

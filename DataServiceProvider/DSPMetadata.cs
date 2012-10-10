@@ -121,6 +121,30 @@ namespace DataServiceProvider
             resourceType.AddProperty(property);
         }
 
+        /// <summary>Adds a collection of complex or primitive items property.</summary>
+        /// <param name="resourceType">The resource type to add the property to.</param>
+        /// <param name="name">The name of the property to add.</param>
+        /// <param name="itemType">The resource type of the item in the collection.</param>
+        public void AddCollectionProperty(ResourceType resourceType, string name, ResourceType itemType)
+        {
+            ResourceProperty property = new ResourceProperty(
+                name,
+                ResourcePropertyKind.Collection,
+                ResourceType.GetCollectionResourceType(itemType));
+            property.CanReflectOnInstanceTypeProperty = false;
+            resourceType.AddProperty(property);
+        }
+
+        /// <summary>Adds a collection of primitive items property.</summary>
+        /// <param name="resourceType">The resource type to add the property to.</param>
+        /// <param name="name">The name of the property to add.</param>
+        /// <param name="itemType">The primitive CLR type of the item in the collection.</param>
+        public void AddCollectionProperty(ResourceType resourceType, string name, Type itemType)
+        {
+            ResourceType itemResourceType = ResourceType.GetPrimitiveResourceType(itemType);
+            this.AddCollectionProperty(resourceType, name, itemResourceType);
+        }
+
         /// <summary>Adds a resource reference property to the specified <paramref name="resourceType"/>.</summary>
         /// <param name="resourceType">The resource type to add the property to.</param>
         /// <param name="name">The name of the property to add.</param>

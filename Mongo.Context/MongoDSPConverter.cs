@@ -15,6 +15,8 @@ namespace Mongo.Context
         public static DSPResource CreateDSPResource(BsonDocument document, MongoMetadata mongoMetadata, string resourceName, string ownerPrefix = null)
         {
             var resourceType = mongoMetadata.ResolveResourceType(resourceName, ownerPrefix);
+            if (resourceType == null)
+                throw new ArgumentException(string.Format("Unable to resolve resource type {0}", resourceName), "resourceName");
             var resource = new DSPResource(resourceType);
 
             foreach (var element in document.Elements)
@@ -35,24 +37,32 @@ namespace Mongo.Context
                 {
                     propertyName = element.Name;
                     propertyValue = CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, element.Name,
-                                                      MongoMetadata.GetComplexTypePrefix(resourceName));
+                        MongoMetadata.GetComplexTypePrefix(resourceType.Name));
                 }
                 else if (element.Value.GetType() == typeof(BsonArray))
                 {
-                    propertyName = element.Name;
-                    propertyValue = element.Value.RawValue;
-
-                    //var bsonArray = element.Value.AsBsonArray;
-                    //if (bsonArray != null && bsonArray.Count > 0)
-                    //{
-                    //    //var tuple = new Tuple<ObjectId, string, List<ObjectId>>(
-                    //    //    bsonDocument["_id"].AsObjectId, element.Name, new List<ObjectId>());
-                    //    //resourceSetReferences.Add(tuple);
-                    //    //foreach (var item in bsonArray)
-                    //    //{
-                    //    //    tuple.Item3.Add(item.AsBsonDocument["_id"].AsObjectId);
-                    //    //}
-                    //}
+                    var bsonArray = element.Value.AsBsonArray;
+                    if (bsonArray != null && bsonArray.Count > 0)
+                    {
+                        propertyName = element.Name;
+                        int nonNullItemCount = 0;
+                        for (int index = 0; index < bsonArray.Count; index++)
+                        {
+                            if (bsonArray[index] != BsonNull.Value)
+                                ++nonNullItemCount;
+                        }
+                        var valueArray = new DSPResource[nonNullItemCount];
+                        int valueIndex = 0;
+                        for (int index = 0; index < bsonArray.Count; index++)
+                        {
+                            if (bsonArray[index] != BsonNull.Value)
+                            {
+                                valueArray[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata, element.Name,
+                                    MongoMetadata.GetCollectionTypePrefix(resourceType.Name));
+                            }
+                        }
+                        propertyValue = valueArray;
+                    }
                 }
                 else
                 {
@@ -83,7 +93,7 @@ namespace Mongo.Context
                     }
                 }
 
-                if (propertyValue != null)
+                if (propertyValue != null && element.Value.GetType() != typeof(BsonArray))
                 {
                     propertyValue = Convert.ChangeType(propertyValue, resourceProperty.ResourceType.InstanceType);
                 }

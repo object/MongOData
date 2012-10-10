@@ -159,7 +159,7 @@ namespace Mongo.Context.Tests
         {
             var database = CreateDatabase();
 
-            var jsonSamples = new[] { "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", /*"Nested", /*"ArrayOfNested"*/ };
+            var jsonSamples = new[] { "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", "Nested", "ArrayOfNested" };
 
             foreach (var collectionName in jsonSamples)
             {
@@ -197,7 +197,7 @@ namespace Mongo.Context.Tests
         private static string GetResourceAsString(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var completeResourceName = assembly.GetManifestResourceNames().Single(o => o.EndsWith(resourceName));
+            var completeResourceName = assembly.GetManifestResourceNames().Single(o => o.EndsWith("." + resourceName));
             using (Stream resourceStream = assembly.GetManifestResourceStream(completeResourceName))
             {
                 TextReader reader = new StreamReader(resourceStream);

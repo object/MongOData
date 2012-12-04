@@ -23,6 +23,7 @@ namespace Mongo.Context
         public static readonly string RootNamespace = "Mongo";
         public static readonly bool UseGlobalComplexTypeNames = false;
         internal static readonly string WordSeparator = "__";
+        internal static readonly string PrefixForInvalidLeadingChar = "x";
 
         private string connectionString;
         private DSPMetadata dspMetadata;
@@ -141,7 +142,7 @@ namespace Mongo.Context
             foreach (var element in document.Elements)
             {
                 var propertyName = GetResourcePropertyName(element);
-                var resourceProperty = resourceSet.ResourceType.Properties.Where(x => x.Name == propertyName).SingleOrDefault();
+                var resourceProperty = resourceSet.ResourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
                 if (resourceProperty == null)
                 {
                     var elementType = GetElementType(element);
@@ -188,7 +189,7 @@ namespace Mongo.Context
             if (ResolveProviderType(element.Value) == null)
                 return;
 
-            string propertyName = element.Name;
+            string propertyName = MongoMetadata.GetResourcePropertyName(element);
             var propertyValue = element.Value;
             var isKey = false;
             if (IsObjectId(element))
@@ -344,7 +345,10 @@ namespace Mongo.Context
 
         internal static string GetResourcePropertyName(BsonElement element)
         {
-            return element.Name == MongoMetadata.ProviderObjectIdName ? MongoMetadata.MappedObjectIdName : element.Name;
+            return element.Name == MongoMetadata.ProviderObjectIdName ?
+                MongoMetadata.MappedObjectIdName : element.Name.StartsWith("_") ?
+                PrefixForInvalidLeadingChar + element.Name :
+                element.Name;
         }
 
         internal void UpdateResourceType(MongoContext context, ResourceType resourceType, BsonElement element)

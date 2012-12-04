@@ -25,18 +25,16 @@ namespace Mongo.Context
                 if (resourceProperty == null)
                     continue;
 
-                string propertyName = null;
+                string propertyName = MongoMetadata.GetResourcePropertyName(element);
                 object propertyValue = null;
 
                 if (MongoMetadata.IsObjectId(element))
                 {
-                    propertyName = MongoMetadata.MappedObjectIdName;
                     propertyValue = element.Value.RawValue.ToString();
                 }
                 else if (element.Value.GetType() == typeof(BsonDocument))
                 {
-                    propertyName = element.Name;
-                    propertyValue = CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, element.Name,
+                    propertyValue = CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, propertyName,
                         MongoMetadata.GetComplexTypePrefix(resourceType.Name));
                 }
                 else if (element.Value.GetType() == typeof(BsonArray))
@@ -44,7 +42,6 @@ namespace Mongo.Context
                     var bsonArray = element.Value.AsBsonArray;
                     if (bsonArray != null && bsonArray.Count > 0)
                     {
-                        propertyName = element.Name;
                         int nonNullItemCount = 0;
                         for (int index = 0; index < bsonArray.Count; index++)
                         {
@@ -57,7 +54,7 @@ namespace Mongo.Context
                         {
                             if (bsonArray[index] != BsonNull.Value)
                             {
-                                valueArray[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata, element.Name,
+                                valueArray[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata, propertyName,
                                     MongoMetadata.GetCollectionTypePrefix(resourceType.Name));
                             }
                         }
@@ -66,7 +63,6 @@ namespace Mongo.Context
                 }
                 else
                 {
-                    propertyName = element.Name;
                     if (element.Value.RawValue != null)
                     {
                         switch (element.Value.BsonType)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DataServiceProvider;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 
@@ -39,12 +40,52 @@ namespace Mongo.Context.Queryable
 
         private Type CreateDynamicTypeForCollection(string collectionName, Dictionary<string, Type> providerTypes)
         {
-            var fields = new Dictionary<string, Type>();
-            providerTypes.Where(x =>
-                x.Key.StartsWith(collectionName + ".") || 
-                MongoMetadata.UseGlobalComplexTypeNames && x.Key.StartsWith(collectionName + MongoMetadata.WordSeparator)).ToList()
-                .ForEach(x => fields.Add(x.Key.Split('.').Last(), x.Value));
+            Func<string, bool> criteria = x =>
+                                          x.StartsWith(collectionName + ".") ||
+                                          MongoMetadata.UseGlobalComplexTypeNames &&
+                                          x.StartsWith(collectionName + MongoMetadata.WordSeparator);
+
+            return CreateDynamicTypes(providerTypes, criteria);
+        }
+
+        private Type CreateDynamicTypes(Dictionary<string, Type> providerTypes, Func<string, bool> criteria)
+        {
+            var fieldTypes = providerTypes.Where(x => criteria(x.Key));
+
+            var fields = fieldTypes.ToDictionary(
+                x => x.Key.Split('.').Last(),
+                x => GetDynamicTypeForProviderType(x.Key, x.Value, providerTypes));
+
             return DocumentTypeBuilder.CompileDocumentType(typeof(object), fields);
+        }
+
+        private Type GetDynamicTypeForProviderType(string typeName, Type providerType, Dictionary<string, Type> providerTypes)
+        {
+            if (MongoMetadata.CreateDynamicTypesForComplexTypes)
+            {
+                if (providerType == typeof(BsonDocument))
+                {
+                    var types = typeName.Split('.');
+                    var parentName = types.First();
+                    var childName = types.Last();
+                    Func<string, bool> criteria = x => x.StartsWith(parentName + MongoMetadata.WordSeparator + childName);
+
+                    return CreateDynamicTypes(providerTypes, criteria);
+                }
+                else if (providerType == typeof(BsonArray))
+                {
+                    // TODO
+                    return providerType;
+                }
+                else
+                {
+                    return providerType;
+                }
+            }
+            else
+            {
+                return providerType;
+            }
         }
     }
 }

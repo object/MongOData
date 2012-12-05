@@ -29,13 +29,10 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess && (m.Arguments[0] as MemberExpression).Expression.Type == typeof(ResourceProperty))
+            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess && 
+                (m.Arguments[0] as MemberExpression).Expression.Type == typeof(ResourceProperty))
             {
-                var fieldName = (((m.Arguments[0] as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty).Name;
-                var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
-                var member = this.collectionType.GetMember(fieldName).First();
-
-                return Expression.MakeMemberAccess(parameterExpression, member);
+                return ReplaceMemberAccess(m);
             }
             else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
@@ -215,6 +212,31 @@ namespace Mongo.Context.Queryable
         {
             right = Expression.MakeUnary(ExpressionType.Convert, right, typeof(Nullable<>).MakeGenericType(right.Type));
             return Expression.MakeBinary(nodeType, left, right);
+        }
+
+        private Expression ReplaceMemberAccess(MethodCallExpression m)
+        {
+            var fieldName = (((m.Arguments[0] as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty).Name;
+            if (fieldName == MongoMetadata.MappedObjectIdName)
+                fieldName = MongoMetadata.ProviderObjectIdName;
+
+            var member = this.collectionType.GetMember(fieldName).First();
+            Expression parameterExpression = null;
+            if (m.Object.NodeType == ExpressionType.Parameter)
+            {
+                parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
+                return Expression.MakeMemberAccess(parameterExpression, member);
+            }
+            else if (m.Object.NodeType == ExpressionType.Convert && (m.Object as UnaryExpression).Operand.NodeType == ExpressionType.Call)
+            {
+                var propertyType = (VisitMethodCall((m.Object as UnaryExpression).Operand as MethodCallExpression) as MemberExpression).Member.DeclaringType;
+                parameterExpression = Expression.Parameter(propertyType, "x");
+            }
+            else
+            {
+                return m;
+            }
+            return Expression.MakeMemberAccess(parameterExpression, member);
         }
     }
 }

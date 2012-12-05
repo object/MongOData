@@ -138,10 +138,10 @@ namespace Mongo.Context.Queryable
             foreach (var element in bsonDocument.Elements)
             {
                 var propertyName = MongoMetadata.GetResourcePropertyName(element);
-                var resourceProperty = resourceType.Properties.Where(x => x.Name == propertyName).SingleOrDefault();
+                var resourceProperty = resourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
                 if (resourceProperty == null)
                 {
-                    mongoMetadata.UpdateResourceType(this.mongoContext, resourceType, element);
+                    mongoMetadata.RegisterResourceProperty(this.mongoContext, resourceType, element);
                 }
             }
         }

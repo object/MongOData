@@ -205,6 +205,20 @@ namespace Mongo.Context.Tests
             Assert.AreEqual(2, result, "The count is not correctly computed.");
         }
 
+        //[Test]
+        //public void FilterEqualQuantityValue()
+        //{
+        //    var result = ctx.Products.Find(ctx.Products.Quantity.Value == 7);
+        //    Assert.AreEqual("Wine", result.Name);
+        //}
+
+        //[Test]
+        //public void FilterEqualQuantityUnits()
+        //{
+        //    var result = ctx.Products.Find(ctx.Products.Quantity.Units == "litres");
+        //    Assert.AreEqual("Milk", result.Name);
+        //}
+
         [Test]
         public void FilterEqualObjectID()
         {
@@ -302,10 +316,10 @@ namespace Mongo.Context.Tests
     public class QueryableServiceQueryTests : QueryTests<ProductQueryableService>
     {
         [Test]
-        public void AllEntitiesOrderbyTakeOneVerifyResultCount1()
+        public void AllEntitiesSkipOneVerifyResultCount1()
         {
-            var result = ctx.Products.All().OrderBy(ctx.Products.Name).Take(1).ToList();
-            Assert.AreEqual(1, result.Count, "The service returned unexpected number of results.");
+            var result = ctx.Products.All().Skip(1).ToList();
+            Assert.AreEqual(2, result.Count, "The service returned unexpected number of results.");
         }
     }
 }

@@ -181,17 +181,21 @@ namespace Mongo.Context.Tests
         private static MongoDatabase CreateDatabase()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
-            var server = MongoServer.Create(connectionString);
             var databaseName = GetDatabaseName(connectionString);
+            var server = MongoServer.Create(connectionString);
             server.DropDatabase(databaseName);
             return server.GetDatabase(databaseName);
         }
 
         private static string GetDatabaseName(string connectionString)
         {
-            return connectionString.Substring(
-                connectionString.IndexOf("localhost") + 10,
-                connectionString.IndexOf("?") - connectionString.IndexOf("localhost") - 10);
+            string databaseName = connectionString.Substring(connectionString.IndexOf("localhost") + 10);
+            int optionsIndex = databaseName.IndexOf("?");
+            if (optionsIndex > 0)
+            {
+                databaseName = databaseName.Substring(0, optionsIndex);
+            }
+            return databaseName;
         }
 
         private static string GetResourceAsString(string resourceName)

@@ -52,10 +52,14 @@ namespace Mongo.Context.Tests
                         DiscontinueDate = null,
                         Rating = 4,
                         Quantity = new Quantity
-                                       {
-                                           Value = (double)12,
-                                           Units = "pieces",
-                                       },
+                            {
+                                Value = (double)12, 
+                                Units = "pieces",
+                            },
+                        Supplier = new Supplier
+                            {
+                                Name = "City Bakery",
+                            },
                         Category = categoryFood,
                     });
             products.Insert(
@@ -68,10 +72,13 @@ namespace Mongo.Context.Tests
                         DiscontinueDate = null,
                         Rating = 3,
                         Quantity = new Quantity
-                                       {
-                                           Value = (double)4,
-                                           Units = "liters",
-                                       },
+                            {
+                                Value = (double)4, Units = "liters",
+                            },
+                        Supplier = new Supplier
+                            {
+                                Name = "Green Farm",
+                            },
                         Category = categoryBeverages,
                     });
             products.Insert(
@@ -84,10 +91,9 @@ namespace Mongo.Context.Tests
                         DiscontinueDate = new DateTime(2008, 3, 1),
                         Rating = 5,
                         Quantity = new Quantity
-                                       {
-                                           Value = (double)7,
-                                           Units = "bottles",
-                                       },
+                            {
+                                Value = (double)7, Units = "bottles",
+                            },
                         Category = categoryBeverages,
                     });
 

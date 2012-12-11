@@ -14,6 +14,11 @@ namespace Mongo.Context.Tests
         public string Units { get; set; }
     }
 
+    public class Supplier
+    {
+        public string Name { get; set; }
+    }
+
     public class ClientProduct
     {
         public int ID { get; set; }
@@ -23,6 +28,7 @@ namespace Mongo.Context.Tests
         public DateTime? DiscontinueDate { get; set; }
         public int Rating { get; set; }
         public Quantity Quantity { get; set; }
+        public Supplier Supplier { get; set; }
         public ClientCategory Category { get; set; }
     }
 

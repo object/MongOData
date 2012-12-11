@@ -66,10 +66,17 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void AllEntitiesVerifyName()
+        public void AllEntitiesVerifyProductName()
         {
             var result = ctx.Products.All().ToList();
-            Assert.AreEqual("Milk", result[1].Name, "The Name is not correctly filled.");
+            Assert.AreEqual("Milk", result[1].Name, "The Product Name is not correctly filled.");
+        }
+
+        [Test]
+        public void AllEntitiesVerifySupplierName()
+        {
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual("Green Farm", result[1].Supplier.Name, "The Supplier Name is not correctly filled.");
         }
 
         [Test]

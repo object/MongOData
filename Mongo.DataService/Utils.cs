@@ -20,7 +20,8 @@ namespace Mongo.DataService
                 databaseName = ExtractDatabaseNameFromRequestPath(path);
                 if (!String.IsNullOrEmpty(databaseName))
                 {
-                    connectionString = connectionString.Substring(0, startIndex) + databaseName + connectionString.Substring(endIndex);
+                    connectionString = connectionString.Substring(0, startIndex) + databaseName + 
+                        (endIndex > 0 ? connectionString.Substring(endIndex) : string.Empty);
                 }
             }
             return connectionString;

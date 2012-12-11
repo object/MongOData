@@ -43,7 +43,7 @@ namespace Mongo.Context
         public static readonly string ContainerName = "MongoContext";
         public static readonly string RootNamespace = "Mongo";
         public static readonly bool UseGlobalComplexTypeNames = false;
-        public static readonly bool CreateDynamicTypesForComplexTypes = false;
+        public static readonly bool CreateDynamicTypesForComplexTypes = true;
         internal static readonly string WordSeparator = "__";
         internal static readonly string PrefixForInvalidLeadingChar = "x";
 
@@ -178,7 +178,7 @@ namespace Mongo.Context
                     var elementType = GetElementType(element);
                     RegisterResourceProperty(context, resourceSet.Name, resourceSet.ResourceType, elementType, element, true);
                 }
-                else if ((resourceProperty.Kind & ResourcePropertyKind.ComplexType) != 0)
+                else if ((resourceProperty.Kind & ResourcePropertyKind.ComplexType) != 0 && element.Value != BsonNull.Value)
                 {
                     UpdateComplexProperty(context, resourceSet, resourceProperty, element);
                 }

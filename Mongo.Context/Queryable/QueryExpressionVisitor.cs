@@ -220,23 +220,24 @@ namespace Mongo.Context.Queryable
             if (fieldName == MongoMetadata.MappedObjectIdName)
                 fieldName = MongoMetadata.ProviderObjectIdName;
 
-            var member = this.collectionType.GetMember(fieldName).First();
             Expression parameterExpression = null;
             if (m.Object.NodeType == ExpressionType.Parameter)
             {
                 parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
+                var member = this.collectionType.GetMember(fieldName).Single();
                 return Expression.MakeMemberAccess(parameterExpression, member);
             }
             else if (m.Object.NodeType == ExpressionType.Convert && (m.Object as UnaryExpression).Operand.NodeType == ExpressionType.Call)
             {
                 var propertyType = (VisitMethodCall((m.Object as UnaryExpression).Operand as MethodCallExpression) as MemberExpression).Member.DeclaringType;
                 parameterExpression = Expression.Parameter(propertyType, "x");
+                var member = propertyType.GetMember(fieldName).Single();
+                return Expression.MakeMemberAccess(parameterExpression, member);
             }
             else
             {
                 return m;
             }
-            return Expression.MakeMemberAccess(parameterExpression, member);
         }
     }
 }

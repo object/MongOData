@@ -45,6 +45,7 @@ namespace Mongo.Context
         public static readonly bool UseGlobalComplexTypeNames = false;
         public static readonly bool CreateDynamicTypesForComplexTypes = false;
         internal static readonly string WordSeparator = "__";
+        internal static readonly string PrefixForInvalidLeadingChar = "x";
 
         private string connectionString;
         private DSPMetadata dspMetadata;
@@ -429,9 +430,9 @@ namespace Mongo.Context
 
         internal static string GetResourcePropertyName(BsonElement element)
         {
-            return element.Name == MongoMetadata.ProviderObjectIdName ? 
+            return element.Name == MongoMetadata.ProviderObjectIdName ?
                 MongoMetadata.MappedObjectIdName : element.Name.StartsWith("_") ?
-                "x" + element.Name :
+                PrefixForInvalidLeadingChar + element.Name :
                 element.Name;
         }
     }

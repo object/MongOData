@@ -16,8 +16,9 @@ namespace Mongo.Context.Queryable
     {
         private IQueryable queryableCollection;
         private Type collectionType;
+        private MongoMetadata mongoMetadata;
 
-        public QueryExpressionVisitor(MongoCollection mongoCollection, Type queryDocumentType)
+        public QueryExpressionVisitor(MongoCollection mongoCollection, MongoMetadata mongoMetadata, Type queryDocumentType)
         {
             var genericMethod = typeof(LinqExtensionMethods).GetMethods()
                 .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
@@ -25,6 +26,7 @@ namespace Mongo.Context.Queryable
             var method = genericMethod.MakeGenericMethod(queryDocumentType);
             this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
             this.collectionType = queryDocumentType;
+            this.mongoMetadata = mongoMetadata;
         }
 
         public override Expression VisitMethodCall(MethodCallExpression m)
@@ -220,17 +222,23 @@ namespace Mongo.Context.Queryable
             if (fieldName == MongoMetadata.MappedObjectIdName)
                 fieldName = MongoMetadata.ProviderObjectIdName;
 
-            Expression parameterExpression = null;
             if (m.Object.NodeType == ExpressionType.Parameter)
             {
-                parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
+                var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
                 var member = this.collectionType.GetMember(fieldName).Single();
                 return Expression.MakeMemberAccess(parameterExpression, member);
             }
             else if (m.Object.NodeType == ExpressionType.Convert && (m.Object as UnaryExpression).Operand.NodeType == ExpressionType.Call)
             {
-                var propertyType = (VisitMethodCall((m.Object as UnaryExpression).Operand as MethodCallExpression) as MemberExpression).Member.DeclaringType;
-                parameterExpression = Expression.Parameter(propertyType, "x");
+                var methodCallExpression = (m.Object as UnaryExpression).Operand as MethodCallExpression;
+                var resourceProperty = ((methodCallExpression.Arguments.First() as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty;
+                var typeName = resourceProperty.ResourceType.Name;
+                if (!MongoMetadata.UseGlobalComplexTypeNames)
+                {
+                    typeName = typeName.Replace(MongoMetadata.WordSeparator, ".");
+                }
+                var propertyType = this.mongoMetadata.GeneratedTypes.Single(x => x.Key == typeName).Value;
+                var parameterExpression = Expression.Parameter(propertyType, "x");
                 var member = propertyType.GetMember(fieldName).Single();
                 return Expression.MakeMemberAccess(parameterExpression, member);
             }

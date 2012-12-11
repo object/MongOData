@@ -12,6 +12,7 @@ namespace Mongo.Context
     {
         public DSPMetadata DspMetadata { get; set; }
         public Dictionary<string, Type> ProviderTypes { get; set; }
+        public Dictionary<string, Type> GeneratedTypes { get; set; }
     }
 
     class CollectionProperty
@@ -50,11 +51,13 @@ namespace Mongo.Context
         private string connectionString;
         private DSPMetadata dspMetadata;
         private readonly Dictionary<string, Type> providerTypes;
+        private readonly Dictionary<string, Type> generatedTypes;
         private readonly List<CollectionProperty> unresolvedProperties = new List<CollectionProperty>();
         private static readonly Dictionary<string, MongoMetadataCache> MetadataCache = new Dictionary<string, MongoMetadataCache>();
 
         public MongoConfiguration.Metadata Configuration { get; private set; }
         public Dictionary<string, Type> ProviderTypes { get { return this.providerTypes; } }
+        public Dictionary<string, Type> GeneratedTypes { get { return this.generatedTypes; } }
 
         public MongoMetadata(string connectionString, MongoConfiguration.Metadata metadata = null)
         {
@@ -69,12 +72,14 @@ namespace Mongo.Context
                     metadataCache = new MongoMetadataCache
                                         {
                                             DspMetadata = new DSPMetadata(ContainerName, RootNamespace),
-                                            ProviderTypes = new Dictionary<string, Type>()
+                                            ProviderTypes = new Dictionary<string, Type>(),
+                                            GeneratedTypes = new Dictionary<string, Type>(),
                                         };
                     MetadataCache.Add(this.connectionString, metadataCache);
                 }
                 this.dspMetadata = metadataCache.DspMetadata;
                 this.providerTypes = metadataCache.ProviderTypes;
+                this.generatedTypes = metadataCache.GeneratedTypes;
             }
 
             using (var context = new MongoContext(connectionString))

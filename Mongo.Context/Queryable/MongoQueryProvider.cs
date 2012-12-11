@@ -90,7 +90,7 @@ namespace Mongo.Context.Queryable
         private void PrepareExecution(Expression expression, string methodName, out MongoCollection mongoCollection, out Expression mongoExpression, out MethodInfo method)
         {
             mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
-            mongoExpression = new QueryExpressionVisitor(mongoCollection, collectionType).Visit(expression);
+            mongoExpression = new QueryExpressionVisitor(mongoCollection, this.mongoMetadata, collectionType).Visit(expression);
 
             var genericMethod = this.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
             method = genericMethod.MakeGenericMethod(collectionType);

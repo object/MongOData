@@ -34,7 +34,7 @@ namespace Mongo.Context.Tests
         [Test]
         public void AllTypesWithBsonIdVerifyResultCountAndId()
         {
-            var result = ctx.TypeWithIntId.All().ToList();
+            var result = ctx.TypeWithBsonId.All().ToList();
             Assert.AreEqual(3, result.Count, "The service returned unexpected number of results.");
             Assert.IsNotNull(result[0].db_id);
         }

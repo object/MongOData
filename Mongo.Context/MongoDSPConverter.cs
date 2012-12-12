@@ -25,80 +25,8 @@ namespace Mongo.Context
                 if (resourceProperty == null)
                     continue;
 
-                string propertyName = MongoMetadata.GetResourcePropertyName(element);
-                object propertyValue = null;
-
-                if (MongoMetadata.IsObjectId(element))
-                {
-                    propertyValue = element.Value.RawValue.ToString();
-                }
-                else if (element.Value.GetType() == typeof(BsonDocument))
-                {
-                    propertyValue = CreateDSPResource(element.Value.AsBsonDocument, mongoMetadata, propertyName,
-                        MongoMetadata.GetComplexTypePrefix(resourceType.Name));
-                }
-                else if (element.Value.GetType() == typeof(BsonArray))
-                {
-                    var bsonArray = element.Value.AsBsonArray;
-                    if (bsonArray != null && bsonArray.Count > 0)
-                    {
-                        int nonNullItemCount = 0;
-                        for (int index = 0; index < bsonArray.Count; index++)
-                        {
-                            if (bsonArray[index] != BsonNull.Value)
-                                ++nonNullItemCount;
-                        }
-                        var valueArray = new DSPResource[nonNullItemCount];
-                        int valueIndex = 0;
-                        for (int index = 0; index < bsonArray.Count; index++)
-                        {
-                            if (bsonArray[index] != BsonNull.Value)
-                            {
-                                valueArray[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata, propertyName,
-                                    MongoMetadata.GetCollectionTypePrefix(resourceType.Name));
-                            }
-                        }
-                        propertyValue = valueArray;
-                    }
-                }
-                else
-                {
-                    if (element.Value.RawValue != null)
-                    {
-                        switch (element.Value.BsonType)
-                        {
-                            case BsonType.DateTime:
-                                propertyValue = UnixEpoch + TimeSpan.FromMilliseconds(element.Value.AsBsonDateTime.MillisecondsSinceEpoch);
-                                break;
-                            default:
-                                propertyValue = element.Value.RawValue;
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (element.Value.BsonType)
-                        {
-                            case BsonType.Binary:
-                                propertyValue = element.Value.AsBsonBinaryData.Bytes;
-                                break;
-                            default:
-                                propertyValue = element.Value.RawValue;
-                                break;
-                        }
-                    }
-                }
-
-                if (propertyValue != null && element.Value.GetType() != typeof(BsonArray))
-                {
-                    var propertyType = resourceProperty.ResourceType.InstanceType;
-                    Type underlyingNonNullableType = Nullable.GetUnderlyingType(resourceProperty.ResourceType.InstanceType);
-                    if (underlyingNonNullableType != null)
-                    {
-                        propertyType = underlyingNonNullableType;
-                    }
-                    propertyValue = Convert.ChangeType(propertyValue, propertyType);
-                }
+                string propertyName = MongoMetadata.GetResourcePropertyName(element, ResourceTypeKind.EntityType);
+                object propertyValue = ConvertBsonValue(element.Value, MongoMetadata.IsObjectId(element), resourceType, resourceProperty, propertyName, mongoMetadata);
                 resource.SetValue(propertyName, propertyValue);
             }
 
@@ -121,6 +49,103 @@ namespace Mongo.Context
                 }
             }
             return document;
+        }
+
+        private static object ConvertBsonValue(BsonValue bsonValue, bool isKey,
+            ResourceType resourceType, ResourceProperty resourceProperty, string propertyName, MongoMetadata mongoMetadata)
+        {
+            object propertyValue = null;
+
+            if (isKey)
+            {
+                propertyValue = bsonValue.RawValue.ToString();
+            }
+            else if (bsonValue.GetType() == typeof(BsonDocument))
+            {
+                propertyValue = CreateDSPResource(bsonValue.AsBsonDocument, mongoMetadata, propertyName,
+                    MongoMetadata.GetComplexTypePrefix(resourceType.Name));
+            }
+            else if (bsonValue.GetType() == typeof(BsonArray))
+            {
+                var bsonArray = bsonValue.AsBsonArray;
+                if (bsonArray != null && bsonArray.Count > 0)
+                    propertyValue = ConvertBsonArray(bsonArray, resourceType, propertyName, mongoMetadata);
+            }
+            else
+            {
+                propertyValue = ConvertRawValue(bsonValue);
+            }
+
+            if (propertyValue != null && bsonValue.GetType() != typeof(BsonArray))
+            {
+                var propertyType = resourceProperty.ResourceType.InstanceType;
+                Type underlyingNonNullableType = Nullable.GetUnderlyingType(resourceProperty.ResourceType.InstanceType);
+                if (underlyingNonNullableType != null)
+                {
+                    propertyType = underlyingNonNullableType;
+                }
+                propertyValue = Convert.ChangeType(propertyValue, propertyType);
+            }
+
+            return propertyValue;
+        }
+
+        private static object ConvertBsonArray(BsonArray bsonArray, ResourceType resourceType, string propertyName, MongoMetadata mongoMetadata)
+        {
+            bool isDocument = false;
+            int nonNullItemCount = 0;
+            for (int index = 0; index < bsonArray.Count; index++)
+            {
+                if (bsonArray[index] != BsonNull.Value)
+                {
+                    if (bsonArray[index].GetType() == typeof(BsonDocument))
+                        isDocument = true;
+                    ++nonNullItemCount;
+                }
+            }
+            object[] propertyValue = isDocument ? new DSPResource[nonNullItemCount] : new object[nonNullItemCount];
+            int valueIndex = 0;
+            for (int index = 0; index < bsonArray.Count; index++)
+            {
+                if (bsonArray[index] != BsonNull.Value)
+                {
+                    if (isDocument)
+                    {
+                        propertyValue[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata,
+                                                                     propertyName,
+                                                                     MongoMetadata.GetCollectionTypePrefix(resourceType.Name));
+                    }
+                    else
+                    {
+                        propertyValue[valueIndex++] = ConvertRawValue(bsonArray[index]);
+                    }
+                }
+            }
+            return propertyValue;
+        }
+
+        private static object ConvertRawValue(BsonValue bsonValue)
+        {
+            if (bsonValue.RawValue != null)
+            {
+                switch (bsonValue.BsonType)
+                {
+                    case BsonType.DateTime:
+                        return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
+                    default:
+                        return bsonValue.RawValue;
+                }
+            }
+            else
+            {
+                switch (bsonValue.BsonType)
+                {
+                    case BsonType.Binary:
+                        return bsonValue.AsBsonBinaryData.Bytes;
+                    default:
+                        return bsonValue.RawValue;
+                }
+            }
         }
     }
 }

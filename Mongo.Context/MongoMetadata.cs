@@ -113,7 +113,7 @@ namespace Mongo.Context
 
         public ResourceProperty ResolveResourceProperty(ResourceType resourceType, BsonElement element)
         {
-            var propertyName = MongoMetadata.GetResourcePropertyName(element);
+            var propertyName = MongoMetadata.GetResourcePropertyName(element, resourceType.ResourceTypeKind);
             return resourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
         }
 
@@ -176,7 +176,7 @@ namespace Mongo.Context
         {
             foreach (var element in document.Elements)
             {
-                var propertyName = GetResourcePropertyName(element);
+                var propertyName = GetResourcePropertyName(element, ResourceTypeKind.EntityType);
                 var resourceProperty = resourceSet.ResourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
                 if (resourceProperty == null)
                 {
@@ -245,11 +245,11 @@ namespace Mongo.Context
         private void RegisterResourceProperty(MongoContext context, string collectionName, ResourceType collectionType,
             Type elementType, BsonElement element, bool treatObjectIdAsKey = false)
         {
-            var propertyName = GetResourcePropertyName(element);
+            var propertyName = GetResourcePropertyName(element, collectionType.ResourceTypeKind);
             var propertyValue = element.Value;
 
             var collectionProperty = new CollectionProperty {CollectionType = collectionType, PropertyName = element.Name};
-            if (ResolveProviderType(element.Value, element.Name == MongoMetadata.ProviderObjectIdName) == null)
+            if (ResolveProviderType(element.Value, IsObjectId(element)) == null)
             {
                 if (!unresolvedProperties.Contains(collectionProperty))
                 {
@@ -286,13 +286,13 @@ namespace Mongo.Context
 
             if (!string.IsNullOrEmpty(propertyName))
             {
-                AddProviderType(collectionName, propertyName == MappedObjectIdName ? ProviderObjectIdName : propertyName, propertyValue, isKey);
+                AddProviderType(collectionName, IsObjectId(element) ? ProviderObjectIdName : propertyName, propertyValue, isKey);
             }
         }
 
         private void UpdateComplexProperty(MongoContext context, ResourceSet resourceSet, ResourceProperty resourceProperty, BsonElement element)
         {
-            var resourceName = GetResourcePropertyName(element);
+            var resourceName = GetResourcePropertyName(element, ResourceTypeKind.EntityType);
             var resourceType = ResolveResourceType(resourceName, resourceSet.ResourceType.Name);
             UpdateResourceType(context, resourceType, element.Value.AsBsonDocument);
         }
@@ -343,7 +343,7 @@ namespace Mongo.Context
 
         private void AddProviderType(string collectionName, string elementName, BsonValue elementValue, bool isKey = false)
         {
-            Type providerType = ResolveProviderType(elementValue, elementName == MongoMetadata.ProviderObjectIdName);
+            Type providerType = ResolveProviderType(elementValue, isKey);
             if (providerType != null)
             {
                 this.providerTypes.Add(string.Join(".", collectionName, elementName), providerType);
@@ -436,9 +436,9 @@ namespace Mongo.Context
             return UseGlobalComplexTypeNames ? resourceName : string.Join(WordSeparator, collectionName, resourceName);
         }
 
-        internal static string GetResourcePropertyName(BsonElement element)
+        internal static string GetResourcePropertyName(BsonElement element, ResourceTypeKind resourceTypeKind)
         {
-            return element.Name == MongoMetadata.ProviderObjectIdName ?
+            return IsObjectId(element) && resourceTypeKind != ResourceTypeKind.ComplexType ?
                 MongoMetadata.MappedObjectIdName : element.Name.StartsWith("_") ?
                 PrefixForInvalidLeadingChar + element.Name :
                 element.Name;

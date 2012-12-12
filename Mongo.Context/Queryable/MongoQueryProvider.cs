@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Services.Providers;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -137,7 +138,7 @@ namespace Mongo.Context.Queryable
             var bsonDocument = collection.FindOne(query);
             foreach (var element in bsonDocument.Elements)
             {
-                var propertyName = MongoMetadata.GetResourcePropertyName(element);
+                var propertyName = MongoMetadata.GetResourcePropertyName(element, ResourceTypeKind.EntityType);
                 var resourceProperty = resourceType.Properties.SingleOrDefault(x => x.Name == propertyName);
                 if (resourceProperty == null)
                 {

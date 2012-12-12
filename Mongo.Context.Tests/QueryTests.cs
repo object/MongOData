@@ -335,31 +335,23 @@ namespace Mongo.Context.Tests
     public class InMemoryServiceQueryTests : QueryTests<ProductInMemoryService>
     {
         [Test]
-        public void SchemaColumnNullability1()
+        public void AllEntitiesVerifyResultCount1()
         {
-            var schema = base.GetSchema();
-            base.ValidateSchema(schema);
+            var result = ctx.Products.All().ToList();
+            Assert.AreEqual(3, result.Count, "The service returned unexpected number of results.");
         }
     }
 
     [TestFixture]
     public class QueryableServiceQueryTests : QueryTests<ProductQueryableService>
     {
-        [Test]
-        public void FilterEqualObjectID1()
-        {
-            var product = ctx.Products.Find(ctx.Products.ID == 1);
-            product = ctx.Products.Find(ctx.Products.db_id == product.db_id);
-            Assert.AreEqual(1, product.ID);
-        }
-
-        [Test]
-        public void Test()
-        {
-            var serviceUri = "http://localhost:5555/OdaWeb";
-            var db = Database.Opener.Open(serviceUri);
-            var result = db.EventStore.All().Take(10).ToList();
-            Assert.AreEqual(10, result.Count, "The service returned unexpected number of results.");
-        }
+        //[Test]
+        //public void Test()
+        //{
+        //    var serviceUri = "http://localhost:5555/OdaWeb";
+        //    var db = Database.Opener.Open(serviceUri);
+        //    var result = db.EventStore.All().Take(10).ToList();
+        //    Assert.AreEqual(10, result.Count, "The service returned unexpected number of results.");
+        //}
     }
 }

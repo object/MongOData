@@ -6,9 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
-using Mongo.Context.Tests;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 
 namespace Mongo.Context.Tests
@@ -59,6 +57,11 @@ namespace Mongo.Context.Tests
                         Supplier = new Supplier
                             {
                                 Name = "City Bakery",
+                                Addresses = new[]
+                                    {
+                                        new Address { Type = AddressType.Postal, Lines = new[] {"P.O.Box 89", "123456 City"} },
+                                        new Address { Type = AddressType.Street, Lines = new[] {"Long Street 100", "654321 City"} },
+                                    },
                             },
                         Category = categoryFood,
                     });
@@ -73,11 +76,16 @@ namespace Mongo.Context.Tests
                         Rating = 3,
                         Quantity = new Quantity
                             {
-                                Value = (double)4, Units = "liters",
+                                Value = (double)4,
+                                Units = "liters",
                             },
                         Supplier = new Supplier
                             {
                                 Name = "Green Farm",
+                                Addresses = new[]
+                                    {
+                                        new Address { Type = AddressType.Street, Lines = new[] {"P.O.Box 123", "321321 Green Village"} },
+                                    },
                             },
                         Category = categoryBeverages,
                     });
@@ -92,7 +100,8 @@ namespace Mongo.Context.Tests
                         Rating = 5,
                         Quantity = new Quantity
                             {
-                                Value = (double)7, Units = "bottles",
+                                Value = (double)7,
+                                Units = "bottles",
                             },
                         Category = categoryBeverages,
                     });

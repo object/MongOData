@@ -17,6 +17,19 @@ namespace Mongo.Context.Tests
     public class Supplier
     {
         public string Name { get; set; }
+        public Address[] Addresses { get; set; }
+    }
+
+    public enum AddressType
+    {
+        Postal,
+        Street,
+    }
+
+    public class Address
+    {
+        public AddressType Type { get; set; }
+        public string[] Lines { get; set; }
     }
 
     public class ClientProduct

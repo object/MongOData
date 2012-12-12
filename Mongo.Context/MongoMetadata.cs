@@ -249,7 +249,7 @@ namespace Mongo.Context
             var propertyValue = element.Value;
 
             var collectionProperty = new CollectionProperty {CollectionType = collectionType, PropertyName = element.Name};
-            if (ResolveProviderType(element.Value) == null)
+            if (ResolveProviderType(element.Value, element.Name == MongoMetadata.ProviderObjectIdName) == null)
             {
                 if (!unresolvedProperties.Contains(collectionProperty))
                 {
@@ -343,18 +343,14 @@ namespace Mongo.Context
 
         private void AddProviderType(string collectionName, string elementName, BsonValue elementValue, bool isKey = false)
         {
-            Type providerType = ResolveProviderType(elementValue);
+            Type providerType = ResolveProviderType(elementValue, elementName == MongoMetadata.ProviderObjectIdName);
             if (providerType != null)
             {
-                if (providerType.IsValueType && !isKey)
-                {
-                    providerType = typeof (Nullable<>).MakeGenericType(providerType);
-                }
                 this.providerTypes.Add(string.Join(".", collectionName, elementName), providerType);
             }
         }
 
-        private static Type ResolveProviderType(BsonValue elementValue)
+        private static Type ResolveProviderType(BsonValue elementValue, bool isKey)
         {
             if (elementValue.GetType() == typeof(BsonArray) || elementValue.GetType() == typeof(BsonDocument))
             {
@@ -362,13 +358,7 @@ namespace Mongo.Context
             }
             else if (elementValue.RawValue != null)
             {
-                switch (elementValue.BsonType)
-                {
-                    case BsonType.DateTime:
-                        return typeof(DateTime);
-                    default:
-                        return elementValue.RawValue.GetType();
-                }
+                return GetRawValueType(elementValue, isKey);
             }
             else
             {
@@ -389,13 +379,7 @@ namespace Mongo.Context
             }
             else if (element.Value.RawValue != null)
             {
-                switch (element.Value.BsonType)
-                {
-                    case BsonType.DateTime:
-                        return typeof(DateTime);
-                    default:
-                        return element.Value.RawValue.GetType();
-                }
+                return GetRawValueType(element.Value);
             }
             else if (element.Value.GetType() == typeof(BsonArray) || element.Value.GetType() == typeof(BsonDocument))
             {
@@ -411,6 +395,25 @@ namespace Mongo.Context
                         return typeof(string);
                 }
             }
+        }
+
+        private static Type GetRawValueType(BsonValue elementValue, bool isKey = false)
+        {
+            Type elementType;
+            switch (elementValue.BsonType)
+            {
+                case BsonType.DateTime:
+                    elementType = typeof(DateTime);
+                    break;
+                default:
+                    elementType = elementValue.RawValue.GetType();
+                    break;
+            }
+            if (!isKey && elementType.IsValueType)
+            {
+                elementType = typeof(Nullable<>).MakeGenericType(elementType);
+            }
+            return elementType;
         }
 
         internal static string GetComplexTypePrefix(string ownerName)

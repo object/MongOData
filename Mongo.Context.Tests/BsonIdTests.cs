@@ -18,7 +18,7 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void Metadata()
+        public void ValidateMetadata()
         {
             base.RequestAndValidateMetadata();
         }

@@ -91,7 +91,13 @@ namespace Mongo.Context
 
                 if (propertyValue != null && element.Value.GetType() != typeof(BsonArray))
                 {
-                    propertyValue = Convert.ChangeType(propertyValue, resourceProperty.ResourceType.InstanceType);
+                    var propertyType = resourceProperty.ResourceType.InstanceType;
+                    Type underlyingNonNullableType = Nullable.GetUnderlyingType(resourceProperty.ResourceType.InstanceType);
+                    if (underlyingNonNullableType != null)
+                    {
+                        propertyType = underlyingNonNullableType;
+                    }
+                    propertyValue = Convert.ChangeType(propertyValue, propertyType);
                 }
                 resource.SetValue(propertyName, propertyValue);
             }

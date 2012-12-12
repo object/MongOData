@@ -25,9 +25,26 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void Metadata()
+        public void ValidateMetadata()
         {
             base.RequestAndValidateMetadata();
+        }
+
+        [Test]
+        public void SchemaTables()
+        {
+            var schema = base.GetSchema();
+            var tableNames = schema.Tables.Select(x => x.ActualName).ToList();
+            Assert.Contains("Products", tableNames);
+            Assert.Contains("Categories", tableNames);
+            Assert.Contains("ClrTypes", tableNames);
+        }
+
+        [Test]
+        public void SchemaColumnNullability()
+        {
+            var schema = base.GetSchema();
+            base.ValidateSchema(schema);
         }
 
         [Test]
@@ -317,10 +334,32 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class InMemoryServiceQueryTests : QueryTests<ProductInMemoryService>
     {
+        [Test]
+        public void SchemaColumnNullability1()
+        {
+            var schema = base.GetSchema();
+            base.ValidateSchema(schema);
+        }
     }
 
     [TestFixture]
     public class QueryableServiceQueryTests : QueryTests<ProductQueryableService>
     {
+        [Test]
+        public void FilterEqualObjectID1()
+        {
+            var product = ctx.Products.Find(ctx.Products.ID == 1);
+            product = ctx.Products.Find(ctx.Products.db_id == product.db_id);
+            Assert.AreEqual(1, product.ID);
+        }
+
+        [Test]
+        public void Test()
+        {
+            var serviceUri = "http://localhost:5555/OdaWeb";
+            var db = Database.Opener.Open(serviceUri);
+            var result = db.EventStore.All().Take(10).ToList();
+            Assert.AreEqual(10, result.Count, "The service returned unexpected number of results.");
+        }
     }
 }

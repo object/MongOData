@@ -179,7 +179,7 @@ namespace Mongo.Context.Tests
         public static void Clean()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
-            var server = MongoServer.Create(connectionString);
+            var server = new MongoClient(connectionString).GetServer();
 
             server.DropDatabase(GetDatabaseName(connectionString));
         }
@@ -188,7 +188,7 @@ namespace Mongo.Context.Tests
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
             var databaseName = GetDatabaseName(connectionString);
-            var server = MongoServer.Create(connectionString);
+            var server = new MongoClient(connectionString).GetServer();
             server.DropDatabase(databaseName);
             return server.GetDatabase(databaseName);
         }

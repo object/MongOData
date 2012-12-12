@@ -9,14 +9,17 @@ namespace Mongo.Context
     public partial class MongoContext : IDisposable
     {
         protected string connectionString;
+        protected MongoClient client;
         protected MongoServer server;
         protected MongoDatabase database;
 
         public MongoContext(string connectionString)
         {
             this.connectionString = connectionString;
-            this.server = MongoServer.Create(this.connectionString);
             string databaseName = GetDatabaseName(this.connectionString);
+
+            this.client = new MongoClient(this.connectionString);
+            this.server = this.client.GetServer();
             this.database = server.GetDatabase(databaseName);
         }
 
@@ -27,7 +30,7 @@ namespace Mongo.Context
 
         public static IEnumerable<string> GetDatabaseNames(string connectionString)
         {
-            return MongoServer.Create(connectionString).GetDatabaseNames();
+            return new MongoClient(connectionString).GetServer().GetDatabaseNames();
         }
 
         public void Dispose()

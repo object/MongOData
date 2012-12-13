@@ -75,10 +75,8 @@ namespace Mongo.Context.Queryable
                     }
                     else
                     {
-                        var types = typeName.Split('.');
-                        var parentName = types.First();
-                        var childName = types.Last();
-                        Func<string, bool> criteria = x => x.StartsWith(parentName + MongoMetadata.WordSeparator + childName);
+                        var typeNameWords = typeName.Split('.');
+                        Func<string, bool> criteria = x => x.StartsWith(string.Join(MongoMetadata.WordSeparator, typeNameWords) + ".");
 
                         dynamicType = CreateDynamicTypes(criteria, providerTypes, generatedTypes);
                         generatedTypes.Add(typeName, dynamicType);

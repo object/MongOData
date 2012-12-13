@@ -4,11 +4,14 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Mongo.Context.Queryable
 {
     public static class DocumentTypeBuilder
     {
+        private static ConstructorInfo _bsondIdAttributeConstructor = typeof(BsonIdAttribute).GetConstructor(new Type[] { });
+
         public static Type CompileDocumentType(Type baseType, IDictionary<string, Type> fields)
         {
             TypeBuilder tb = GetTypeBuilder(baseType);
@@ -46,6 +49,11 @@ namespace Mongo.Context.Queryable
             FieldBuilder fieldBuilder = tb.DefineField("_" + propertyName, propertyType, FieldAttributes.Private);
 
             PropertyBuilder propertyBuilder = tb.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+            if (propertyName == MongoMetadata.ProviderObjectIdName)
+            {
+                propertyBuilder.SetCustomAttribute(_bsondIdAttributeConstructor, new byte[] { });
+            }
+
             MethodBuilder getPropMthdBldr = tb.DefineMethod("get_" + propertyName, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, propertyType, Type.EmptyTypes);
             ILGenerator getIl = getPropMthdBldr.GetILGenerator();
 

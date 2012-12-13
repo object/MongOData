@@ -99,6 +99,7 @@
     <Compile Include="Entities.cs" />
     <Compile Include="JsonSamplesTests.cs" />
     <Compile Include="MetadataTests.cs" />
+    <Compile Include="NativeTests.cs" />
     <Compile Include="ProductService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReferenceQueryTests.cs" />

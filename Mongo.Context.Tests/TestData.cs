@@ -193,12 +193,23 @@ namespace Mongo.Context.Tests
             server.DropDatabase(GetDatabaseName(connectionString));
         }
 
-        private static MongoDatabase CreateDatabase()
+        public static MongoDatabase CreateDatabase()
+        {
+            return GetDatabase(true);
+        }
+
+        public static MongoDatabase OpenDatabase()
+        {
+            return GetDatabase(false);
+        }
+
+        private static MongoDatabase GetDatabase(bool clear)
         {
             var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
             var databaseName = GetDatabaseName(connectionString);
             var server = new MongoClient(connectionString).GetServer();
-            server.DropDatabase(databaseName);
+            if (clear)
+                server.DropDatabase(databaseName);
             return server.GetDatabase(databaseName);
         }
 

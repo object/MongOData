@@ -208,16 +208,21 @@ namespace Mongo.Context
                 }
             }
 
-            if (resourceTypeKind == ResourceTypeKind.EntityType)
+            if (!hasObjectId)
             {
-                if (!hasObjectId)
+                if (resourceTypeKind == ResourceTypeKind.EntityType)
                 {
                     this.dspMetadata.AddKeyProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
-                    AddProviderType(collectionName, ProviderObjectIdName, BsonObjectId.Empty, true);
                 }
-
-                this.dspMetadata.AddResourceSet(collectionName, collectionType);
+                else
+                {
+                    this.dspMetadata.AddPrimitiveProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
+                }
+                AddProviderType(collectionName, ProviderObjectIdName, BsonObjectId.Empty, true);
             }
+
+            if (resourceTypeKind == ResourceTypeKind.EntityType)
+                this.dspMetadata.AddResourceSet(collectionName, collectionType);
 
             return collectionType;
         }

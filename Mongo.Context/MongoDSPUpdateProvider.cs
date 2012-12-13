@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DataServiceProvider;
 using MongoDB.Bson;
-using MongoDB.Driver;
 using MongoDB.Driver.Builders;
+using DataServiceProvider;
 
 namespace Mongo.Context
 {

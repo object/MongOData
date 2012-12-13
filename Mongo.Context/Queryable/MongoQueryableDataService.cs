@@ -19,13 +19,13 @@ namespace Mongo.Context.Queryable
 
         public override DSPQueryableContext CreateContext(string connectionString)
         {
-            Func<string, IQueryable> queryProviders = x => GetQueryableCollection(connectionString, x, 
+            Func<string, IQueryable> queryProviders = x => GetQueryableCollection(connectionString, x,
                 this.mongoMetadata.ProviderTypes, this.mongoMetadata.GeneratedTypes);
             var dspContext = new DSPQueryableContext(this.Metadata, queryProviders);
             return dspContext;
         }
 
-        private IQueryable GetQueryableCollection(string connectionString, string collectionName, 
+        private IQueryable GetQueryableCollection(string connectionString, string collectionName,
             Dictionary<string, Type> providerTypes, Dictionary<string, Type> generatedTypes)
         {
             var collectionType = CreateDynamicTypeForCollection(collectionName, providerTypes, generatedTypes);
@@ -61,37 +61,25 @@ namespace Mongo.Context.Queryable
             return DocumentTypeBuilder.CompileDocumentType(typeof(object), fields);
         }
 
-        private Type GetDynamicTypeForProviderType(string typeName, Type providerType, 
+        private Type GetDynamicTypeForProviderType(string typeName, Type providerType,
             Dictionary<string, Type> providerTypes, Dictionary<string, Type> generatedTypes)
         {
-            if (MongoMetadata.CreateDynamicTypesForComplexTypes)
+            if (MongoMetadata.CreateDynamicTypesForComplexTypes && providerType == typeof(BsonDocument))
             {
-                if (providerType == typeof(BsonDocument))
+                Type dynamicType;
+                if (generatedTypes.ContainsKey(typeName))
                 {
-                    Type dynamicType;
-                    if (generatedTypes.ContainsKey(typeName))
-                    {
-                        dynamicType = generatedTypes[typeName];
-                    }
-                    else
-                    {
-                        var typeNameWords = typeName.Split('.');
-                        Func<string, bool> criteria = x => x.StartsWith(string.Join(MongoMetadata.WordSeparator, typeNameWords) + ".");
-
-                        dynamicType = CreateDynamicTypes(criteria, providerTypes, generatedTypes);
-                        generatedTypes.Add(typeName, dynamicType);
-                    }
-                    return dynamicType;
-                }
-                else if (providerType == typeof(BsonArray))
-                {
-                    // TODO
-                    return providerType;
+                    dynamicType = generatedTypes[typeName];
                 }
                 else
                 {
-                    return providerType;
+                    var typeNameWords = typeName.Split('.');
+                    Func<string, bool> criteria = x => x.StartsWith(string.Join(MongoMetadata.WordSeparator, typeNameWords) + ".");
+
+                    dynamicType = CreateDynamicTypes(criteria, providerTypes, generatedTypes);
+                    generatedTypes.Add(typeName, dynamicType);
                 }
+                return dynamicType;
             }
             else
             {

@@ -334,12 +334,6 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class InMemoryServiceQueryTests : QueryTests<ProductInMemoryService>
     {
-        [Test]
-        public void AllEntitiesVerifyResultCount1()
-        {
-            var result = ctx.Products.All().ToList();
-            Assert.AreEqual(3, result.Count, "The service returned unexpected number of results.");
-        }
     }
 
     [TestFixture]

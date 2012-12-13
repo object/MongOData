@@ -13,9 +13,9 @@ namespace Mongo.Context.Tests
 {
     public static class TestData
     {
-        public static void PopulateWithCategoriesAndProducts()
+        public static void PopulateWithCategoriesAndProducts(bool clearDatabase = true)
         {
-            var database = CreateDatabase();
+            var database = GetDatabase(clearDatabase);
 
             var categories = database.GetCollection<ClientCategory>("Categories");
             var products = database.GetCollection<ClientProduct>("Products");
@@ -130,9 +130,9 @@ namespace Mongo.Context.Tests
                     });
         }
 
-        public static void PopulateWithVariableTypes()
+        public static void PopulateWithVariableTypes(bool clearDatabase = true)
         {
-            var database = CreateDatabase();
+            var database = GetDatabase(clearDatabase);
 
             var variableTypes = database.GetCollection("VariableTypes");
             variableTypes.Insert(new TypeWithOneField { StringValue = "1" }.ToBsonDocument());
@@ -140,9 +140,9 @@ namespace Mongo.Context.Tests
             variableTypes.Insert(new TypeWithThreeFields { StringValue = "3", IntValue = 3, DecimalValue = 3m }.ToBsonDocument());
         }
 
-        public static void PopulateWithBsonIdTypes()
+        public static void PopulateWithBsonIdTypes(bool clearDatabase = true)
         {
-            var database = CreateDatabase();
+            var database = GetDatabase(clearDatabase);
 
             var typesWithoutExplicitId = database.GetCollection<TypeWithoutExplicitId>("TypeWithoutExplicitId");
             typesWithoutExplicitId.Insert(new TypeWithoutExplicitId { Name = "A" }.ToBsonDocument());
@@ -170,9 +170,9 @@ namespace Mongo.Context.Tests
             typeWithGuidId.Insert(new TypeWithGuidId { Id = Guid.NewGuid(), Name = "C" }.ToBsonDocument());
         }
 
-        public static void PopulateWithJsonSamples()
+        public static void PopulateWithJsonSamples(bool clearDatabase = true)
         {
-            var database = CreateDatabase();
+            var database = GetDatabase(clearDatabase);
 
             var jsonSamples = new[] { "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", "Nested", "ArrayOfNested" };
 

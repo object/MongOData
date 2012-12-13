@@ -31,7 +31,7 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess && 
+            if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.MemberAccess &&
                 (m.Arguments[0] as MemberExpression).Expression.Type == typeof(ResourceProperty))
             {
                 return ReplaceMemberAccess(m);
@@ -129,7 +129,7 @@ namespace Mongo.Context.Queryable
             {
                 Expression left = this.Visit(b.Left);
                 Expression right = this.Visit(b.Right);
-                if (left.Type == typeof(ObjectId) && 
+                if (left.Type == typeof(ObjectId) &&
                     right.Type == typeof(string) && right.NodeType == ExpressionType.Constant)
                 {
                     return Visit(ReplaceObjectIdComparison(b.NodeType, right, left));
@@ -230,7 +230,7 @@ namespace Mongo.Context.Queryable
             }
             else if (m.Object.NodeType == ExpressionType.Convert && (m.Object as UnaryExpression).Operand.NodeType == ExpressionType.Call)
             {
-                var methodCallExpression = (m.Object as UnaryExpression).Operand as MethodCallExpression;
+                var methodCallExpression = (m.Object as UnaryExpression).Operand as MethodCallExpression as MethodCallExpression;
                 var resourceProperty = ((methodCallExpression.Arguments.First() as MemberExpression).Expression as ConstantExpression).Value as ResourceProperty;
                 var typeName = resourceProperty.ResourceType.Name;
                 if (!MongoMetadata.UseGlobalComplexTypeNames)
@@ -238,9 +238,9 @@ namespace Mongo.Context.Queryable
                     typeName = typeName.Replace(MongoMetadata.WordSeparator, ".");
                 }
                 var propertyType = this.mongoMetadata.GeneratedTypes.Single(x => x.Key == typeName).Value;
-                var parameterExpression = Expression.Parameter(propertyType, "x");
                 var member = propertyType.GetMember(fieldName).Single();
-                return Expression.MakeMemberAccess(parameterExpression, member);
+                var expression = ReplaceMemberAccess(methodCallExpression);
+                return Expression.MakeMemberAccess(expression, member);
             }
             else
             {

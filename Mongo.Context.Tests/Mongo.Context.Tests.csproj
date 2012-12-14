@@ -125,6 +125,7 @@
     <EmbeddedResource Include="Resources\Nested.json" />
     <EmbeddedResource Include="Resources\Twitter.json" />
     <EmbeddedResource Include="Resources\YouTube.json" />
+    <EmbeddedResource Include="Resources\EmptyArray.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataServiceProvider\DataServiceProvider.csproj">

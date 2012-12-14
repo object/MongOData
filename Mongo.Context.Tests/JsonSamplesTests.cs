@@ -116,6 +116,17 @@ namespace Mongo.Context.Tests
             Assert.AreEqual(7, result.nestedArray.First().topping.Count);
             Assert.AreEqual("5001", result.nestedArray.First().topping.First().id);
         }
+
+        [Test]
+        public void EmptyArray()
+        {
+            var result = ctx.EmptyArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(7, result[0].topping.Count);
+            Assert.AreEqual("0002", result[1].id);
+            // TODO: fix Simple.Data OData adapter
+            //Assert.AreEqual(0, result[1].topping.Count);
+        }
     }
 
     [TestFixture]

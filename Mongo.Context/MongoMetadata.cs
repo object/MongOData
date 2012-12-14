@@ -56,8 +56,8 @@ namespace Mongo.Context
         private static readonly Dictionary<string, MongoMetadataCache> MetadataCache = new Dictionary<string, MongoMetadataCache>();
 
         public MongoConfiguration.Metadata Configuration { get; private set; }
-        public Dictionary<string, Type> ProviderTypes { get { return this.providerTypes; } }
-        public Dictionary<string, Type> GeneratedTypes { get { return this.generatedTypes; } }
+        internal Dictionary<string, Type> ProviderTypes { get { return this.providerTypes; } }
+        internal Dictionary<string, Type> GeneratedTypes { get { return this.generatedTypes; } }
 
         public MongoMetadata(string connectionString, MongoConfiguration.Metadata metadata = null)
         {

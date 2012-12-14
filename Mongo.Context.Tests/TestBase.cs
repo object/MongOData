@@ -32,7 +32,7 @@ namespace Mongo.Context.Tests
                 service = null;
             }
 
-            //TestData.Clean();
+            TestData.Clean();
         }
 
         [SetUp]

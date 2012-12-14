@@ -174,14 +174,17 @@ namespace Mongo.Context.Tests
         {
             var database = GetDatabase(clearDatabase);
 
-            var jsonSamples = new[] { "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", "Nested", "ArrayOfNested" };
+            var jsonSamples = new[] { "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", "Nested", "ArrayOfNested", "EmptyArray" };
 
             foreach (var collectionName in jsonSamples)
             {
-                var json = GetResourceAsString(collectionName + ".json");
-                var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
-                var collection = database.GetCollection(collectionName);
-                collection.Insert(doc);
+                var jsonCollection = GetResourceAsString(collectionName + ".json").Split(new string[] { "---" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var json in jsonCollection)
+                {
+                    var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
+                    var collection = database.GetCollection(collectionName);
+                    collection.Insert(doc);
+                }
             }
         }
 

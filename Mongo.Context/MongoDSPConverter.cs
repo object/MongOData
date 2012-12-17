@@ -55,12 +55,15 @@ namespace Mongo.Context
         private static object ConvertBsonValue(BsonValue bsonValue, bool isKey,
             ResourceType resourceType, ResourceProperty resourceProperty, string propertyName, MongoMetadata mongoMetadata)
         {
+            if (bsonValue == null)
+                return null;
+
             object propertyValue = null;
             bool convertValue;
 
             if (isKey)
             {
-                propertyValue = bsonValue.RawValue.ToString();
+                propertyValue = bsonValue.RawValue != null ? bsonValue.RawValue.ToString() : null;
                 convertValue = true;
             }
             else if (bsonValue.GetType() == typeof(BsonDocument))
@@ -142,6 +145,9 @@ namespace Mongo.Context
 
         private static object ConvertRawValue(BsonValue bsonValue)
         {
+            if (bsonValue == null)
+                return null;
+
             if (bsonValue.RawValue != null)
             {
                 switch (bsonValue.BsonType)

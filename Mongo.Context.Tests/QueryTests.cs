@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Simple.Data;
+using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
@@ -39,7 +41,14 @@ namespace Mongo.Context.Tests
         public void SchemaColumnNullability()
         {
             var schema = base.GetSchema();
-            base.ValidateSchema(schema);
+            base.ValidateColumnNullability(schema);
+        }
+
+        [Test]
+        public void SchemaColumnNames()
+        {
+            var schema = base.GetSchema();
+            base.ValidatePropertyNames(schema);
         }
 
         [Test]
@@ -339,8 +348,10 @@ namespace Mongo.Context.Tests
         //{
         //    var serviceUri = "http://localhost:5555/OdaWeb";
         //    var db = Database.Opener.Open(serviceUri);
-        //    var result = db.EventStore.All().Take(10).ToList();
-        //    Assert.AreEqual(10, result.Count, "The service returned unexpected number of results.");
+        //    var result = db.EventStore.All().ToList();
+        //    Assert.AreEqual(187, result.Count, "The service returned unexpected number of results.");
+        //    var schema = base.GetSchema("http://localhost:5555/OdaWeb");
+        //    base.ValidatePropertyNames(schema);
         //}
     }
 }

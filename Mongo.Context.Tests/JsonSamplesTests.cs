@@ -16,10 +16,48 @@ namespace Mongo.Context.Tests
             TestData.PopulateWithJsonSamples();
         }
 
+        [SetUp]
+        public override void SetUp()
+        {
+            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
+            base.SetUp();
+        }
+
         [Test]
         public void ValidateMetadata()
         {
             base.RequestAndValidateMetadata();
+        }
+
+        [Test]
+        public void SchemaTables()
+        {
+            var schema = base.GetSchema();
+            var tableNames = schema.Tables.Select(x => x.ActualName).ToList();
+            Assert.Contains("Colors", tableNames);
+            Assert.Contains("Facebook", tableNames);
+            Assert.Contains("Flickr", tableNames);
+            Assert.Contains("GoogleMaps", tableNames);
+            Assert.Contains("iPhone", tableNames);
+            Assert.Contains("Twitter", tableNames);
+            Assert.Contains("YouTube", tableNames);
+            Assert.Contains("Nested", tableNames);
+            Assert.Contains("ArrayOfNested", tableNames);
+            Assert.Contains("EmptyArray", tableNames);
+        }
+
+        [Test]
+        public void SchemaColumnNullability()
+        {
+            var schema = base.GetSchema();
+            base.ValidateColumnNullability(schema);
+        }
+
+        [Test]
+        public void SchemaColumnNames()
+        {
+            var schema = base.GetSchema();
+            base.ValidatePropertyNames(schema);
         }
 
         [Test]

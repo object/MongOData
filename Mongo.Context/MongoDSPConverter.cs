@@ -66,7 +66,7 @@ namespace Mongo.Context
             else if (bsonValue.GetType() == typeof(BsonDocument))
             {
                 propertyValue = CreateDSPResource(bsonValue.AsBsonDocument, mongoMetadata, propertyName,
-                    MongoMetadata.GetComplexTypePrefix(resourceType.Name));
+                    MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
                 convertValue = true;
             }
             else if (bsonValue.GetType() == typeof(BsonArray))
@@ -129,7 +129,7 @@ namespace Mongo.Context
                     {
                         propertyValue[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata,
                                                                      propertyName,
-                                                                     MongoMetadata.GetCollectionTypePrefix(resourceType.Name));
+                                                                     MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
                     }
                     else
                     {

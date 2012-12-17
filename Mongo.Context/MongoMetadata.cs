@@ -101,7 +101,7 @@ namespace Mongo.Context
         public ResourceType ResolveResourceType(string resourceName, string ownerPrefix = null)
         {
             ResourceType resourceType;
-            string qualifiedResourceName = string.IsNullOrEmpty(ownerPrefix) ? resourceName : MongoMetadata.GetComplexTypeName(ownerPrefix, resourceName);
+            string qualifiedResourceName = string.IsNullOrEmpty(ownerPrefix) ? resourceName : MongoMetadata.GetQualifiedTypeName(ownerPrefix, resourceName);
             this.dspMetadata.TryResolveResourceType(string.Join(".", MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
             return resourceType;
         }
@@ -161,8 +161,9 @@ namespace Mongo.Context
             foreach (var prop in this.unresolvedProperties)
             {
                 var providerType = typeof (string);
-                this.dspMetadata.AddPrimitiveProperty(prop.CollectionType, prop.PropertyName, providerType);
-                this.providerTypes.Add(string.Join(".", prop.CollectionType.Name, prop.PropertyName), providerType);
+                var propertyName = NormalizeResourcePropertyName(prop.PropertyName);
+                this.dspMetadata.AddPrimitiveProperty(prop.CollectionType, propertyName, providerType);
+                this.providerTypes.Add(string.Join(".", prop.CollectionType.Name, propertyName), providerType);
             }
         }
 
@@ -312,7 +313,7 @@ namespace Mongo.Context
             }
             else
             {
-                resourceType = RegisterResourceType(context, GetComplexTypeName(collectionName, propertyName),
+                resourceType = RegisterResourceType(context, GetQualifiedTypeName(collectionName, propertyName),
                                                     element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
             }
             this.dspMetadata.AddComplexProperty(collectionType, propertyName, resourceType);
@@ -334,7 +335,7 @@ namespace Mongo.Context
                     }
                     else
                     {
-                        resourceType = RegisterResourceType(context, GetCollectionTypeName(collectionName, propertyName),
+                        resourceType = RegisterResourceType(context, GetQualifiedTypeName(collectionName, propertyName),
                                                             arrayElement.AsBsonDocument, ResourceTypeKind.ComplexType);
                     }
                     this.dspMetadata.AddCollectionProperty(collectionType, propertyName, resourceType);
@@ -421,32 +422,26 @@ namespace Mongo.Context
             return elementType;
         }
 
-        internal static string GetComplexTypePrefix(string ownerName)
-        {
-            return UseGlobalComplexTypeNames ? string.Empty : ownerName;
-        }
-
-        internal static string GetComplexTypeName(string collectionName, string resourceName)
+        internal static string GetQualifiedTypeName(string collectionName, string resourceName)
         {
             return UseGlobalComplexTypeNames ? resourceName : string.Join(WordSeparator, collectionName, resourceName);
         }
 
-        internal static string GetCollectionTypePrefix(string ownerName)
+        internal static string GetQualifiedTypePrefix(string ownerName)
         {
             return UseGlobalComplexTypeNames ? string.Empty : ownerName;
-        }
-
-        internal static string GetCollectionTypeName(string collectionName, string resourceName)
-        {
-            return UseGlobalComplexTypeNames ? resourceName : string.Join(WordSeparator, collectionName, resourceName);
         }
 
         internal static string GetResourcePropertyName(BsonElement element, ResourceTypeKind resourceTypeKind)
         {
             return IsObjectId(element) && resourceTypeKind != ResourceTypeKind.ComplexType ?
-                MongoMetadata.MappedObjectIdName : element.Name.StartsWith("_") ?
-                PrefixForInvalidLeadingChar + element.Name :
-                element.Name;
+                MongoMetadata.MappedObjectIdName :
+                NormalizeResourcePropertyName(element.Name);
+        }
+
+        internal static string NormalizeResourcePropertyName(string propertyName)
+        {
+            return propertyName.StartsWith("_") ? PrefixForInvalidLeadingChar + propertyName : propertyName;
         }
     }
 }

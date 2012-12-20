@@ -15,4 +15,5 @@ _ReSharper.*
 *.user
 *.pidb
 *.nupkg
+*.zip
 ~$*

@@ -164,6 +164,19 @@ namespace Mongo.Context.Tests
             Assert.AreEqual("0002", result[1].id);
             Assert.AreEqual(0, result[1].topping.Count);
         }
+
+        [Test]
+        public void NullArray()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(1, result[0].batters.Count);
+            Assert.AreEqual(null, result[0].batters.batter[0].x_id);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(2, result[0].batters.Count);
+            Assert.AreEqual(null, result[1].batters.batter[0].x_id);
+            Assert.AreEqual(1, result[1].batters.batter[1].id);
+        }
     }
 
     [TestFixture]

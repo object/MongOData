@@ -40,6 +40,7 @@ namespace Mongo.Context
     {
         public static readonly string ProviderObjectIdName = "_id";
         public static readonly string MappedObjectIdName = "db_id";
+        public static readonly Type ProviderObjectIdType = typeof(BsonObjectId);
         public static readonly Type MappedObjectIdType = typeof(string);
         public static readonly string ContainerName = "MongoContext";
         public static readonly string RootNamespace = "Mongo";
@@ -381,11 +382,14 @@ namespace Mongo.Context
         {
             if (IsObjectId(element))
             {
-                return MappedObjectIdType;
+                if (element.Value.GetType() == ProviderObjectIdType)
+                    return MappedObjectIdType;
+                else
+                    return GetRawValueType(element.Value, true);
             }
             else if (element.Value.RawValue != null)
             {
-                return GetRawValueType(element.Value);
+                return GetRawValueType(element.Value, IsObjectId(element));
             }
             else if (element.Value.GetType() == typeof(BsonArray) || element.Value.GetType() == typeof(BsonDocument))
             {

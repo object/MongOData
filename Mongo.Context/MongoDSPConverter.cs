@@ -26,7 +26,7 @@ namespace Mongo.Context
                     continue;
 
                 string propertyName = MongoMetadata.GetResourcePropertyName(element, ResourceTypeKind.EntityType);
-                object propertyValue = ConvertBsonValue(element.Value, MongoMetadata.IsObjectId(element), resourceType, resourceProperty, propertyName, mongoMetadata);
+                object propertyValue = ConvertBsonValue(element.Value, resourceType, resourceProperty, propertyName, mongoMetadata);
                 resource.SetValue(propertyName, propertyValue);
             }
             AssignNullCollections(resource, resourceType);
@@ -52,8 +52,7 @@ namespace Mongo.Context
             return document;
         }
 
-        private static object ConvertBsonValue(BsonValue bsonValue, bool isKey,
-            ResourceType resourceType, ResourceProperty resourceProperty, string propertyName, MongoMetadata mongoMetadata)
+        private static object ConvertBsonValue(BsonValue bsonValue, ResourceType resourceType, ResourceProperty resourceProperty, string propertyName, MongoMetadata mongoMetadata)
         {
             if (bsonValue == null)
                 return null;
@@ -61,12 +60,7 @@ namespace Mongo.Context
             object propertyValue = null;
             bool convertValue;
 
-            if (isKey)
-            {
-                propertyValue = bsonValue.RawValue != null ? bsonValue.RawValue.ToString() : null;
-                convertValue = true;
-            }
-            else if (bsonValue.GetType() == typeof(BsonDocument))
+            if (bsonValue.GetType() == typeof(BsonDocument))
             {
                 propertyValue = CreateDSPResource(bsonValue.AsBsonDocument, mongoMetadata, propertyName,
                     MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
@@ -150,12 +144,23 @@ namespace Mongo.Context
 
             if (bsonValue.RawValue != null)
             {
-                switch (bsonValue.BsonType)
+                if (bsonValue.IsObjectId)
                 {
-                    case BsonType.DateTime:
-                        return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
-                    default:
-                        return bsonValue.RawValue;
+                    return bsonValue.ToString();
+                }
+                else if (bsonValue.IsGuid)
+                {
+                    return bsonValue.AsGuid;
+                }
+                else
+                {
+                    switch (bsonValue.BsonType)
+                    {
+                        case BsonType.DateTime:
+                            return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
+                        default:
+                            return bsonValue.RawValue;
+                    }
                 }
             }
             else

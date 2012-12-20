@@ -44,7 +44,7 @@ namespace Mongo.Context.Tests
         {
             var result = ctx.TypeWithIntId.All().ToList();
             Assert.AreEqual(3, result.Count, "The service returned unexpected number of results.");
-            Assert.AreEqual("1", result[0].db_id);
+            Assert.AreEqual(1, result[0].db_id);
         }
 
         [Test]

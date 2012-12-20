@@ -1,0 +1,23 @@
+﻿{
+	"id": "0001",
+	"batters":
+		{
+			"batter":
+				[
+					{ "_id1": 1, "type": "Regular" },
+					{ "_id1": null, "type": null }
+				]
+		}
+}
+---
+{
+	"id": "0002",
+	"batters":
+		{
+			"batter":
+				[
+					{ "_id1": null, "type": null },
+					{ "_id1": 1, "type": "Regular" }
+				]
+		}
+}

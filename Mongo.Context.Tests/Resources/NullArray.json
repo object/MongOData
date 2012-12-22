@@ -4,8 +4,7 @@
 		{
 			"batter":
 				[
-					{ "_id1": 1, "type": "Regular" },
-					{ "_id1": null, "type": null }
+					{ "id": null, "nonid": null, "type": null }
 				]
 		}
 }
@@ -16,8 +15,8 @@
 		{
 			"batter":
 				[
-					{ "_id1": null, "type": null },
-					{ "_id1": 1, "type": "Regular" }
+					{ "id": null, "nonid": null, "type": null },
+					{ "id": 1, "nonid": 2, "type": "Regular" }
 				]
 		}
 }

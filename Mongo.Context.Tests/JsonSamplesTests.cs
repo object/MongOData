@@ -170,12 +170,14 @@ namespace Mongo.Context.Tests
         {
             var result = ctx.NullArray.All().ToList();
             Assert.AreEqual("0001", result[0].id);
-            Assert.AreEqual(1, result[0].batters.Count);
-            Assert.AreEqual(null, result[0].batters.batter[0].x_id);
+            Assert.AreEqual(1, result[0].batters.batter.Count);
+            Assert.AreEqual(null, result[0].batters.batter[0].id);
             Assert.AreEqual("0002", result[1].id);
-            Assert.AreEqual(2, result[0].batters.Count);
-            Assert.AreEqual(null, result[1].batters.batter[0].x_id);
+            Assert.AreEqual(2, result[1].batters.batter.Count);
+            Assert.AreEqual(null, result[1].batters.batter[0].id);
             Assert.AreEqual(1, result[1].batters.batter[1].id);
+            Assert.AreEqual(2, result[1].batters.batter[1].nonid);
+            Assert.AreEqual("regular", result[1].batters.batter[1].type);
         }
     }
 
@@ -187,5 +189,19 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class QueryableServiceJsonSamplesTests : JsonSamplesTests<ProductQueryableService>
     {
+        [Test]
+        public void NullArray1()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(1, result[0].batters.batter.Count);
+            Assert.AreEqual(null, result[0].batters.batter[0].id);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(2, result[1].batters.batter.Count);
+            Assert.AreEqual(null, result[1].batters.batter[0].id);
+            Assert.AreEqual(1, result[1].batters.batter[1].id);
+            Assert.AreEqual(2, result[1].batters.batter[1].nonid);
+            Assert.AreEqual("regular", result[1].batters.batter[1].type);
+        }
     }
 }

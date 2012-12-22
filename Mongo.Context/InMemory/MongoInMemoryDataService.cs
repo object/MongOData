@@ -51,11 +51,7 @@ namespace Mongo.Context.InMemory
             var resourceType = mongoMetadata.ResolveResourceType(resourceSet.Name);
             foreach (var element in document.Elements)
             {
-                var resourceProperty = mongoMetadata.ResolveResourceProperty(resourceType, element);
-                if (resourceProperty == null)
-                {
-                    mongoMetadata.RegisterResourceProperty(mongoContext, resourceType, element);
-                }
+                mongoMetadata.RegisterOrUpdateResourceProperty(mongoContext, resourceType, element);
             }
         }
     }

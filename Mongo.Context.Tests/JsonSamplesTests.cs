@@ -166,18 +166,51 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void NullArray()
+        public void NullArray_a()
         {
             var result = ctx.NullArray.All().ToList();
             Assert.AreEqual("0001", result[0].id);
-            Assert.AreEqual(1, result[0].batters.batter.Count);
-            Assert.AreEqual(null, result[0].batters.batter[0].id);
+            Assert.AreEqual(2, result[0].arrays.a.Count);
+            Assert.AreEqual(1, result[0].arrays.a[0].id);
+            Assert.AreEqual(2, result[0].arrays.a[0].nonid);
+            Assert.AreEqual("Regular", result[0].arrays.a[0].type);
+            Assert.AreEqual(null, result[0].arrays.a[1].id);
             Assert.AreEqual("0002", result[1].id);
-            Assert.AreEqual(2, result[1].batters.batter.Count);
-            Assert.AreEqual(null, result[1].batters.batter[0].id);
-            Assert.AreEqual(1, result[1].batters.batter[1].id);
-            Assert.AreEqual(2, result[1].batters.batter[1].nonid);
-            Assert.AreEqual("regular", result[1].batters.batter[1].type);
+            Assert.AreEqual(1, result[1].arrays.a.Count);
+            Assert.AreEqual(null, result[1].arrays.a[0].id);
+        }
+
+        [Test]
+        public void NullArray_b()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(2, result[0].arrays.b.Count);
+            Assert.AreEqual(null, result[0].arrays.b[0].id);
+            Assert.AreEqual(1, result[0].arrays.b[1].id);
+            Assert.AreEqual(2, result[0].arrays.b[1].nonid);
+            Assert.AreEqual("Regular", result[0].arrays.b[1].type);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(2, result[1].arrays.b.Count);
+            Assert.AreEqual(null, result[1].arrays.b[0].id);
+            Assert.AreEqual(1, result[1].arrays.b[1].id);
+            Assert.AreEqual(2, result[1].arrays.b[1].nonid);
+            Assert.AreEqual("Regular", result[1].arrays.b[1].type);
+        }
+
+        [Test]
+        public void NullArray_c()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(1, result[0].arrays.c.Count);
+            Assert.AreEqual(null, result[0].arrays.c[0].id);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(2, result[1].arrays.c.Count);
+            Assert.AreEqual(null, result[1].arrays.c[0].id);
+            Assert.AreEqual(1, result[1].arrays.c[1].id);
+            Assert.AreEqual(2, result[1].arrays.c[1].nonid);
+            Assert.AreEqual("Regular", result[1].arrays.c[1].type);
         }
     }
 
@@ -189,19 +222,5 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class QueryableServiceJsonSamplesTests : JsonSamplesTests<ProductQueryableService>
     {
-        [Test]
-        public void NullArray1()
-        {
-            var result = ctx.NullArray.All().ToList();
-            Assert.AreEqual("0001", result[0].id);
-            Assert.AreEqual(1, result[0].batters.batter.Count);
-            Assert.AreEqual(null, result[0].batters.batter[0].id);
-            Assert.AreEqual("0002", result[1].id);
-            Assert.AreEqual(2, result[1].batters.batter.Count);
-            Assert.AreEqual(null, result[1].batters.batter[0].id);
-            Assert.AreEqual(1, result[1].batters.batter[1].id);
-            Assert.AreEqual(2, result[1].batters.batter[1].nonid);
-            Assert.AreEqual("regular", result[1].batters.batter[1].type);
-        }
     }
 }

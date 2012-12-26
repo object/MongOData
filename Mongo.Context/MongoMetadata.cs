@@ -249,11 +249,7 @@ namespace Mongo.Context
             }
             else
             {
-                if (resourceProperty.ResourceType.InstanceType == typeof(object) && elementType != typeof(object))
-                {
-                    // TODO
-                    //                    resourceProperty.ResourceType.InstanceType = elementType;
-                }
+                // TODO
             }
         }
 

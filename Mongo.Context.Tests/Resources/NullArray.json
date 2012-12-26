@@ -1,8 +1,18 @@
 ﻿{
 	"id": "0001",
-	"batters":
+	"arrays":
 		{
-			"batter":
+			"a":
+				[
+					{ "id": 1, "nonid": 2, "type": "Regular" },
+					{ "id": null, "nonid": null, "type": null }
+				],
+			"b":
+				[
+					{ "id": null, "nonid": null, "type": null },
+					{ "id": 1, "nonid": 2, "type": "Regular" }
+				],
+			"c":
 				[
 					{ "id": null, "nonid": null, "type": null }
 				]
@@ -11,9 +21,18 @@
 ---
 {
 	"id": "0002",
-	"batters":
+	"arrays":
 		{
-			"batter":
+			"a":
+				[
+					{ "id": null, "nonid": null, "type": null }
+				],
+			"b":
+				[
+					{ "id": null, "nonid": null, "type": null },
+					{ "id": 1, "nonid": 2, "type": "Regular" }
+				],
+			"c":
 				[
 					{ "id": null, "nonid": null, "type": null },
 					{ "id": 1, "nonid": 2, "type": "Regular" }

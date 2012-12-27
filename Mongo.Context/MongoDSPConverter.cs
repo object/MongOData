@@ -25,10 +25,10 @@ namespace Mongo.Context
                 if (resourceProperty == null)
                     continue;
 
-                string propertyName = MongoMetadata.GetResourcePropertyName(element, ResourceTypeKind.EntityType);
-                object propertyValue = ConvertBsonValue(element.Value, MongoMetadata.IsObjectId(element), resourceType, resourceProperty, propertyName, mongoMetadata);
-                resource.SetValue(propertyName, propertyValue);
+                object propertyValue = ConvertBsonValue(element.Value, resourceType, resourceProperty, resourceProperty.Name, mongoMetadata);
+                resource.SetValue(resourceProperty.Name, propertyValue);
             }
+            AssignNullCollections(resource, resourceType);
 
             return resource;
         }
@@ -51,32 +51,39 @@ namespace Mongo.Context
             return document;
         }
 
-        private static object ConvertBsonValue(BsonValue bsonValue, bool isKey,
-            ResourceType resourceType, ResourceProperty resourceProperty, string propertyName, MongoMetadata mongoMetadata)
+        private static object ConvertBsonValue(BsonValue bsonValue, ResourceType resourceType, ResourceProperty resourceProperty, string propertyName, MongoMetadata mongoMetadata)
         {
-            object propertyValue = null;
+            if (bsonValue == null)
+                return null;
 
-            if (isKey)
-            {
-                propertyValue = bsonValue.RawValue.ToString();
-            }
-            else if (bsonValue.GetType() == typeof(BsonDocument))
+            object propertyValue = null;
+            bool convertValue;
+
+            if (bsonValue.GetType() == typeof(BsonDocument))
             {
                 propertyValue = CreateDSPResource(bsonValue.AsBsonDocument, mongoMetadata, propertyName,
-                    MongoMetadata.GetComplexTypePrefix(resourceType.Name));
+                    MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
+                convertValue = true;
             }
             else if (bsonValue.GetType() == typeof(BsonArray))
             {
                 var bsonArray = bsonValue.AsBsonArray;
                 if (bsonArray != null && bsonArray.Count > 0)
                     propertyValue = ConvertBsonArray(bsonArray, resourceType, propertyName, mongoMetadata);
+                convertValue = false;
+            }
+            else if (bsonValue.GetType() == typeof(BsonNull) && resourceProperty.Kind == ResourcePropertyKind.Collection)
+            {
+                propertyValue = ConvertBsonArray(new BsonArray(0), resourceType, propertyName, mongoMetadata);
+                convertValue = false;
             }
             else
             {
                 propertyValue = ConvertRawValue(bsonValue);
+                convertValue = true;
             }
 
-            if (propertyValue != null && bsonValue.GetType() != typeof(BsonArray))
+            if (propertyValue != null && convertValue)
             {
                 var propertyType = resourceProperty.ResourceType.InstanceType;
                 Type underlyingNonNullableType = Nullable.GetUnderlyingType(resourceProperty.ResourceType.InstanceType);
@@ -92,6 +99,11 @@ namespace Mongo.Context
 
         private static object ConvertBsonArray(BsonArray bsonArray, ResourceType resourceType, string propertyName, MongoMetadata mongoMetadata)
         {
+            if (bsonArray == null || bsonArray.Count == 0)
+            {
+                return new object[0];
+            }
+
             bool isDocument = false;
             int nonNullItemCount = 0;
             for (int index = 0; index < bsonArray.Count; index++)
@@ -113,7 +125,7 @@ namespace Mongo.Context
                     {
                         propertyValue[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata,
                                                                      propertyName,
-                                                                     MongoMetadata.GetCollectionTypePrefix(resourceType.Name));
+                                                                     MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
                     }
                     else
                     {
@@ -126,14 +138,28 @@ namespace Mongo.Context
 
         private static object ConvertRawValue(BsonValue bsonValue)
         {
+            if (bsonValue == null)
+                return null;
+
             if (bsonValue.RawValue != null)
             {
-                switch (bsonValue.BsonType)
+                if (bsonValue.IsObjectId)
                 {
-                    case BsonType.DateTime:
-                        return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
-                    default:
-                        return bsonValue.RawValue;
+                    return bsonValue.ToString();
+                }
+                else if (bsonValue.IsGuid)
+                {
+                    return bsonValue.AsGuid;
+                }
+                else
+                {
+                    switch (bsonValue.BsonType)
+                    {
+                        case BsonType.DateTime:
+                            return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
+                        default:
+                            return bsonValue.RawValue;
+                    }
                 }
             }
             else
@@ -144,6 +170,25 @@ namespace Mongo.Context
                         return bsonValue.AsBsonBinaryData.Bytes;
                     default:
                         return bsonValue.RawValue;
+                }
+            }
+        }
+
+        private static void AssignNullCollections(DSPResource resource, ResourceType resourceType)
+        {
+            foreach (var resourceProperty in resourceType.Properties)
+            {
+                var propertyValue = resource.GetValue(resourceProperty.Name);
+                if (resourceProperty.Kind == ResourcePropertyKind.Collection)
+                {
+                    if (propertyValue == null)
+                    {
+                        resource.SetValue(resourceProperty.Name, new object[0]);
+                    }
+                }
+                else if (propertyValue is DSPResource)
+                {
+                    AssignNullCollections(propertyValue as DSPResource, resourceProperty.ResourceType);
                 }
             }
         }

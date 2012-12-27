@@ -1,0 +1,45 @@
+﻿<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <edmx:DataServices m:DataServiceVersion="1.0" m:MaxDataServiceVersion="3.0" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <Schema Namespace="Mongo" xmlns="http://schemas.microsoft.com/ado/2007/05/edm">
+      <EntityType Name="Categories">
+        <Key>
+          <PropertyRef Name="db_id" />
+        </Key>
+        <Property Name="db_id" Type="Edm.String" Nullable="false" />
+        <Property Name="ID" Type="Edm.Int32" />
+        <Property Name="Name" Type="Edm.String" />
+        <Property Name="Products" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="Products">
+        <Key>
+          <PropertyRef Name="db_id" />
+        </Key>
+        <Property Name="db_id" Type="Edm.String" Nullable="false" />
+        <Property Name="ID" Type="Edm.Int32" />
+        <Property Name="Name" Type="Edm.String" />
+        <Property Name="Description" Type="Edm.String" />
+        <Property Name="ReleaseDate" Type="Edm.DateTime" />
+        <Property Name="Rating" Type="Edm.Int32" />
+        <Property Name="Quantity" Type="Mongo.Products__Quantity" Nullable="false" />
+        <Property Name="Category" Type="Mongo.Products__Category" Nullable="false" />
+        <Property Name="DiscontinueDate" Type="Edm.DateTime" />
+        <Property Name="Supplier" Type="Edm.String" />
+      </EntityType>
+      <ComplexType Name="Products__Quantity">
+        <Property Name="Value" Type="Edm.Double" />
+        <Property Name="Units" Type="Edm.String" />
+        <Property Name="db_id" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="Products__Category">
+        <Property Name="ID" Type="Edm.Int32" />
+        <Property Name="Name" Type="Edm.String" />
+        <Property Name="db_id" Type="Edm.String" />
+        <Property Name="Products" Type="Edm.String" />
+      </ComplexType>
+      <EntityContainer Name="MongoContext" m:IsDefaultEntityContainer="true">
+        <EntitySet Name="Categories" EntityType="Mongo.Categories" />
+        <EntitySet Name="Products" EntityType="Mongo.Products" />
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

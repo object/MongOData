@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Data.Services.Client;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
-using Simple.Data;
-using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
@@ -16,10 +12,48 @@ namespace Mongo.Context.Tests
             TestData.PopulateWithJsonSamples();
         }
 
+        [SetUp]
+        public override void SetUp()
+        {
+            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
+            base.SetUp();
+        }
+
         [Test]
         public void ValidateMetadata()
         {
             base.RequestAndValidateMetadata();
+        }
+
+        [Test]
+        public void SchemaTables()
+        {
+            var schema = base.GetSchema();
+            var tableNames = schema.Tables.Select(x => x.ActualName).ToList();
+            Assert.Contains("Colors", tableNames);
+            Assert.Contains("Facebook", tableNames);
+            Assert.Contains("Flickr", tableNames);
+            Assert.Contains("GoogleMaps", tableNames);
+            Assert.Contains("iPhone", tableNames);
+            Assert.Contains("Twitter", tableNames);
+            Assert.Contains("YouTube", tableNames);
+            Assert.Contains("Nested", tableNames);
+            Assert.Contains("ArrayOfNested", tableNames);
+            Assert.Contains("EmptyArray", tableNames);
+        }
+
+        [Test]
+        public void SchemaColumnNullability()
+        {
+            var schema = base.GetSchema();
+            base.ValidateColumnNullability(schema);
+        }
+
+        [Test]
+        public void SchemaColumnNames()
+        {
+            var schema = base.GetSchema();
+            base.ValidatePropertyNames(schema);
         }
 
         [Test]
@@ -71,10 +105,9 @@ namespace Mongo.Context.Tests
             var result = ctx.iPhone.All().First();
             Assert.AreEqual(18, result.menu.items.Count);
             Assert.AreEqual("Open", result.menu.items.First().id);
-            Assert.Throws<RuntimeBinderException>(() => { var x = result.menu.items.First().label; });
+            Assert.Null(result.menu.items.First().label);
             Assert.AreEqual("About", result.menu.items.Last().id);
-            // The next line will work when dynamic schema update is available
-            //Assert.AreEqual("About xProgress CVG Viewer...", result.menu.items.Last().label);
+            Assert.AreEqual("About xProgress CVG Viewer...", result.menu.items.Last().label);
         }
 
         [Test]
@@ -115,6 +148,78 @@ namespace Mongo.Context.Tests
             Assert.AreEqual("1001", result.nestedArray.First().batters.batter.First().id);
             Assert.AreEqual(7, result.nestedArray.First().topping.Count);
             Assert.AreEqual("5001", result.nestedArray.First().topping.First().id);
+        }
+
+        [Test]
+        public void EmptyArray()
+        {
+            var result = ctx.EmptyArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(7, result[0].topping.Count);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(0, result[1].topping.Count);
+        }
+
+        [Test]
+        public void NullArray_a()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(2, result[0].arrays.a.Count);
+            Assert.AreEqual(1, result[0].arrays.a[0].id);
+            Assert.AreEqual(2, result[0].arrays.a[0].nonid);
+            Assert.AreEqual("Regular", result[0].arrays.a[0].type);
+            Assert.AreEqual(null, result[0].arrays.a[1].id);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(1, result[1].arrays.a.Count);
+            Assert.AreEqual(null, result[1].arrays.a[0].id);
+        }
+
+        [Test]
+        public void NullArray_b()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(2, result[0].arrays.b.Count);
+            Assert.AreEqual(null, result[0].arrays.b[0].id);
+            Assert.AreEqual(1, result[0].arrays.b[1].id);
+            Assert.AreEqual(2, result[0].arrays.b[1].nonid);
+            Assert.AreEqual("Regular", result[0].arrays.b[1].type);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(2, result[1].arrays.b.Count);
+            Assert.AreEqual(null, result[1].arrays.b[0].id);
+            Assert.AreEqual(1, result[1].arrays.b[1].id);
+            Assert.AreEqual(2, result[1].arrays.b[1].nonid);
+            Assert.AreEqual("Regular", result[1].arrays.b[1].type);
+        }
+
+        [Test]
+        public void NullArray_c()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(1, result[0].arrays.c.Count);
+            Assert.AreEqual(null, result[0].arrays.c[0].id);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(2, result[1].arrays.c.Count);
+            Assert.AreEqual(null, result[1].arrays.c[0].id);
+            Assert.AreEqual(1, result[1].arrays.c[1].id);
+            Assert.AreEqual(2, result[1].arrays.c[1].nonid);
+            Assert.AreEqual("Regular", result[1].arrays.c[1].type);
+        }
+
+        [Test]
+        public void NullArray_d()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(0, result[0].arrays.d.Count);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(1, result[1].arrays.d.Count);
+            var a = result[1].arrays.d[0];
+            Assert.AreEqual(1, result[1].arrays.d[0].x_id);
+            Assert.AreEqual(2, result[1].arrays.d[0].nonid);
+            Assert.AreEqual("Regular", result[1].arrays.d[0].type);
         }
     }
 

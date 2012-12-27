@@ -19,7 +19,7 @@ namespace Mongo.Context.Queryable
 
             foreach (var field in fields)
             {
-                CreateProperty(tb, field.Key, field.Value);
+                CreateProperty(tb, field.Key, field.Value, field.Key == MongoMetadata.ProviderObjectIdName);
             }
 
             Type objectType = tb.CreateType();
@@ -44,12 +44,12 @@ namespace Mongo.Context.Queryable
             return tb;
         }
 
-        private static void CreateProperty(TypeBuilder tb, string propertyName, Type propertyType)
+        private static void CreateProperty(TypeBuilder tb, string propertyName, Type propertyType, bool markAsBsonId = false)
         {
             FieldBuilder fieldBuilder = tb.DefineField("_" + propertyName, propertyType, FieldAttributes.Private);
 
             PropertyBuilder propertyBuilder = tb.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
-            if (propertyName == MongoMetadata.ProviderObjectIdName)
+            if (markAsBsonId)
             {
                 propertyBuilder.SetCustomAttribute(_bsondIdAttributeConstructor, new byte[] { });
             }

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using Simple.Data;
-using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
@@ -17,8 +15,7 @@ namespace Mongo.Context.Tests
         [SetUp]
         public override void SetUp()
         {
-            //TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
-            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = 82, UpdateDynamically = false } };
+            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
             base.SetUp();
         }
 

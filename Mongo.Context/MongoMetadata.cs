@@ -385,7 +385,7 @@ namespace Mongo.Context
             return element.Name == MongoMetadata.ProviderObjectIdName;
         }
 
-        private static Type GetElementType(BsonElement element, bool treatObjectIdAsKey = true)
+        private static Type GetElementType(BsonElement element, bool treatObjectIdAsKey)
         {
             if (IsObjectId(element))
             {
@@ -396,7 +396,7 @@ namespace Mongo.Context
             }
             else if (element.Value.RawValue != null)
             {
-                return GetRawValueType(element.Value, IsObjectId(element));
+                return GetRawValueType(element.Value);
             }
             else if (element.Value.GetType() == typeof(BsonArray) || element.Value.GetType() == typeof(BsonDocument))
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Services.Client;
 using System.Linq;
 using System.Net;
@@ -109,10 +110,9 @@ namespace Mongo.Context.Tests
             var result = ctx.iPhone.All().First();
             Assert.AreEqual(18, result.menu.items.Count);
             Assert.AreEqual("Open", result.menu.items.First().id);
-            Assert.Throws<RuntimeBinderException>(() => { var x = result.menu.items.First().label; });
+            Assert.Null(result.menu.items.First().label);
             Assert.AreEqual("About", result.menu.items.Last().id);
-            // The next line will work when dynamic schema update is available
-            //Assert.AreEqual("About xProgress CVG Viewer...", result.menu.items.Last().label);
+            Assert.AreEqual("About xProgress CVG Viewer...", result.menu.items.Last().label);
         }
 
         [Test]

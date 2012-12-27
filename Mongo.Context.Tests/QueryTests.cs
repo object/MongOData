@@ -17,7 +17,8 @@ namespace Mongo.Context.Tests
         [SetUp]
         public override void SetUp()
         {
-            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
+            //TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
+            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = 82, UpdateDynamically = false } };
             base.SetUp();
         }
 
@@ -343,15 +344,5 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class QueryableServiceQueryTests : QueryTests<ProductQueryableService>
     {
-        //[Test]
-        //public void Test()
-        //{
-        //    var serviceUri = "http://localhost:5555/OdaWeb";
-        //    var db = Database.Opener.Open(serviceUri);
-        //    var result = db.EventStore.All().ToList();
-        //    Assert.AreEqual(187, result.Count, "The service returned unexpected number of results.");
-        //    var schema = base.GetSchema("http://localhost:5555/OdaWeb");
-        //    base.ValidatePropertyNames(schema);
-        //}
     }
 }

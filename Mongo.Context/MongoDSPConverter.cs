@@ -25,9 +25,8 @@ namespace Mongo.Context
                 if (resourceProperty == null)
                     continue;
 
-                string propertyName = MongoMetadata.GetResourcePropertyName(element, ResourceTypeKind.EntityType);
-                object propertyValue = ConvertBsonValue(element.Value, resourceType, resourceProperty, propertyName, mongoMetadata);
-                resource.SetValue(propertyName, propertyValue);
+                object propertyValue = ConvertBsonValue(element.Value, resourceType, resourceProperty, resourceProperty.Name, mongoMetadata);
+                resource.SetValue(resourceProperty.Name, propertyValue);
             }
             AssignNullCollections(resource, resourceType);
 

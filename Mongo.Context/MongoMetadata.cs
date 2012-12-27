@@ -239,15 +239,15 @@ namespace Mongo.Context
 
                 if (resolvedNow)
                 {
-                    var elementType = GetElementType(element);
-                    AddResourceProperty(context, resourceType.Name, resourceType, elementType, element, true);
+                    AddResourceProperty(context, resourceType.Name, resourceType, element, resourceType.ResourceTypeKind == ResourceTypeKind.EntityType);
                 }
             }
         }
 
         private void AddResourceProperty(MongoContext context, string collectionName, ResourceType collectionType,
-            Type elementType, BsonElement element, bool treatObjectIdAsKey = false)
+            BsonElement element, bool treatObjectIdAsKey = false)
         {
+            var elementType = GetElementType(element, treatObjectIdAsKey);
             var propertyName = GetResourcePropertyName(element, collectionType.ResourceTypeKind);
             var propertyValue = element.Value;
 
@@ -380,19 +380,19 @@ namespace Mongo.Context
             }
         }
 
-        public static bool IsObjectId(BsonElement element)
+        private static bool IsObjectId(BsonElement element)
         {
             return element.Name == MongoMetadata.ProviderObjectIdName;
         }
 
-        private static Type GetElementType(BsonElement element)
+        private static Type GetElementType(BsonElement element, bool treatObjectIdAsKey = true)
         {
             if (IsObjectId(element))
             {
-                if (element.Value.GetType() == ProviderObjectIdType)
+                if (element.Value.GetType() == ProviderObjectIdType && treatObjectIdAsKey)
                     return MappedObjectIdType;
                 else
-                    return GetRawValueType(element.Value, true);
+                    return GetRawValueType(element.Value, treatObjectIdAsKey);
             }
             else if (element.Value.RawValue != null)
             {
@@ -445,14 +445,14 @@ namespace Mongo.Context
             return UseGlobalComplexTypeNames ? string.Empty : ownerName;
         }
 
-        internal static string GetResourcePropertyName(BsonElement element, ResourceTypeKind resourceTypeKind)
+        private static string GetResourcePropertyName(BsonElement element, ResourceTypeKind resourceTypeKind)
         {
             return IsObjectId(element) && resourceTypeKind != ResourceTypeKind.ComplexType ?
                 MongoMetadata.MappedObjectIdName :
                 NormalizeResourcePropertyName(element.Name);
         }
 
-        internal static string NormalizeResourcePropertyName(string propertyName)
+        private static string NormalizeResourcePropertyName(string propertyName)
         {
             return propertyName.StartsWith("_") ? PrefixForInvalidLeadingChar + propertyName : propertyName;
         }

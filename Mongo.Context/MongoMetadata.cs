@@ -53,6 +53,7 @@ namespace Mongo.Context
         private DSPMetadata dspMetadata;
         private readonly Dictionary<string, Type> providerTypes;
         private readonly Dictionary<string, Type> generatedTypes;
+        private readonly List<KeyValuePair<ResourceType, string>> collectionTypes = new List<KeyValuePair<ResourceType, string>>();
         private readonly List<CollectionProperty> unresolvedProperties = new List<CollectionProperty>();
         private static readonly Dictionary<string, MongoMetadataCache> MetadataCache = new Dictionary<string, MongoMetadataCache>();
 
@@ -135,7 +136,7 @@ namespace Mongo.Context
                 {
                     if (resourceSet == null)
                     {
-                        RegisterResourceSet(context, collectionName);
+                        AddResourceSet(context, collectionName);
                     }
                 }
                 else
@@ -145,7 +146,7 @@ namespace Mongo.Context
                     {
                         if (resourceSet == null)
                         {
-                            resourceSet = RegisterResourceSet(context, collectionName, document);
+                            resourceSet = AddResourceSet(context, collectionName, document);
                         }
                         else
                         {
@@ -168,9 +169,9 @@ namespace Mongo.Context
             }
         }
 
-        private ResourceSet RegisterResourceSet(MongoContext context, string collectionName, BsonDocument document = null)
+        private ResourceSet AddResourceSet(MongoContext context, string collectionName, BsonDocument document = null)
         {
-            RegisterResourceType(context, collectionName, document, ResourceTypeKind.EntityType);
+            AddDocumentType(context, collectionName, document, ResourceTypeKind.EntityType);
             return ResolveResourceSet(collectionName);
         }
 
@@ -181,16 +182,16 @@ namespace Mongo.Context
                 var resourceProperty = ResolveResourceProperty(resourceSet.ResourceType, element);
                 if (resourceProperty == null)
                 {
-                    RegisterOrUpdateResourceProperty(context, resourceSet.ResourceType, element);
+                    RegisterResourceProperty(context, resourceSet.ResourceType, element);
                 }
                 else if ((resourceProperty.Kind & ResourcePropertyKind.ComplexType) != 0 && element.Value != BsonNull.Value)
                 {
-                    RegisterOrUpdateDocumentProperty(context, resourceSet.ResourceType, element);
+                    RegisterDocumentProperty(context, resourceSet.ResourceType, element);
                 }
             }
         }
 
-        private ResourceType RegisterResourceType(MongoContext context, string collectionName, BsonDocument document, ResourceTypeKind resourceTypeKind)
+        private ResourceType AddDocumentType(MongoContext context, string collectionName, BsonDocument document, ResourceTypeKind resourceTypeKind)
         {
             var collectionType = resourceTypeKind == ResourceTypeKind.EntityType
                                      ? this.dspMetadata.AddEntityType(collectionName)
@@ -201,7 +202,7 @@ namespace Mongo.Context
             {
                 foreach (var element in document.Elements)
                 {
-                    RegisterOrUpdateResourceProperty(context, collectionType, element);
+                    RegisterResourceProperty(context, collectionType, element);
                     if (IsObjectId(element))
                         hasObjectId = true;
                 }
@@ -226,34 +227,29 @@ namespace Mongo.Context
             return collectionType;
         }
 
-        internal void RegisterOrUpdateResourceProperty(MongoContext context, ResourceType resourceType, BsonElement element)
+        internal void RegisterResourceProperty(MongoContext context, ResourceType resourceType, BsonElement element)
         {
+            var collectionProperty = new CollectionProperty { CollectionType = resourceType, PropertyName = element.Name };
             var resourceProperty = ResolveResourceProperty(resourceType, element);
-            var elementType = GetElementType(element);
             if (resourceProperty == null)
             {
-                var collectionProperty = new CollectionProperty { CollectionType = resourceType, PropertyName = element.Name };
-                if (ResolveProviderType(element.Value, IsObjectId(element)) == null)
+                var unresolvedEarlier = unresolvedProperties.Contains(collectionProperty);
+                var resolvedNow = ResolveProviderType(element.Value, IsObjectId(element)) != null;
+
+                if (!unresolvedEarlier && !resolvedNow)
+                    this.unresolvedProperties.Add(collectionProperty);
+                else if (unresolvedEarlier && resolvedNow)
+                    this.unresolvedProperties.Remove(collectionProperty);
+
+                if (resolvedNow)
                 {
-                    if (!unresolvedProperties.Contains(collectionProperty))
-                    {
-                        this.unresolvedProperties.Add(collectionProperty);
-                    }
+                    var elementType = GetElementType(element);
+                    AddResourceProperty(context, resourceType.Name, resourceType, elementType, element, true);
                 }
-                else 
-                {
-                    if (unresolvedProperties.Contains(collectionProperty))
-                        unresolvedProperties.Remove(collectionProperty);
-                    RegisterResourceProperty(context, resourceType.Name, resourceType, elementType, element, true);
-                }
-            }
-            else
-            {
-                // TODO
             }
         }
 
-        private void RegisterResourceProperty(MongoContext context, string collectionName, ResourceType collectionType,
+        private void AddResourceProperty(MongoContext context, string collectionName, ResourceType collectionType,
             Type elementType, BsonElement element, bool treatObjectIdAsKey = false)
         {
             var propertyName = GetResourcePropertyName(element, collectionType.ResourceTypeKind);
@@ -270,11 +266,11 @@ namespace Mongo.Context
             }
             else if (elementType == typeof(BsonDocument))
             {
-                RegisterDocumentProperty(context, collectionName, collectionType, propertyName, element);
+                AddDocumentProperty(context, collectionName, collectionType, propertyName, element);
             }
             else if (elementType == typeof(BsonArray))
             {
-                RegisterOrUpdateArrayProperty(context, collectionType, propertyName, element);
+                RegisterArrayProperty(context, collectionType, propertyName, element);
             }
             else
             {
@@ -287,24 +283,24 @@ namespace Mongo.Context
             }
         }
 
-        private void RegisterOrUpdateDocumentProperty(MongoContext context, ResourceType collectionType, BsonElement element)
+        private void RegisterDocumentProperty(MongoContext context, ResourceType collectionType, BsonElement element)
         {
             var resourceName = GetResourcePropertyName(element, ResourceTypeKind.EntityType);
             var resourceType = ResolveResourceType(resourceName, collectionType.Name);
             if (resourceType == null)
             {
-                RegisterDocumentProperty(context, collectionType.Name, collectionType, resourceName, element, true);
+                AddDocumentProperty(context, collectionType.Name, collectionType, resourceName, element, true);
             }
             else
             {
                 foreach (var documentElement in element.Value.AsBsonDocument.Elements)
                 {
-                    RegisterOrUpdateResourceProperty(context, resourceType, documentElement);
+                    RegisterResourceProperty(context, resourceType, documentElement);
                 }
             }
         }
 
-        private void RegisterDocumentProperty(MongoContext context, string collectionName, ResourceType collectionType, string propertyName, BsonElement element, bool isCollection = false)
+        private void AddDocumentProperty(MongoContext context, string collectionName, ResourceType collectionType, string propertyName, BsonElement element, bool isCollection = false)
         {
             ResourceType resourceType = null;
             var resourceSet = ResolveResourceSet(collectionName);
@@ -314,16 +310,16 @@ namespace Mongo.Context
             }
             else
             {
-                resourceType = RegisterResourceType(context, GetQualifiedTypeName(collectionName, propertyName),
+                resourceType = AddDocumentType(context, GetQualifiedTypeName(collectionName, propertyName),
                                                     element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
             }
             if (isCollection)
-                this.dspMetadata.AddCollectionProperty(collectionType, propertyName, resourceType);
+                RegisterCollectionProperty(collectionType, propertyName, resourceType);
             else
                 this.dspMetadata.AddComplexProperty(collectionType, propertyName, resourceType);
         }
 
-        private void RegisterOrUpdateArrayProperty(MongoContext context, ResourceType collectionType, string propertyName, BsonElement element)
+        private void RegisterArrayProperty(MongoContext context, ResourceType collectionType, string propertyName, BsonElement element)
         {
             var bsonArray = element.Value.AsBsonArray;
             if (bsonArray != null)
@@ -335,14 +331,26 @@ namespace Mongo.Context
 
                     if (arrayValue.BsonType == BsonType.Document)
                     {
-                        RegisterOrUpdateDocumentProperty(context, collectionType, new BsonElement(element.Name, arrayValue));
+                        RegisterDocumentProperty(context, collectionType, new BsonElement(element.Name, arrayValue));
                     }
                     else
                     {
-                        this.dspMetadata.AddCollectionProperty(collectionType, propertyName, arrayValue.RawValue.GetType());
-                        break;
+                        RegisterCollectionProperty(collectionType, propertyName, arrayValue.RawValue.GetType());
                     }
                 }
+            }
+        }
+
+        private void RegisterCollectionProperty<T>(ResourceType collectionType, string propertyName, T propertyType)
+        {
+            var kv = new KeyValuePair<ResourceType, string>(collectionType, propertyName);
+            if (!this.collectionTypes.Contains(kv))
+            {
+                this.collectionTypes.Add(kv);
+                if (typeof(T) == typeof(ResourceType))
+                    this.dspMetadata.AddCollectionProperty(collectionType, propertyName, propertyType as ResourceType);
+                else if (typeof(T) == typeof(Type))
+                    this.dspMetadata.AddCollectionProperty(collectionType, propertyName, propertyType as Type);
             }
         }
 

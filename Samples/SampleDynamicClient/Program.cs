@@ -41,6 +41,23 @@ namespace SampleDynamicClient
                         product.DiscontinueDate,
                         product.Supplier == null ? null : product.Supplier.Name);
                 }
+
+                Console.WriteLine("Retrieving JSON samples...");
+                Console.WriteLine();
+                Console.WriteLine("Retrieved {0} ArrayOfNested documents", context.ArrayOfNested.All().Count());
+                Console.WriteLine("Retrieved {0} Colors documents", context.Colors.All().Count());
+                Console.WriteLine("Retrieved {0} EmptyArray documents", context.EmptyArray.All().Count());
+                Console.WriteLine("Retrieved {0} Facebook documents", context.Facebook.All().Count());
+                Console.WriteLine("Retrieved {0} Flickr documents", context.Flickr.All().Count());
+                Console.WriteLine("Retrieved {0} GoogleMaps documents", context.GoogleMaps.All().Count());
+                Console.WriteLine("Retrieved {0} iPhone documents", context.iPhone.All().Count());
+                Console.WriteLine("Retrieved {0} Nested documents", context.Nested.All().Count());
+                Console.WriteLine("Retrieved {0} NullArray documents", context.NullArray.All().Count());
+                Console.WriteLine("Retrieved {0} Twitter documents", context.Twitter.All().Count());
+                Console.WriteLine("Retrieved {0} YouTube documents", context.YouTube.All().Count());
+
+                Console.WriteLine();
+                Console.WriteLine("Completed.");
             }
             catch (Exception exception)
             {

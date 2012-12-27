@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Simple.OData.Client;
 
 namespace Mongo.Context.Tests
 {
@@ -341,5 +342,32 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class QueryableServiceQueryTests : QueryTests<ProductQueryableService>
     {
+        [Test]
+        public void FilterEqualQuantityValue_NoDynamicTypes()
+        {
+            try
+            {
+                MongoMetadata.CreateDynamicTypesForComplexTypes = false;
+                Assert.Throws<WebRequestException>(() => { var x = ctx.Products.Find(ctx.Products.Quantity.Value == 7); });
+            }
+            finally 
+            {
+                MongoMetadata.CreateDynamicTypesForComplexTypes = true;
+            }
+        }
+
+        [Test]
+        public void FilterEqualQuantityUnits_NoDynamicTypes()
+        {
+            try
+            {
+                MongoMetadata.CreateDynamicTypesForComplexTypes = false;
+                Assert.Throws<WebRequestException>(() => { var x = ctx.Products.Find(ctx.Products.Quantity.Units == "liters"); });
+            }
+            finally
+            {
+                MongoMetadata.CreateDynamicTypesForComplexTypes = true;
+            }
+        }
     }
 }

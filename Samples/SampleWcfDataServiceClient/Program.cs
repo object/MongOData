@@ -38,6 +38,9 @@ namespace SampleWcfDataServiceClient
                         product.ReleaseDate,
                         product.DiscontinueDate);
                 }
+
+                Console.WriteLine();
+                Console.WriteLine("Completed.");
             }
             catch (Exception exception)
             {

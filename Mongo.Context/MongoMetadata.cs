@@ -45,7 +45,7 @@ namespace Mongo.Context
         public static readonly string ContainerName = "MongoContext";
         public static readonly string RootNamespace = "Mongo";
         public static readonly bool UseGlobalComplexTypeNames = false;
-        public static readonly bool CreateDynamicTypesForComplexTypes = true;
+        internal static bool CreateDynamicTypesForComplexTypes = true;
         internal static readonly string WordSeparator = "__";
         internal static readonly string PrefixForInvalidLeadingChar = "x";
 

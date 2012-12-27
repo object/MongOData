@@ -183,15 +183,7 @@ namespace Mongo.Context
         {
             foreach (var element in document.Elements)
             {
-                var resourceProperty = ResolveResourceProperty(resourceSet.ResourceType, element);
-                if (resourceProperty == null)
-                {
-                    RegisterResourceProperty(context, resourceSet.ResourceType, element);
-                }
-                else if ((resourceProperty.Kind & ResourcePropertyKind.ComplexType) != 0 && element.Value != BsonNull.Value)
-                {
-                    RegisterDocumentProperty(context, resourceSet.ResourceType, element);
-                }
+                RegisterDocumentProperty(context, resourceSet.ResourceType, element);
             }
         }
 
@@ -287,7 +279,7 @@ namespace Mongo.Context
             }
         }
 
-        private void RegisterDocumentProperty(MongoContext context, ResourceType collectionType, BsonElement element)
+        private void RegisterDocumentProperties(MongoContext context, ResourceType collectionType, BsonElement element)
         {
             var resourceName = GetResourcePropertyName(element, ResourceTypeKind.EntityType);
             var resourceType = ResolveResourceType(resourceName, collectionType.Name);
@@ -299,8 +291,25 @@ namespace Mongo.Context
             {
                 foreach (var documentElement in element.Value.AsBsonDocument.Elements)
                 {
-                    RegisterResourceProperty(context, resourceType, documentElement);
+                    RegisterDocumentProperty(context, resourceType, documentElement);
                 }
+            }
+        }
+
+        private void RegisterDocumentProperty(MongoContext context, ResourceType resourceType, BsonElement element)
+        {
+            var resourceProperty = ResolveResourceProperty(resourceType, element);
+            if (resourceProperty == null)
+            {
+                RegisterResourceProperty(context, resourceType, element);
+            }
+            else if ((resourceProperty.Kind & ResourcePropertyKind.ComplexType) != 0 && element.Value != BsonNull.Value)
+            {
+                RegisterDocumentProperties(context, resourceType, element);
+            }
+            else if ((resourceProperty.Kind & ResourcePropertyKind.Collection) != 0 && element.Value != BsonNull.Value)
+            {
+                RegisterArrayProperty(context, resourceType, element);
             }
         }
 
@@ -336,7 +345,7 @@ namespace Mongo.Context
 
                     if (arrayValue.BsonType == BsonType.Document)
                     {
-                        RegisterDocumentProperty(context, collectionType, new BsonElement(element.Name, arrayValue));
+                        RegisterDocumentProperties(context, collectionType, new BsonElement(element.Name, arrayValue));
                     }
                     else if (ResolveResourceProperty(collectionType, propertyName) == null)
                     {

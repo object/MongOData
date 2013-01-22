@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 
 namespace Mongo.Context
 {
@@ -64,20 +66,10 @@ namespace Mongo.Context
         {
             this.connectionString = connectionString;
             this.Configuration = metadata ?? MongoConfiguration.Metadata.Default;
+
             lock (MetadataCache)
             {
-                MongoMetadataCache metadataCache;
-                MetadataCache.TryGetValue(this.connectionString, out metadataCache);
-                if (metadataCache == null)
-                {
-                    metadataCache = new MongoMetadataCache
-                                        {
-                                            DspMetadata = new DSPMetadata(ContainerName, RootNamespace),
-                                            ProviderTypes = new Dictionary<string, Type>(),
-                                            GeneratedTypes = new Dictionary<string, Type>(),
-                                        };
-                    MetadataCache.Add(this.connectionString, metadataCache);
-                }
+                var metadataCache = GetOrCreateMetadataCache();
                 this.dspMetadata = metadataCache.DspMetadata;
                 this.providerTypes = metadataCache.ProviderTypes;
                 this.generatedTypes = metadataCache.GeneratedTypes;
@@ -97,6 +89,23 @@ namespace Mongo.Context
         public static void ResetDSPMetadata()
         {
             MetadataCache.Clear();
+        }
+
+        private MongoMetadataCache GetOrCreateMetadataCache()
+        {
+            MongoMetadataCache metadataCache;
+            MetadataCache.TryGetValue(this.connectionString, out metadataCache);
+            if (metadataCache == null)
+            {
+                metadataCache = new MongoMetadataCache
+                {
+                    DspMetadata = new DSPMetadata(ContainerName, RootNamespace),
+                    ProviderTypes = new Dictionary<string, Type>(),
+                    GeneratedTypes = new Dictionary<string, Type>(),
+                };
+                MetadataCache.Add(this.connectionString, metadataCache);
+            }
+            return metadataCache;
         }
 
         public ResourceType ResolveResourceType(string resourceName, string ownerPrefix = null)
@@ -132,10 +141,8 @@ namespace Mongo.Context
         {
             foreach (var collectionName in GetCollectionNames(context))
             {
-                var collection = context.Database.GetCollection(collectionName);
                 var resourceSet = ResolveResourceSet(collectionName);
 
-                var documents = collection.FindAll();
                 if (this.Configuration.PrefetchRows == 0)
                 {
                     if (resourceSet == null)
@@ -145,22 +152,7 @@ namespace Mongo.Context
                 }
                 else
                 {
-                    int rowCount = 0;
-                    foreach (var document in documents)
-                    {
-                        if (resourceSet == null)
-                        {
-                            resourceSet = AddResourceSet(context, collectionName, document);
-                        }
-                        else
-                        {
-                            UpdateResourceSet(context, resourceSet, document);
-                        }
-
-                        ++rowCount;
-                        if (this.Configuration.PrefetchRows >= 0 && rowCount >= this.Configuration.PrefetchRows)
-                            break;
-                    }
+                    PopulateMetadataFromCollection(context, collectionName, resourceSet);
                 }
             }
 
@@ -170,6 +162,33 @@ namespace Mongo.Context
                 var propertyName = NormalizeResourcePropertyName(prop.PropertyName);
                 this.dspMetadata.AddPrimitiveProperty(prop.CollectionType, propertyName, providerType);
                 this.providerTypes.Add(string.Join(".", prop.CollectionType.Name, propertyName), providerType);
+            }
+        }
+
+        private void PopulateMetadataFromCollection(MongoContext context, string collectionName, ResourceSet resourceSet)
+        {
+            var collection = context.Database.GetCollection(collectionName);
+            const string naturalSort = "$natural";
+            var sortOrder = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
+                                ? SortBy.Descending(naturalSort)
+                                : SortBy.Ascending(naturalSort);
+            var documents = collection.FindAll().SetSortOrder(sortOrder);
+            
+            int rowCount = 0;
+            foreach (var document in documents)
+            {
+                if (resourceSet == null)
+                {
+                    resourceSet = AddResourceSet(context, collectionName, document);
+                }
+                else
+                {
+                    UpdateResourceSet(context, resourceSet, document);
+                }
+
+                ++rowCount;
+                if (this.Configuration.PrefetchRows >= 0 && rowCount >= this.Configuration.PrefetchRows)
+                    break;
             }
         }
 

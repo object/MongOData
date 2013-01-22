@@ -38,9 +38,17 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void VariableTypesPrefetchOneNoUpdate()
+        public void VariableTypesPrefetchOneForwardNoUpdate()
         {
-            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = 1, UpdateDynamically = false } };
+            TestService.Configuration = new MongoConfiguration
+                {
+                    MetadataBuildStrategy = new MongoConfiguration.Metadata
+                    {
+                        PrefetchRows = 1,
+                        FetchPosition = MongoConfiguration.FetchPosition.Start,
+                        UpdateDynamically = false
+                    }
+                };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();
@@ -48,9 +56,35 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
-        public void VariableTypesPrefetchTwoNoUpdate()
+        public void VariableTypesPrefetchOneBackwardNoUpdate()
         {
-            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = 2, UpdateDynamically = false } };
+            TestService.Configuration = new MongoConfiguration
+                {
+                    MetadataBuildStrategy = new MongoConfiguration.Metadata
+                    {
+                        PrefetchRows = 1,
+                        FetchPosition = MongoConfiguration.FetchPosition.End,
+                        UpdateDynamically = false
+                    }
+                };
+            ResetService();
+
+            var result = ctx.VariableTypes.All().ToList();
+            AssertResultHasThreeColumns(result);
+        }
+
+        [Test]
+        public void VariableTypesPrefetchTwoForwardNoUpdate()
+        {
+            TestService.Configuration = new MongoConfiguration
+                {
+                    MetadataBuildStrategy = new MongoConfiguration.Metadata
+                    {
+                        PrefetchRows = 2,
+                        FetchPosition = MongoConfiguration.FetchPosition.Start,
+                        UpdateDynamically = false
+                    }
+                };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();
@@ -58,9 +92,34 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void VariableTypesPrefetchTwoBackwardNoUpdate()
+        {
+            TestService.Configuration = new MongoConfiguration
+                {
+                    MetadataBuildStrategy = new MongoConfiguration.Metadata
+                    {
+                        PrefetchRows = 2,
+                        FetchPosition = MongoConfiguration.FetchPosition.End,
+                        UpdateDynamically = false
+                    }
+                };
+            ResetService();
+
+            var result = ctx.VariableTypes.All().ToList();
+            AssertResultHasThreeColumns(result);
+        }
+
+        [Test]
         public void VariableTypesPrefetchAll()
         {
-            TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
+            TestService.Configuration = new MongoConfiguration
+            {
+                MetadataBuildStrategy = new MongoConfiguration.Metadata
+                    {
+                        PrefetchRows = -1, 
+                        UpdateDynamically = false
+                    }
+            };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();

@@ -13,12 +13,12 @@ using System.Resources;
 #endif
 [assembly: AssemblyCompany("Vagif Abilov")]
 [assembly: AssemblyProduct("MongOData")]
-[assembly: AssemblyCopyright("Copyright (c) 2012 Vagif Abilov")]
+[assembly: AssemblyCopyright("Copyright (c) 2012-2013 Vagif Abilov")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguageAttribute("en-US")]
 
 
-[assembly: AssemblyVersion("0.8.0.0")]
-[assembly: AssemblyFileVersion("0.8.0.0")]
-[assembly: AssemblyInformationalVersion("0.8.0.0")]
+[assembly: AssemblyVersion("0.9.0.0")]
+[assembly: AssemblyFileVersion("0.9.0.0")]
+[assembly: AssemblyInformationalVersion("0.9.0.0")]

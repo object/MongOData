@@ -54,7 +54,7 @@ namespace Mongo.Context
                 if (TryReadConfigurationValue(section, "metadataBuildStrategy/prefetchRows", out iResult))
                     configuration.MetadataBuildStrategy.PrefetchRows = iResult;
                 if (TryReadConfigurationValue(section, "metadataBuildStrategy/fetchPosition", out sResult))
-                    configuration.MetadataBuildStrategy.FetchPosition = (FetchPosition)Enum.Parse(typeof(FetchPosition), sResult.ToLower());
+                    configuration.MetadataBuildStrategy.FetchPosition = (FetchPosition)Enum.Parse(typeof(FetchPosition), sResult, true);
                 if (TryReadConfigurationValue(section, "metadataBuildStrategy/updateDynamically", out bResult))
                     configuration.MetadataBuildStrategy.UpdateDynamically = bResult;
                 if (TryReadConfigurationValue(section, "metadataBuildStrategy/persistSchema", out bResult))

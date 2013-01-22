@@ -15,7 +15,7 @@
         <Control Id="ConnectionStringEdit" Type="Edit" X="55" Y="132"
           Width="240" Height="18" Property="CONNECTION_STRING" Text="{200}" />
         <Control Id="ConnectionStringDescription" Type="Text" X="55" Y="156"
-          Width="240" Height="50" TabSkip="no" Text="Keep wildcard '*' in connection string to enable access to all server databases or replace it with the name of the specific MongoDB database (e.g. mongodb://localhost/MyData?strict=true)" />
+          Width="240" Height="50" TabSkip="no" Text="Keep wildcard '*' in connection string to enable access to all server databases or replace it with the name of the specific MongoDB database (e.g. mongodb://localhost/MyData)" />
         <!-- Navigation buttons -->
         <Control Id="Back" Type="PushButton" X="180" Y="243"
                Width="56" Height="17" Default="yes" Text="&amp;Back">

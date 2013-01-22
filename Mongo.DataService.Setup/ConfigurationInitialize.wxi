@@ -12,6 +12,6 @@
   <Property Id="WEB_APP_POOL_IDENTITY_PWD" Hidden="yes" />
 
   <!-- +++++++++++++++++++++++++++ Connection String +++++++++++++++++++++++++++ -->
-  <Property Id="CONNECTION_STRING" Value="mongodb://localhost/*?strict=true" />
+  <Property Id="CONNECTION_STRING" Value="mongodb://localhost/*" />
 
 </Include>

@@ -149,7 +149,7 @@ namespace Mongo.Context
             if (bsonValue == null)
                 return null;
 
-            if (bsonValue.RawValue != null)
+            if (BsonTypeMapper.MapToDotNetValue(bsonValue) != null)
             {
                 if (bsonValue.IsObjectId)
                 {
@@ -166,7 +166,7 @@ namespace Mongo.Context
                         case BsonType.DateTime:
                             return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
                         default:
-                            return bsonValue.RawValue;
+                            return BsonTypeMapper.MapToDotNetValue(bsonValue);
                     }
                 }
             }
@@ -177,7 +177,7 @@ namespace Mongo.Context
                     case BsonType.Binary:
                         return bsonValue.AsBsonBinaryData.Bytes;
                     default:
-                        return bsonValue.RawValue;
+                        return BsonTypeMapper.MapToDotNetValue(bsonValue);
                 }
             }
         }

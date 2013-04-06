@@ -368,7 +368,7 @@ namespace Mongo.Context
                     }
                     else if (ResolveResourceProperty(collectionType, propertyName) == null)
                     {
-                        this.dspMetadata.AddCollectionProperty(collectionType, propertyName, arrayValue.RawValue.GetType());
+                        this.dspMetadata.AddCollectionProperty(collectionType, propertyName, BsonTypeMapper.MapToDotNetValue(arrayValue).GetType());
                     }
                 }
             }
@@ -389,7 +389,7 @@ namespace Mongo.Context
             {
                 return elementValue.GetType();
             }
-            else if (elementValue.RawValue != null)
+            else if (BsonTypeMapper.MapToDotNetValue(elementValue) != null)
             {
                 return GetRawValueType(elementValue, isKey);
             }
@@ -413,13 +413,13 @@ namespace Mongo.Context
                 else
                     return GetRawValueType(element.Value, treatObjectIdAsKey);
             }
-            else if (element.Value.RawValue != null)
-            {
-                return GetRawValueType(element.Value);
-            }
             else if (element.Value.GetType() == typeof(BsonArray) || element.Value.GetType() == typeof(BsonDocument))
             {
                 return element.Value.GetType();
+            }
+            else if (BsonTypeMapper.MapToDotNetValue(element.Value) != null)
+            {
+                return GetRawValueType(element.Value);
             }
             else
             {
@@ -444,7 +444,7 @@ namespace Mongo.Context
                     elementType = typeof(DateTime);
                     break;
                 default:
-                    elementType = elementValue.RawValue.GetType();
+                    elementType = BsonTypeMapper.MapToDotNetValue(elementValue).GetType();
                     break;
             }
             if (!isKey && elementType.IsValueType)

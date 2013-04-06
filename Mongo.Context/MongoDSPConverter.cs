@@ -61,9 +61,17 @@ namespace Mongo.Context
 
             if (bsonValue.GetType() == typeof(BsonDocument))
             {
-                propertyValue = CreateDSPResource(bsonValue.AsBsonDocument, mongoMetadata, propertyName,
-                    MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
-                convertValue = true;
+                var bsonDocument = bsonValue.AsBsonDocument;
+                if (IsCsharpNullDocument(bsonDocument))
+                {
+                    convertValue = false;
+                }
+                else
+                {
+                    propertyValue = CreateDSPResource(bsonDocument, mongoMetadata, propertyName,
+                        MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
+                    convertValue = true;
+                }
             }
             else if (bsonValue.GetType() == typeof(BsonArray))
             {
@@ -191,6 +199,16 @@ namespace Mongo.Context
                     AssignNullCollections(propertyValue as DSPResource, resourceProperty.ResourceType);
                 }
             }
+        }
+
+        private static bool IsCsharpNullDocument(BsonDocument bsonDocument)
+        {
+            if (bsonDocument.ElementCount == 1)
+            {
+                var element = bsonDocument.Elements.First();
+                return element.Name == "_csharpnull" && element.Value.AsBoolean == true;
+            }
+            return false;
         }
     }
 }

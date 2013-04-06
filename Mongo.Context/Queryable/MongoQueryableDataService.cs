@@ -30,10 +30,10 @@ namespace Mongo.Context.Queryable
         {
             var collectionType = CreateDynamicTypeForCollection(collectionName, providerTypes, generatedTypes);
 
-            var conventions = new ConventionProfile();
-            conventions.SetIdMemberConvention(new NamedIdMemberConvention(MongoMetadata.MappedObjectIdName));
-            conventions.SetIgnoreExtraElementsConvention(new AlwaysIgnoreExtraElementsConvention());
-            BsonClassMap.RegisterConventions(conventions, t => t == collectionType);
+            var conventionPack = new ConventionPack();
+            conventionPack.Add(new NamedIdMemberConvention(MongoMetadata.MappedObjectIdName));
+            conventionPack.Add(new IgnoreExtraElementsConvention(true));
+            ConventionRegistry.Register(collectionName, conventionPack, t => t == collectionType);
 
             return InterceptingProvider.Intercept(
                 new MongoQueryableResource(this.mongoMetadata, connectionString, collectionName, collectionType),

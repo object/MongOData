@@ -21,6 +21,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <SuppressValidation>False</SuppressValidation>
+    <SuppressIces>ICE30</SuppressIces>
   </PropertyGroup>
   <PropertyGroup>
     <TempDir>$(IntermediateOutputPath)temp\</TempDir>

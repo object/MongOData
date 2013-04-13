@@ -104,7 +104,7 @@ namespace Mongo.Context.Tests
         [Test]
         public void QueryClrDateTimeValue()
         {
-            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.DateTimeValue == new DateTime(2012, 1, 1));
+            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.DateTimeValue < DateTime.Now);
             Assert.IsNotNull(clr);
             Assert.AreEqual(new DateTime(2012, 1, 1), clr.DateTimeValue, "The DateTimeValue is not correctly filled.");
         }
@@ -112,7 +112,7 @@ namespace Mongo.Context.Tests
         [Test]
         public void QueryClrNullableDateTimeValue()
         {
-            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.NullableDateTimeValue == new DateTime(2012, 1, 1));
+            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.NullableDateTimeValue < DateTime.Now);
             Assert.IsNotNull(clr);
             Assert.AreEqual(new DateTime(2012, 1, 1), clr.NullableDateTimeValue, "The NullableDateTimeValue is not correctly filled.");
         }
@@ -312,7 +312,7 @@ namespace Mongo.Context.Tests
         [Test]
         public void QueryClrDecimalValue()
         {
-            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.DecimalValue == 11);
+            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.DecimalValue == 11.1M);
             Assert.IsNotNull(clr);
             Assert.AreEqual(11, clr.DecimalValue, "The DecimalValue is not correctly filled.");
         }
@@ -320,7 +320,7 @@ namespace Mongo.Context.Tests
         [Test]
         public void QueryClrNullableDecimalValue()
         {
-            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.NullableDecimalValue == 11);
+            var clr = ctx.ClrTypes.Find(ctx.ClrTypes.NullableDecimalValue == 11M);
             Assert.IsNotNull(clr);
             Assert.AreEqual(11, clr.NullableDecimalValue, "The NullableDecimalValue is not correctly filled.");
         }

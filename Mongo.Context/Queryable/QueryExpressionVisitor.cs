@@ -67,7 +67,7 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitMemberAccess(MemberExpression m)
         {
-            if (m.Member.Name == "Value" && m.Member.DeclaringType == typeof(Nullable<bool>))
+            if (m.Member.Name == "Value" && m.Member.DeclaringType == typeof(bool?))
             {
                 return ((m.Expression as ConditionalExpression).IfFalse as UnaryExpression).Operand;
             }
@@ -120,29 +120,29 @@ namespace Mongo.Context.Queryable
 
         public override Expression VisitBinary(BinaryExpression b)
         {
-            if (b.Left.Type == typeof(Nullable<bool>) && b.Right.Type == typeof(Nullable<bool>) && b.NodeType == ExpressionType.Equal &&
+            Expression left = this.Visit(b.Left);
+            Expression right = this.Visit(b.Right);
+            if (left.Type == typeof(ObjectId) &&
+                right.Type == typeof(string) && right.NodeType == ExpressionType.Constant)
+            {
+                return Visit(ReplaceObjectIdComparison(b.NodeType, right, left));
+            }
+            else if (left.Type.IsGenericType && left.Type.GetGenericTypeDefinition() == typeof(Nullable<>) && 
+                left.NodeType == ExpressionType.MemberAccess && right.Type.IsValueType)
+            {
+                 if (right.NodeType == ExpressionType.Constant)
+                    return Visit(ReplaceNullableMemberComparison(b.NodeType, right, left));
+                 else
+                     return base.VisitBinary(b);
+            }
+            else if (b.Left.Type == typeof(bool?) && b.Right.Type == typeof(bool?) && b.NodeType == ExpressionType.Equal &&
                 (b.Right.NodeType == ExpressionType.Convert || b.Right.NodeType == ExpressionType.Constant))
             {
                 return Visit(ReplaceBinaryComparison(b));
             }
             else
             {
-                Expression left = this.Visit(b.Left);
-                Expression right = this.Visit(b.Right);
-                if (left.Type == typeof(ObjectId) &&
-                    right.Type == typeof(string) && right.NodeType == ExpressionType.Constant)
-                {
-                    return Visit(ReplaceObjectIdComparison(b.NodeType, right, left));
-                }
-                else if (left.Type.IsGenericType && left.Type.GetGenericTypeDefinition() == typeof(Nullable<>) && left.NodeType == ExpressionType.MemberAccess &&
-                    right.Type.IsValueType && right.NodeType == ExpressionType.Constant)
-                {
-                    return Visit(ReplaceNullableMemberComparison(b.NodeType, right, left));
-                }
-                else
-                {
-                    return base.VisitBinary(b);
-                }
+                return base.VisitBinary(b);
             }
         }
 

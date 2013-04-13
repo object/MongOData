@@ -105,29 +105,49 @@ namespace Mongo.Context.Tests
                             },
                         Category = categoryBeverages,
                     });
+        }
+
+        public static void PopulateWithClrTypes(bool clearDatabase = true)
+        {
+            var database = GetDatabase(clearDatabase);
 
             var clrTypes = database.GetCollection<ClrType>("ClrTypes");
             clrTypes.Insert(
                 new ClrType
-                    {
-                        BinaryValue = new[] { (byte)1 },
-                        BoolValue = true,
-                        DateTimeValue = new DateTime(2012, 1, 1),
-                        TimeSpanValue = new TimeSpan(1, 2, 3),
-                        GuidValue = Guid.Empty,
-                        ByteValue = (byte)1,
-                        SByteValue = (sbyte)2,
-                        Int16Value = 3,
-                        UInt16Value = 4,
-                        Int32Value = 5,
-                        UInt32Value = 6,
-                        Int64Value = 7,
-                        UInt64Value = 8,
-                        SingleValue = 9,
-                        DoubleValue = 10,
-                        DecimalValue = 11,
-                        StringValue = "abc",
-                    });
+                {
+                    BinaryValue = new[] { (byte)1 },
+                    BoolValue = true,
+                    NullableBoolValue = true,
+                    DateTimeValue = new DateTime(2012, 1, 1),
+                    NullableDateTimeValue = new DateTime(2012, 1, 1),
+                    TimeSpanValue = new TimeSpan(1, 2, 3),
+                    NullableTimeSpanValue = new TimeSpan(1, 2, 3),
+                    GuidValue = Guid.Empty,
+                    NullableGuidValue = Guid.Empty,
+                    ByteValue = (byte)1,
+                    NullableByteValue = (byte)1,
+                    SByteValue = (sbyte)2,
+                    NullableSByteValue = (sbyte)2,
+                    Int16Value = 3,
+                    NullableInt16Value = 3,
+                    UInt16Value = 4,
+                    NullableUInt16Value = 4,
+                    Int32Value = 5,
+                    NullableInt32Value = 5,
+                    UInt32Value = 6,
+                    NullableUInt32Value = 6,
+                    Int64Value = 7,
+                    NullableInt64Value = 7,
+                    UInt64Value = 8,
+                    NullableUInt64Value = 8,
+                    SingleValue = 9,
+                    NullableSingleValue = 9,
+                    DoubleValue = 10,
+                    NullableDoubleValue = 10,
+                    DecimalValue = 11,
+                    NullableDecimalValue = 11,
+                    StringValue = "abc",
+                });
         }
 
         public static void PopulateWithVariableTypes(bool clearDatabase = true)

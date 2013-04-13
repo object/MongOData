@@ -61,20 +61,35 @@ namespace Mongo.Context.Tests
     {
         public byte[] BinaryValue { get; set; }
         public bool BoolValue { get; set; }
+        public bool? NullableBoolValue { get; set; }
         public DateTime DateTimeValue { get; set; }
+        public DateTime? NullableDateTimeValue { get; set; }
         public TimeSpan TimeSpanValue { get; set; }
+        public TimeSpan? NullableTimeSpanValue { get; set; }
         public Guid GuidValue { get; set; }
+        public Guid? NullableGuidValue { get; set; }
         public Byte ByteValue { get; set; }
+        public Byte? NullableByteValue { get; set; }
         public SByte SByteValue { get; set; }
+        public SByte? NullableSByteValue { get; set; }
         public Int16 Int16Value { get; set; }
+        public Int16? NullableInt16Value { get; set; }
         public UInt16 UInt16Value { get; set; }
+        public UInt16? NullableUInt16Value { get; set; }
         public Int32 Int32Value { get; set; }
+        public Int32? NullableInt32Value { get; set; }
         public UInt32 UInt32Value { get; set; }
+        public UInt32? NullableUInt32Value { get; set; }
         public Int64 Int64Value { get; set; }
+        public Int64? NullableInt64Value { get; set; }
         public UInt64 UInt64Value { get; set; }
+        public UInt64? NullableUInt64Value { get; set; }
         public Single SingleValue { get; set; }
+        public Single? NullableSingleValue { get; set; }
         public Double DoubleValue { get; set; }
+        public Double? NullableDoubleValue { get; set; }
         public Decimal DecimalValue { get; set; }
+        public Decimal? NullableDecimalValue { get; set; }
         public String StringValue { get; set; }
     }
 

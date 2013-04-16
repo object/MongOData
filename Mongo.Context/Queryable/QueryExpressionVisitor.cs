@@ -36,6 +36,15 @@ namespace Mongo.Context.Queryable
             {
                 return ReplaceMemberAccess(m);
             }
+            else if (m.Method.Name == "GetValue" && m.Arguments[0].NodeType == ExpressionType.Constant &&
+                (m.Arguments[0] as ConstantExpression).Type == typeof(string))
+            {
+                return ReplaceMemberLookup(m);
+            }
+            else if (m.Method.Name == "ToString" && m.Arguments.Count == 0)
+            {
+                return Visit(m.Object);
+            }
             else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
                 if (ExpressionUtils.IsOrderMethod(m))
@@ -246,6 +255,17 @@ namespace Mongo.Context.Queryable
             {
                 return m;
             }
+        }
+
+        private Expression ReplaceMemberLookup(MethodCallExpression m)
+        {
+            var fieldName = ((m.Arguments[0] as ConstantExpression).Value as string);
+            if (fieldName == MongoMetadata.MappedObjectIdName)
+                fieldName = MongoMetadata.ProviderObjectIdName;
+
+            var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
+            var member = this.collectionType.GetMember(fieldName).Single();
+            return Expression.MakeMemberAccess(parameterExpression, member);
         }
     }
 }

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Services;
-using System.Data.Services.Providers;
+using System.Data.Services.Common;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using DataServiceProvider;
 using Mongo.Context.InMemory;
 using Mongo.Context.Queryable;
-using MongoDB.Driver;
 
 namespace Mongo.Context.Tests
 {
@@ -31,15 +31,23 @@ namespace Mongo.Context.Tests
 
     public class ProductQueryableService : MongoQueryableDataService
     {
+        public static Expression<Func<DSPResource, bool>> ProductQueryInterceptor = null;
+
         public ProductQueryableService()
             : base(ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString, TestService.Configuration)
         {
         }
 
+        [QueryInterceptor("Products")]
+        public Expression<Func<DSPResource, bool>> OnQueryProducts()
+        {
+            return ProductQueryInterceptor ?? (x => true);
+        }
+
         public static void InitializeService(DataServiceConfiguration config)
         {
             config.SetEntitySetAccessRule("*", EntitySetRights.All);
-            config.DataServiceBehavior.MaxProtocolVersion = System.Data.Services.Common.DataServiceProtocolVersion.V3;
+            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V3;
             config.DataServiceBehavior.AcceptCountRequests = true;
             config.DataServiceBehavior.AcceptProjectionRequests = true;
             config.UseVerboseErrors = true;

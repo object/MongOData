@@ -345,5 +345,14 @@ namespace Mongo.Context.Tests
                 MongoMetadata.CreateDynamicTypesForComplexTypes = true;
             }
         }
+
+        [Test]
+        public void AllEntitiesCountWithQueryInterceptorVerifyResult()
+        {
+            ProductQueryableService.ProductQueryInterceptor = (x => x.GetValue("Name").ToString() == "Wine");
+            var result = ctx.Products.All().Count();
+            ProductQueryableService.ProductQueryInterceptor = null;
+            Assert.AreEqual(1, result, "The count is not correctly computed.");
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace Mongo.Context.Tests
         public override void SetUp()
         {
             TestService.Configuration = new MongoConfiguration { MetadataBuildStrategy = new MongoConfiguration.Metadata { PrefetchRows = -1, UpdateDynamically = false } };
+            ProductQueryableService.ProductQueryInterceptor = null;
             base.SetUp();
         }
 
@@ -353,6 +354,42 @@ namespace Mongo.Context.Tests
             var result = ctx.Products.All().Count();
             ProductQueryableService.ProductQueryInterceptor = null;
             Assert.AreEqual(1, result, "The count is not correctly computed.");
+        }
+
+        [Test]
+        public void AllEntitiesCountWithVBEqualInterceptorVerifyResult()
+        {
+            ProductQueryableService.ProductQueryInterceptor = (x => (bool)(ExtensionMethods.CompareObjectEqual(x.GetValue("Name").ToString(), "Wine", false)));
+            var result = ctx.Products.All().Count();
+            ProductQueryableService.ProductQueryInterceptor = null;
+            Assert.AreEqual(1, result, "The count is not correctly computed.");
+        }
+
+        [Test]
+        public void AllEntitiesCountWithVBNotEqualInterceptorVerifyResult()
+        {
+            ProductQueryableService.ProductQueryInterceptor = (x => (bool)(ExtensionMethods.CompareObjectNotEqual(x.GetValue("Name").ToString(), "Wine", false)));
+            var result = ctx.Products.All().Count();
+            ProductQueryableService.ProductQueryInterceptor = null;
+            Assert.AreEqual(2, result, "The count is not correctly computed.");
+        }
+
+        [Test]
+        public void AllEntitiesCountWithVBConditionalEqualInterceptorVerifyResult()
+        {
+            ProductQueryableService.ProductQueryInterceptor = (x => (ExtensionMethods.ConditionalCompareObjectEqual(x.GetValue("Name").ToString(), "Wine", false)));
+            var result = ctx.Products.All().Count();
+            ProductQueryableService.ProductQueryInterceptor = null;
+            Assert.AreEqual(1, result, "The count is not correctly computed.");
+        }
+
+        [Test]
+        public void AllEntitiesCountWithVBConditionalNotEqualInterceptorVerifyResult()
+        {
+            ProductQueryableService.ProductQueryInterceptor = (x => (ExtensionMethods.ConditionalCompareObjectNotEqual(x.GetValue("Name").ToString(), "Wine", false)));
+            var result = ctx.Products.All().Count();
+            ProductQueryableService.ProductQueryInterceptor = null;
+            Assert.AreEqual(2, result, "The count is not correctly computed.");
         }
     }
 }

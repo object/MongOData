@@ -45,6 +45,10 @@ namespace Mongo.Context.Queryable
             {
                 return Visit(m.Object);
             }
+            else if (ExpressionUtils.IsVisualBasicComparison(m))
+            {
+                return Visit(ReplaceVisualBasicComparison(m));
+            }
             else if (m.Method.GetGenericArguments().Any() && m.Method.GetGenericArguments()[0] == typeof(DSPResource))
             {
                 if (ExpressionUtils.IsOrderMethod(m))
@@ -159,7 +163,11 @@ namespace Mongo.Context.Queryable
         {
             if (u.NodeType == ExpressionType.Convert)
             {
-                if (u.Operand.NodeType != ExpressionType.Constant && (u.Type.IsValueType || u.Type == typeof(string)))
+                if (ExpressionUtils.IsConvertWithVisualBasicComparison(u))
+                {
+                    return Visit(ReplaceVisualBasicComparison(u.Operand as MethodCallExpression));
+                }
+                else if (u.Operand.NodeType != ExpressionType.Constant && (u.Type.IsValueType || u.Type == typeof(string)))
                 {
                     return Visit(u.Operand);
                 }
@@ -266,6 +274,12 @@ namespace Mongo.Context.Queryable
             var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
             var member = this.collectionType.GetMember(fieldName).Single();
             return Expression.MakeMemberAccess(parameterExpression, member);
+        }
+
+        private Expression ReplaceVisualBasicComparison(MethodCallExpression m)
+        {
+            var op = ExpressionUtils.VisualBasicComparisonOperators[m.Method.Name];
+            return Expression.MakeBinary(op, m.Arguments[0], m.Arguments[1]);
         }
     }
 }

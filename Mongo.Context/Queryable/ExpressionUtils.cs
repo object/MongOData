@@ -4,14 +4,29 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using DataServiceProvider;
 using MongoDB.Bson;
 
 namespace Mongo.Context.Queryable
 {
     internal static class ExpressionUtils
     {
-        internal static Expression RemoveQuotes(Expression expr)
+        public static Dictionary<string, ExpressionType> VisualBasicComparisonOperators = new Dictionary<string, ExpressionType>()
+                {
+                    {"CompareObjectEqual", ExpressionType.Equal},
+                    {"CompareObjectGreater", ExpressionType.GreaterThan},
+                    {"CompareObjectGreaterEqual", ExpressionType.GreaterThanOrEqual},
+                    {"CompareObjectLess", ExpressionType.LessThan},
+                    {"CompareObjectLessEqual", ExpressionType.LessThanOrEqual},
+                    {"CompareObjectNotEqual", ExpressionType.NotEqual},
+                    {"ConditionalCompareObjectEqual", ExpressionType.Equal},
+                    {"ConditionalCompareObjectGreater", ExpressionType.GreaterThan},
+                    {"ConditionalCompareObjectGreaterEqual", ExpressionType.GreaterThanOrEqual},
+                    {"ConditionalCompareObjectLess", ExpressionType.LessThan},
+                    {"ConditionalCompareObjectLessEqual", ExpressionType.LessThanOrEqual},
+                    {"ConditionalCompareObjectNotEqual", ExpressionType.NotEqual},
+                };
+
+        public static Expression RemoveQuotes(Expression expr)
         {
             while (expr.NodeType == ExpressionType.Quote)
             {
@@ -21,7 +36,7 @@ namespace Mongo.Context.Queryable
             return expr;
         }
 
-        internal static bool IsExpressionLinqSelect(Expression expression)
+        public static bool IsExpressionLinqSelect(Expression expression)
         {
             return expression.NodeType == ExpressionType.Call &&
                    IsMethodLinqSelect(((MethodCallExpression)expression).Method);
@@ -70,11 +85,12 @@ namespace Mongo.Context.Queryable
             return false;
         }
 
-        public static bool IsConvertWithMethod(Expression e, string methodName)
+        public static bool IsConvertWithMethod(Expression e, string methodName, int? argumentCount = null)
         {
             if (e is UnaryExpression && e.NodeType == ExpressionType.Convert
                 && (e as UnaryExpression).Operand is MethodCallExpression &&
-                ((e as UnaryExpression).Operand as MethodCallExpression).Method.Name == methodName)
+                ((e as UnaryExpression).Operand as MethodCallExpression).Method.Name == methodName &&
+                (argumentCount == null || ((e as UnaryExpression).Operand as MethodCallExpression).Arguments.Count == argumentCount.Value))
             {
                 return true;
             }
@@ -82,6 +98,33 @@ namespace Mongo.Context.Queryable
             {
                 return false;
             }
+        }
+
+        public static bool IsConvertWithVisualBasicComparison(Expression e)
+        {
+            foreach (var op in VisualBasicComparisonOperators)
+            {
+                if (IsConvertWithMethod(e, op.Key, 3) && (e.Type.IsValueType || e.Type == typeof (bool)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool IsVisualBasicComparison(MethodCallExpression m)
+        {
+            if (m.Arguments.Count == 3)
+            {
+                foreach (var op in VisualBasicComparisonOperators)
+                {
+                    if (m.Method.Name == op.Key)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public static bool IsConvertWithMember(Expression e)

@@ -95,6 +95,7 @@
     <Compile Include="BsonIdTests.cs" />
     <Compile Include="ClrTypeTests.cs" />
     <Compile Include="Entities.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="JsonSamplesTests.cs" />
     <Compile Include="MetadataTests.cs" />
     <Compile Include="NativeTests.cs" />

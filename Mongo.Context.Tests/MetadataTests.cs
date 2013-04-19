@@ -11,17 +11,18 @@ namespace Mongo.Context.Tests
 {
     public abstract class MetadataTests<T> : TestBase<T>
     {
-        protected override void PopulateTestData()
-        {
-            TestData.PopulateWithVariableTypes();
-        }
-
         [SetUp]
         public override void SetUp()
         {
-            ProductInMemoryService.ResetDSPMetadata();
-            ProductQueryableService.ResetDSPMetadata();
+            ResetDSPMetadata();
             base.SetUp();
+        }
+
+        protected abstract void ResetDSPMetadata();
+
+        protected override void PopulateTestData()
+        {
+            TestData.PopulateWithVariableTypes();
         }
 
         protected void ResetService()
@@ -116,7 +117,7 @@ namespace Mongo.Context.Tests
             {
                 MetadataBuildStrategy = new MongoConfiguration.Metadata
                     {
-                        PrefetchRows = -1, 
+                        PrefetchRows = -1,
                         UpdateDynamically = false
                     }
             };
@@ -155,11 +156,20 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class InMemoryServiceMetadataTests : MetadataTests<ProductInMemoryService>
     {
+        protected override void ResetDSPMetadata()
+        {
+            ProductInMemoryService.ResetDSPMetadata();
+        }
     }
 
     [TestFixture]
     public class QueryableServiceMetadataTests : MetadataTests<ProductQueryableService>
     {
+        protected override void ResetDSPMetadata()
+        {
+            ProductQueryableService.ResetDSPMetadata();
+        }
+
         [Test]
         public void VariableTypesPrefetchNoneUpdate()
         {

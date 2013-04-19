@@ -76,6 +76,7 @@
     <Compile Include="MongoConfiguration.cs" />
     <Compile Include="MongoDataServiceBase.cs" />
     <Compile Include="MongoDSPUpdateProvider.cs" />
+    <Compile Include="MongoMetadataCache.cs" />
     <Compile Include="Queryable\ExpressionUtils.cs" />
     <Compile Include="MongoContext.cs" />
     <Compile Include="MongoDSPConverter.cs" />

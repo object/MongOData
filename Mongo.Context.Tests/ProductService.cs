@@ -31,17 +31,9 @@ namespace Mongo.Context.Tests
 
     public class ProductQueryableService : MongoQueryableDataService
     {
-        public static Expression<Func<DSPResource, bool>> ProductQueryInterceptor = null;
-
         public ProductQueryableService()
             : base(ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString, TestService.Configuration)
         {
-        }
-
-        [QueryInterceptor("Products")]
-        public Expression<Func<DSPResource, bool>> OnQueryProducts()
-        {
-            return ProductQueryInterceptor ?? (x => true);
         }
 
         public static void InitializeService(DataServiceConfiguration config)
@@ -51,6 +43,17 @@ namespace Mongo.Context.Tests
             config.DataServiceBehavior.AcceptCountRequests = true;
             config.DataServiceBehavior.AcceptProjectionRequests = true;
             config.UseVerboseErrors = true;
+        }
+    }
+
+    public class ProductQueryableServiceWithQueryInterceptor : ProductQueryableService
+    {
+        public static Expression<Func<DSPResource, bool>> ProductQueryInterceptor = null;
+
+        [QueryInterceptor("Products")]
+        public Expression<Func<DSPResource, bool>> OnQueryProducts()
+        {
+            return ProductQueryInterceptor ?? (x => true);
         }
     }
 }

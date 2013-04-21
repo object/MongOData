@@ -235,17 +235,20 @@ namespace Mongo.Context
             var resourceProperty = ResolveResourceProperty(resourceType, element);
             if (resourceProperty == null)
             {
-                var unresolvedEarlier = unresolvedProperties.Contains(collectionProperty);
-                var resolvedNow = ResolveProviderType(element.Value, IsObjectId(element)) != null;
-
-                if (!unresolvedEarlier && !resolvedNow)
-                    this.unresolvedProperties.Add(collectionProperty);
-                else if (unresolvedEarlier && resolvedNow)
-                    this.unresolvedProperties.Remove(collectionProperty);
-
-                if (resolvedNow)
+                lock (unresolvedProperties)
                 {
-                    AddResourceProperty(context, resourceType.Name, resourceType, element, resourceType.ResourceTypeKind == ResourceTypeKind.EntityType);
+                    var unresolvedEarlier = unresolvedProperties.Contains(collectionProperty);
+                    var resolvedNow = ResolveProviderType(element.Value, IsObjectId(element)) != null;
+
+                    if (!unresolvedEarlier && !resolvedNow)
+                        this.unresolvedProperties.Add(collectionProperty);
+                    else if (unresolvedEarlier && resolvedNow)
+                        this.unresolvedProperties.Remove(collectionProperty);
+
+                    if (resolvedNow)
+                    {
+                        AddResourceProperty(context, resourceType.Name, resourceType, element, resourceType.ResourceTypeKind == ResourceTypeKind.EntityType);
+                    }
                 }
             }
         }

@@ -310,6 +310,7 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        [Ignore("Check WCF DS decimal format")]
         public void QueryClrDecimalValue()
         {
             var clr = ctx.ClrTypes.Find(ctx.ClrTypes.DecimalValue == 11.1M);
@@ -318,6 +319,7 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        [Ignore("Check WCF DS decimal format")]
         public void QueryClrNullableDecimalValue()
         {
             var clr = ctx.ClrTypes.Find(ctx.ClrTypes.NullableDecimalValue == 11M);

@@ -216,10 +216,6 @@ namespace Mongo.Context
                 {
                     this.instanceMetadataCache.AddKeyProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
                 }
-                else
-                {
-                    this.instanceMetadataCache.AddPrimitiveProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
-                }
                 AddProviderType(collectionName, ProviderObjectIdName, BsonObjectId.Empty, true);
             }
 

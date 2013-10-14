@@ -57,12 +57,14 @@ namespace Mongo.Context.Tests
 
         protected void ValidateColumnNullability(ISchema schema)
         {
-            Action<EdmProperty> validator = x =>
-                {
-                    if (x.Type.GetType().Name == "Edm.String")
-                        Assert.True(x.Nullable, "Property {0} is a string type and should be marked as nullable", x.Name);
+            Action<EdmProperty> validator = x => {
+                    var message = string.Format("Property {0} of type {1} should {2}be marked as nullable",
+                                  x.Name, x.Type, x.Nullable ? "not " : "");
+
+                    if (x.Name == MongoMetadata.MappedObjectIdName || x.Type.Name.StartsWith("Collection("))
+                        Assert.False(x.Nullable, message);
                     else
-                        Assert.False(x.Nullable, "Property {0} of type {1} should not be marked as nullable", x.Name, x.Type);
+                        Assert.True(x.Nullable, message);
                 };
 
             foreach (var table in schema.Tables)

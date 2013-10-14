@@ -47,7 +47,7 @@ namespace Mongo.Context
         private readonly string connectionString;
         private readonly List<CollectionProperty> unresolvedProperties = new List<CollectionProperty>();
         private static readonly Dictionary<string, MongoMetadataCache> MetadataCache = new Dictionary<string, MongoMetadataCache>();
-        private MongoMetadataCache instanceMetadataCache;
+        private readonly MongoMetadataCache instanceMetadataCache;
 
         public MongoConfiguration.Metadata Configuration { get; private set; }
         internal Dictionary<string, Type> ProviderTypes { get { return this.instanceMetadataCache.ProviderTypes; } }

@@ -61,13 +61,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.Data, Version=0.18.3.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.Core.0.18.3.1\lib\net40\Simple.Data.dll</HintPath>
+    <Reference Include="Simple.Data">
+      <HintPath>..\packages\Simple.Data.Core.0.19.0.0\lib\net40\Simple.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Simple.OData.Client.Net40, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.OData.Client.0.18.0\lib\net40\Simple.OData.Client.Net40.dll</HintPath>
+    <Reference Include="Simple.Data.OData">
+      <HintPath>..\packages\Simple.Data.OData.1.0.0.1\lib\net40\Simple.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Simple.OData.Client.Net40">
+      <HintPath>..\packages\Simple.OData.Client.1.0.0\lib\net40\Simple.OData.Client.Net40.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

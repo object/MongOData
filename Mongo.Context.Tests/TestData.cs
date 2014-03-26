@@ -196,7 +196,18 @@ namespace Mongo.Context.Tests
 
             var jsonSamples = new[]
                 {
-                    "Colors", "Facebook", "Flickr", "GoogleMaps", "iPhone", "Twitter", "YouTube", "Nested", "ArrayOfNested", "EmptyArray", "NullArray"
+                    "Colors", 
+                    "Facebook", 
+                    "Flickr", 
+                    "GoogleMaps", 
+                    "iPhone", 
+                    "Twitter", 
+                    "YouTube", 
+                    "Nested", 
+                    "ArrayOfNested", 
+                    "EmptyArray", 
+                    "NullArray", 
+                    "EmptyProperty",
                 };
 
             foreach (var collectionName in jsonSamples)

@@ -221,6 +221,13 @@ namespace Mongo.Context.Tests
             Assert.AreEqual(2, result[1].arrays.d[0].nonid);
             Assert.AreEqual("Regular", result[1].arrays.d[0].type);
         }
+
+        [Test]
+        public void EmptyProperty()
+        {
+            var result = ctx.EmptyProperty.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+        }
     }
 
     [TestFixture]

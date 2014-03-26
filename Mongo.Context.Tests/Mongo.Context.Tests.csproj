@@ -123,6 +123,7 @@
     <EmbeddedResource Include="Resources\YouTube.json" />
     <EmbeddedResource Include="Resources\EmptyArray.json" />
     <EmbeddedResource Include="Resources\NullArray.json" />
+    <EmbeddedResource Include="Resources\EmptyProperty.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataServiceProvider\DataServiceProvider.csproj">

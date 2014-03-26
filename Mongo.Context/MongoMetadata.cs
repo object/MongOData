@@ -256,6 +256,9 @@ namespace Mongo.Context
             var propertyName = GetResourcePropertyName(element, collectionType.ResourceTypeKind);
             var propertyValue = element.Value;
 
+            if (string.IsNullOrEmpty(propertyName))
+                return;
+
             var isKey = false;
             if (IsObjectId(element))
             {
@@ -459,6 +462,7 @@ namespace Mongo.Context
 
         private static string NormalizeResourcePropertyName(string propertyName)
         {
+            propertyName = propertyName.Trim();
             return propertyName.StartsWith("_") ? PrefixForInvalidLeadingChar + propertyName : propertyName;
         }
     }

@@ -2,7 +2,7 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>MongOData</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <title>MongOData</title>
     <authors>Vagif Abilov</authors>
@@ -16,8 +16,8 @@
     <language>en-US</language>
     <tags>mongodata mongodb odata</tags>
     <dependencies>
-      <dependency id="mongocsharpdriver" version="1.8" />
-      <dependency id="Microsoft.Data.Services" version="5.6.0" />
+      <dependency id="mongocsharpdriver" version="1.9" />
+      <dependency id="Microsoft.Data.Services" version="5.6.1" />
     </dependencies>
   </metadata>
   <files>

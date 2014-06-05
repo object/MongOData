@@ -402,6 +402,10 @@ namespace Mongo.Context
                 else
                     return GetRawValueType(element.Value, treatObjectIdAsKey);
             }
+            else if (element.Value.GetType() == typeof (BsonObjectId))
+            {
+                return MappedObjectIdType;
+            }
             else if (element.Value.GetType() == typeof(BsonArray) || element.Value.GetType() == typeof(BsonDocument))
             {
                 return element.Value.GetType();

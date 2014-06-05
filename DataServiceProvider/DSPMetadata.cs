@@ -94,13 +94,18 @@ namespace DataServiceProvider
         private void AddPrimitiveProperty(ResourceType resourceType, string name, Type propertyType, bool isKey)
         {
             ResourceType type = ResourceType.GetPrimitiveResourceType(propertyType);
-            ResourcePropertyKind kind = ResourcePropertyKind.Primitive;
+            if (type == null)
+            {
+                throw new ArgumentException(string.Format("Unable to resolve type {0}", propertyType), "propertyType");    
+            }
+
+            var kind = ResourcePropertyKind.Primitive;
             if (isKey)
             {
                 kind |= ResourcePropertyKind.Key;
             }
 
-            ResourceProperty property = new ResourceProperty(name, kind, type);
+            var property = new ResourceProperty(name, kind, type);
             property.CanReflectOnInstanceTypeProperty = false;
             resourceType.AddProperty(property);
         }

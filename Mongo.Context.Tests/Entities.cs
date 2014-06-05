@@ -91,6 +91,7 @@ namespace Mongo.Context.Tests
         public Decimal DecimalValue { get; set; }
         public Decimal? NullableDecimalValue { get; set; }
         public String StringValue { get; set; }
+        public BsonObjectId ObjectIdValue { get; set; }
     }
 
     public class TypeWithoutExplicitId

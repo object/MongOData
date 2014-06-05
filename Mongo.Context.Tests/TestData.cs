@@ -147,6 +147,7 @@ namespace Mongo.Context.Tests
                     DecimalValue = 11,
                     NullableDecimalValue = 11,
                     StringValue = "abc",
+                    ObjectIdValue = new BsonObjectId(new ObjectId(100, 200, 300, 400)),
                 });
         }
 

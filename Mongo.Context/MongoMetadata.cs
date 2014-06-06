@@ -95,7 +95,7 @@ namespace Mongo.Context
         {
             ResourceType resourceType;
             var qualifiedResourceName = string.IsNullOrEmpty(ownerPrefix) ? resourceName : MongoMetadata.GetQualifiedTypeName(ownerPrefix, resourceName);
-            this.instanceMetadataCache.TryResolveResourceType(string.Join(".", MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
+            this.instanceMetadataCache.TryResolveResourceType(GetQualifiedPropertyName(MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
             return resourceType;
         }
 
@@ -142,7 +142,7 @@ namespace Mongo.Context
                     var propertyName = NormalizeResourcePropertyName(prop.PropertyName);
                     this.instanceMetadataCache.AddPrimitiveProperty(prop.CollectionType, propertyName, providerType);
                     this.instanceMetadataCache.ProviderTypes.Add(
-                        string.Join(".", prop.CollectionType.Name, propertyName), providerType);
+                        GetQualifiedPropertyName(prop.CollectionType.Name, propertyName), providerType);
                 }
             }
         }
@@ -366,9 +366,10 @@ namespace Mongo.Context
         private void AddProviderType(string collectionName, string elementName, BsonValue elementValue, bool isKey = false)
         {
             Type providerType = ResolveProviderType(elementValue, isKey);
-            if (providerType != null)
+            var qualifiedName = GetQualifiedPropertyName(collectionName, elementName);
+            if (providerType != null && !this.instanceMetadataCache.ProviderTypes.ContainsKey(qualifiedName))
             {
-                this.instanceMetadataCache.ProviderTypes.Add(string.Join(".", collectionName, elementName), providerType);
+                this.instanceMetadataCache.ProviderTypes.Add(qualifiedName, providerType);
             }
         }
 
@@ -455,6 +456,11 @@ namespace Mongo.Context
         internal static string GetQualifiedTypePrefix(string ownerName)
         {
             return UseGlobalComplexTypeNames ? string.Empty : ownerName;
+        }
+
+        internal static string GetQualifiedPropertyName(string typeName, string propertyName)
+        {
+            return string.Join(".", typeName, propertyName);
         }
 
         private static string GetResourcePropertyName(BsonElement element, ResourceTypeKind resourceTypeKind)

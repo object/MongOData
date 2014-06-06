@@ -1,0 +1,36 @@
+﻿{
+	"id": "0001",
+	"arrays":
+		{
+			"a":
+				[
+					{ "id": 1, "nonid": 2, "type": "Regular" },
+					{ "id": null, "nonid": null, "type": null }
+				],
+			"b":
+				[
+				],
+			"c":
+				[
+				]
+		}
+}
+---
+{
+	"id": "0002",
+	"arrays":
+		{
+			"a":
+				[
+					{ "id": null, "nonid": null, "type": null }
+				],
+			"b":
+				[
+					{ "id": null, "nonid": null, "type": null },
+					{ "id": 1, "nonid": 2, "type": "Regular" }
+				],
+			"c":
+				[
+				]
+		}
+}

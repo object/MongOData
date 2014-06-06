@@ -207,7 +207,8 @@ namespace Mongo.Context.Tests
                     "Nested", 
                     "ArrayOfNested", 
                     "EmptyArray", 
-                    "NullArray", 
+                    "NullArray",
+                    "UnresolvedArray",
                     "EmptyProperty",
                 };
 

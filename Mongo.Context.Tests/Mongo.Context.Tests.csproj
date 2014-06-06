@@ -125,6 +125,7 @@
     <EmbeddedResource Include="Resources\EmptyArray.json" />
     <EmbeddedResource Include="Resources\NullArray.json" />
     <EmbeddedResource Include="Resources\EmptyProperty.json" />
+    <EmbeddedResource Include="Resources\UnresolvedArray.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataServiceProvider\DataServiceProvider.csproj">

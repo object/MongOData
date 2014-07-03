@@ -40,7 +40,12 @@ namespace Mongo.Context.Tests
             Assert.Contains("YouTube", tableNames);
             Assert.Contains("Nested", tableNames);
             Assert.Contains("ArrayOfNested", tableNames);
+            Assert.Contains("ArrayInArray", tableNames);
             Assert.Contains("EmptyArray", tableNames);
+            Assert.Contains("EmptyProperty", tableNames);
+            Assert.Contains("NullArray", tableNames);
+            Assert.Contains("UnresolvedArray", tableNames);
+            Assert.Contains("UnresolvedProperty", tableNames);
         }
 
         [Test]
@@ -152,6 +157,14 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void ArrayInArray()
+        {
+            var result = ctx.ArrayInArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(2, (result[0] as IDictionary<string, object>).Count());
+        }
+
+        [Test]
         public void EmptyArray()
         {
             var result = ctx.EmptyArray.All().ToList();
@@ -231,6 +244,15 @@ namespace Mongo.Context.Tests
             Assert.AreEqual(2, result[0].arrays.a.Count);
             Assert.AreEqual(0, result[0].arrays.b.Count);
             Assert.Throws<RuntimeBinderException>(() => { var c = result[0].arrays.c.Count; });
+        }
+
+        [Test]
+        public void UnresolvedProperty()
+        {
+            var result = ctx.UnresolvedProperty.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(1, result[0].elements.a.id);
+            Assert.AreEqual(null, result[0].elements.b.empty_content);
         }
 
         [Test]

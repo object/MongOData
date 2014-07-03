@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Services.Providers;
 using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
-using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 
 namespace Mongo.Context
@@ -357,7 +357,12 @@ namespace Mongo.Context
                     }
                     else if (ResolveResourceProperty(collectionType, propertyName) == null)
                     {
-                        this.instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, BsonTypeMapper.MapToDotNetValue(arrayValue).GetType());
+                        // OData protocol doesn't support collections of collections
+                        if (arrayValue.BsonType != BsonType.Array)
+                        {
+                            var mappedType = BsonTypeMapper.MapToDotNetValue(arrayValue).GetType();
+                            this.instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, mappedType);
+                        }
                     }
                 }
             }

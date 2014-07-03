@@ -206,9 +206,11 @@ namespace Mongo.Context.Tests
                     "YouTube", 
                     "Nested", 
                     "ArrayOfNested", 
+                    "ArrayInArray", 
                     "EmptyArray", 
                     "NullArray",
                     "UnresolvedArray",
+                    "UnresolvedProperty",
                     "EmptyProperty",
                 };
 

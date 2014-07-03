@@ -22,17 +22,17 @@ namespace DataServiceProvider
     {
         /// <summary>List of resource sets. Dictionary where key is the name of the resource set and value is the resource set itself.</summary>
         /// <remarks>Note that we store this such that we can quickly lookup a resource set based on its name.</remarks>
-        private Dictionary<string, ResourceSet> resourceSets;
+        private readonly Dictionary<string, ResourceSet> resourceSets;
 
         /// <summary>List of resource types. Dictionary where key is the full name of the resource type and value is the resource type itself.</summary>
         /// <remarks>Note that we store this such that we can quickly lookup a resource type based on its name.</remarks>
-        private Dictionary<string, ResourceType> resourceTypes;
+        private readonly Dictionary<string, ResourceType> resourceTypes;
 
         /// <summary>Name of the container to report.</summary>
-        private string containerName;
+        private readonly string containerName;
 
         /// <summary>Namespace name.</summary>
-        private string namespaceName;
+        private readonly string namespaceName;
 
         /// <summary>Creates new empty metadata definition.</summary>
         /// <param name="containerName">Name of the container to report.</param>
@@ -50,7 +50,7 @@ namespace DataServiceProvider
         /// <returns>The newly created resource type.</returns>
         public ResourceType AddEntityType(string name)
         {
-            ResourceType resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.EntityType, null, this.namespaceName, name, false);
+            var resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.EntityType, null, this.namespaceName, name, false);
             resourceType.CanReflectOnInstanceType = false;
             resourceType.CustomState = new ResourceTypeAnnotation();
             this.resourceTypes.Add(resourceType.FullName, resourceType);
@@ -62,7 +62,7 @@ namespace DataServiceProvider
         /// <returns>The newly created resource type.</returns>
         public ResourceType AddComplexType(string name)
         {
-            ResourceType resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.ComplexType, null, this.namespaceName, name, false);
+            var resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.ComplexType, null, this.namespaceName, name, false);
             resourceType.CanReflectOnInstanceType = false;
             this.resourceTypes.Add(resourceType.FullName, resourceType);
             return resourceType;
@@ -93,10 +93,10 @@ namespace DataServiceProvider
         /// <param name="isKey">true if the property should be a key property.</param>
         private void AddPrimitiveProperty(ResourceType resourceType, string name, Type propertyType, bool isKey)
         {
-            ResourceType type = ResourceType.GetPrimitiveResourceType(propertyType);
+            var type = ResourceType.GetPrimitiveResourceType(propertyType);
             if (type == null)
             {
-                throw new ArgumentException(string.Format("Unable to resolve type {0}", propertyType), "propertyType");    
+                throw new ArgumentException(string.Format("Unable to resolve primitive type {0}", propertyType), "propertyType");    
             }
 
             var kind = ResourcePropertyKind.Primitive;
@@ -121,7 +121,7 @@ namespace DataServiceProvider
                 throw new ArgumentException("The specified type for the complex property is not a complex type.");
             }
 
-            ResourceProperty property = new ResourceProperty(name, ResourcePropertyKind.ComplexType, complexType);
+            var property = new ResourceProperty(name, ResourcePropertyKind.ComplexType, complexType);
             property.CanReflectOnInstanceTypeProperty = false;
             resourceType.AddProperty(property);
         }
@@ -132,7 +132,7 @@ namespace DataServiceProvider
         /// <param name="itemType">The resource type of the item in the collection.</param>
         public void AddCollectionProperty(ResourceType resourceType, string name, ResourceType itemType)
         {
-            ResourceProperty property = new ResourceProperty(
+            var property = new ResourceProperty(
                 name,
                 ResourcePropertyKind.Collection,
                 ResourceType.GetCollectionResourceType(itemType));
@@ -146,7 +146,11 @@ namespace DataServiceProvider
         /// <param name="itemType">The primitive CLR type of the item in the collection.</param>
         public void AddCollectionProperty(ResourceType resourceType, string name, Type itemType)
         {
-            ResourceType itemResourceType = ResourceType.GetPrimitiveResourceType(itemType);
+            var itemResourceType = ResourceType.GetPrimitiveResourceType(itemType);
+            if (itemResourceType == null)
+            {
+                throw new ArgumentException(string.Format("Unable to resolve primitive type {0}", itemType), "itemType");
+            }
             this.AddCollectionProperty(resourceType, name, itemResourceType);
         }
 
@@ -177,7 +181,7 @@ namespace DataServiceProvider
         /// <param name="resourceSetReference">true if the property should be a resource set reference, false if it should be resource reference.</param>
         private void AddReferenceProperty(ResourceType resourceType, string name, ResourceSet targetResourceSet, bool resourceSetReference)
         {
-            ResourceProperty property = new ResourceProperty(
+            var property = new ResourceProperty(
                 name,
                 resourceSetReference ? ResourcePropertyKind.ResourceSetReference : ResourcePropertyKind.ResourceReference,
                 targetResourceSet.ResourceType);
@@ -208,7 +212,7 @@ namespace DataServiceProvider
                 throw new ArgumentException("The resource type specified as the base type of a resource set is not an entity type.");
             }
 
-            ResourceSet resourceSet = new ResourceSet(name, entityType);
+            var resourceSet = new ResourceSet(name, entityType);
             entityType.GetAnnotation().ResourceSet = resourceSet;
             this.resourceSets.Add(name, resourceSet);
             return resourceSet;
@@ -266,7 +270,7 @@ namespace DataServiceProvider
         public ResourceAssociationSet GetResourceAssociationSet(ResourceSet resourceSet, ResourceType resourceType, ResourceProperty resourceProperty)
         {
             // We have the resource association set precreated on the property annotation, so no need to compute anything in here
-            ResourceAssociationSet resourceAssociationSet = resourceProperty.GetAnnotation().ResourceAssociationSet;
+            var resourceAssociationSet = resourceProperty.GetAnnotation().ResourceAssociationSet;
 
             // Just few verification to show what is expected of the returned resource association set.
             Debug.Assert(resourceAssociationSet.End1.ResourceSet == resourceSet, "The precreated resource association set doesn't match the specified resource set.");
@@ -348,8 +352,22 @@ namespace DataServiceProvider
         {
             var dspMetadata = new DSPMetadata(this.containerName, this.namespaceName);
 
-            this.resourceTypes.ToList().ForEach(x => dspMetadata.resourceTypes.Add(x.Key, x.Value.Clone()));
-            this.resourceSets.ToList().ForEach(x => dspMetadata.resourceSets.Add(x.Key, x.Value.Clone(dspMetadata.resourceTypes)));
+            var emptyResourceTypes = this.resourceTypes.Where(x => 
+                x.Value.ResourceTypeKind == ResourceTypeKind.ComplexType &&
+                !x.Value.Properties.Any());
+            foreach (var resourceType in emptyResourceTypes)
+            {
+                AddPrimitiveProperty(resourceType.Value, "empty_content", typeof(byte[]));
+            }
+
+            foreach (var resourceType in this.resourceTypes)
+            {
+                dspMetadata.resourceTypes.Add(resourceType.Key, resourceType.Value.Clone());
+            }
+            foreach (var resourceSet in this.resourceSets)
+            {
+                dspMetadata.resourceSets.Add(resourceSet.Key, resourceSet.Value.Clone(dspMetadata.resourceTypes));
+            }
 
             return dspMetadata;
         }

@@ -12,7 +12,37 @@ namespace Mongo.Context.Queryable
     {
         private static ConstructorInfo _bsondIdAttributeConstructor = typeof(BsonIdAttribute).GetConstructor(new Type[] { });
 
+        private static Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
+
         public static Type CompileDocumentType(Type baseType, IDictionary<string, Type> fields)
+        {
+            string signature = baseType.FullName + string.Join(";", fields.Select(f => f.ToString()));
+
+            Type type = null;
+            lock (_cachedTypes)
+            {
+                if (_cachedTypes.ContainsKey(signature))
+                {
+                    type = _cachedTypes[signature];
+                }
+            }
+
+            if (type == null)
+            {
+                type = CompileDocumentTypeInternal(baseType, fields);
+                lock (_cachedTypes)
+                {
+                    if (!_cachedTypes.ContainsKey(signature))
+                    {
+                        _cachedTypes.Add(signature, type);
+                    }
+                }
+            }
+
+            return type;
+        }
+
+        private static Type CompileDocumentTypeInternal(Type baseType, IDictionary<string, Type> fields)
         {
             TypeBuilder tb = GetTypeBuilder(baseType);
             tb.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName);

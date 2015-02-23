@@ -82,7 +82,10 @@ namespace Mongo.Context.Queryable
         {
             if (m.Member.Name == "Value" && m.Member.DeclaringType == typeof(bool?))
             {
-                return ((m.Expression as ConditionalExpression).IfFalse as UnaryExpression).Operand;
+                if (m.Expression is ConditionalExpression)
+                    return ((m.Expression as ConditionalExpression).IfFalse as UnaryExpression).Operand;
+                else
+                    return Visit(m.Expression);
             }
 
             return base.VisitMemberAccess(m);

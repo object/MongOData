@@ -12,17 +12,22 @@ using MongoDB.Driver.Linq;
 
 namespace Mongo.Context.Queryable
 {
-    public class QueryExpressionVisitor : DSPMethodTranslatingVisitor
+    public class QueryExpressionVisitor<T> : DSPMethodTranslatingVisitor
     {
         private IQueryable queryableCollection;
         private Type collectionType;
         private MongoMetadata mongoMetadata;
 
-        public QueryExpressionVisitor(MongoCollection mongoCollection, MongoMetadata mongoMetadata, Type queryDocumentType)
+        public QueryExpressionVisitor(IMongoCollection<T> mongoCollection, MongoMetadata mongoMetadata, Type queryDocumentType)
         {
-            var genericMethod = typeof(LinqExtensionMethods).GetMethods()
-                .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
-                .Single();
+            //var genericMethod = typeof(LinqExtensionMethods).GetMethods()
+            //    .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
+            //    .Single();
+
+            var genericMethod = typeof(IMongoCollectionExtensions).GetMethods()
+              .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
+              .Single();
+
             var method = genericMethod.MakeGenericMethod(queryDocumentType);
             this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
             this.collectionType = queryDocumentType;

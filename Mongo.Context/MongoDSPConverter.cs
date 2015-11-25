@@ -131,7 +131,9 @@ namespace Mongo.Context
                 {
                     if (isDocument)
                     {
-                        propertyValue[valueIndex++] = CreateDSPResource(bsonArray[index].AsBsonDocument, mongoMetadata,
+                        // FastFix FIXME
+                        var bsonDoc = new BsonDocument("value", bsonArray[index]);
+                        propertyValue[valueIndex++] = CreateDSPResource(bsonDoc, mongoMetadata,
                                                                      propertyName,
                                                                      MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));
                     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MongoDB.Bson;
-using MongoDB.Driver.Builders;
+using MongoDB.Driver;
 using DataServiceProvider;
 
 namespace Mongo.Context
@@ -101,47 +101,47 @@ namespace Mongo.Context
 
         private void InsertDocument(MongoContext mongoContext, ResourceChange change)
         {
-            var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
-            collection.Insert(document);
-            change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
+            //var collection = mongoContext.Database.GetCollection(change.CollectionName);
+            //var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
+            //collection.Insert(document);
+            //change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
         }
 
         private void UpdateDocument(MongoContext mongoContext, ResourceChange change)
         {
-            if (!change.ModifiedProperties.Any())
-                return;
+            //if (!change.ModifiedProperties.Any())
+            //    return;
 
-            var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
-            UpdateBuilder update = null;
+            //var collection = mongoContext.Database.GetCollection(change.CollectionName);
+            //var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
+            //UpdateBuilder update = null;
 
-            foreach (var resourceProperty in change.ModifiedProperties)
-            {
-                if (update == null)
-                {
-                    if (resourceProperty.Value != null)
-                        update = Update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
-                    else
-                        update = Update.Unset(resourceProperty.Key);
-                }
-                else
-                {
-                    if (resourceProperty.Value != null)
-                        update = update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
-                    else
-                        update = update.Unset(resourceProperty.Key);
-                }
-            }
+            //foreach (var resourceProperty in change.ModifiedProperties)
+            //{
+            //    if (update == null)
+            //    {
+            //        if (resourceProperty.Value != null)
+            //            update = Update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
+            //        else
+            //            update = Update.Unset(resourceProperty.Key);
+            //    }
+            //    else
+            //    {
+            //        if (resourceProperty.Value != null)
+            //            update = update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
+            //        else
+            //            update = update.Unset(resourceProperty.Key);
+            //    }
+            //}
 
-            collection.Update(query, update);
+            //collection.Update(query, update);
         }
 
         private void RemoveDocument(MongoContext mongoContext, ResourceChange change)
         {
-            var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
-            collection.Remove(query);
+            //var collection = mongoContext.Database.GetCollection(change.CollectionName);
+            //var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
+            //collection.Remove(query);
         }
     }
 }

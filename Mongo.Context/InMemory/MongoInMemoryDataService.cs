@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace Mongo.Context.InMemory
 {
@@ -32,8 +33,9 @@ namespace Mongo.Context.InMemory
             foreach (var resourceSet in this.Metadata.ResourceSets)
             {
                 var storage = dspContext.GetResourceSetStorage(resourceSet.Name);
-                var collection = mongoContext.Database.GetCollection(resourceSet.Name);
-                foreach (var document in collection.FindAll())
+                var collection = mongoContext.Database.GetCollection<BsonDocument>(resourceSet.Name);
+                var documents = collection.Find(new BsonDocument()).ToListAsync().GetAwaiter().GetResult();
+                foreach (var document in documents)
                 {
                     var resource = MongoDSPConverter.CreateDSPResource(document, this.mongoMetadata, resourceSet.Name);
                     storage.Add(resource);

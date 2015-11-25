@@ -8,12 +8,12 @@ using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
+using Mongo.Context.Helpers;
 
 namespace Mongo.Context.Queryable
 {
-    public class MongoQueryProvider : IQueryProvider
+    public class MongoQueryProvider<T> : IQueryProvider
     {
         private MongoContext mongoContext;
         private MongoMetadata mongoMetadata;
@@ -38,13 +38,13 @@ namespace Mongo.Context.Queryable
             }
             else
             {
-                return new MongoQueryableResource(this, expression) as IQueryable<TElement>;
+                return new MongoQueryableResource<T>(this, expression) as IQueryable<TElement>;
             }
         }
 
         public IQueryable CreateQuery(Expression expression)
         {
-            return new MongoQueryableResource(this, expression);
+            return new MongoQueryableResource<T>(this, expression);
         }
 
         public TResult Execute<TResult>(Expression expression)
@@ -67,7 +67,7 @@ namespace Mongo.Context.Queryable
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
-            MongoCollection mongoCollection;
+            IMongoCollection<T> mongoCollection;
             Expression mongoExpression;
             MethodInfo method;
 
@@ -79,7 +79,7 @@ namespace Mongo.Context.Queryable
 
         public object ExecuteNonQuery(Expression expression)
         {
-            MongoCollection mongoCollection;
+            IMongoCollection<T> mongoCollection;
             Expression mongoExpression;
             MethodInfo method;
 
@@ -88,22 +88,22 @@ namespace Mongo.Context.Queryable
             return method.Invoke(this, new object[] { mongoCollection, mongoExpression });
         }
 
-        private void PrepareExecution(Expression expression, string methodName, out MongoCollection mongoCollection, out Expression mongoExpression, out MethodInfo method)
+        private void PrepareExecution(Expression expression, string methodName, out IMongoCollection<T> mongoCollection, out Expression mongoExpression, out MethodInfo method)
         {
-            mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
-            mongoExpression = new QueryExpressionVisitor(mongoCollection, this.mongoMetadata, collectionType).Visit(expression);
+            mongoCollection = this.mongoContext.Database.GetCollection<T>(collectionName);
+            mongoExpression = new QueryExpressionVisitor<T>(mongoCollection, this.mongoMetadata, collectionType).Visit(expression);
 
             var genericMethod = this.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
             method = genericMethod.MakeGenericMethod(collectionType);
         }
 
-        private IEnumerable<DSPResource> GetEnumerableCollection<TSource>(MongoCollection mongoCollection, Expression expression)
+        private IEnumerable<DSPResource> GetEnumerableCollection<TSource>(IMongoCollection<TSource> mongoCollection, Expression expression)
         {
             var mongoEnumerator = mongoCollection.AsQueryable<TSource>().Provider.CreateQuery<TSource>(expression).GetEnumerator();
             return GetEnumerable(mongoEnumerator);
         }
 
-        private object GetExecutionResult<TSource>(MongoCollection mongoCollection, Expression expression)
+        private object GetExecutionResult<TSource>(IMongoCollection<TSource> mongoCollection, Expression expression)
         {
             return mongoCollection.AsQueryable<TSource>().Provider.Execute(expression);
         }
@@ -133,9 +133,13 @@ namespace Mongo.Context.Queryable
         private void UpdateMetadataFromResourceSet(string resourceName, BsonDocument typedDocument)
         {
             var resourceType = mongoMetadata.ResolveResourceType(resourceName);
-            var collection = mongoContext.Database.GetCollection(resourceName);
-            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
-            var bsonDocument = collection.FindOne(query);
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(resourceName);
+            //var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
+            var filter = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
+            var bsonDocumentsTask = collection.Find(filter).ToListAsync();
+            var bsonDocuments = bsonDocumentsTask.GetAwaiter().GetResult();
+            var bsonDocument = bsonDocuments.FirstOrDefault();
+
             foreach (var element in bsonDocument.Elements)
             {
                 mongoMetadata.RegisterResourceProperty(this.mongoContext, resourceType, element);
@@ -146,7 +150,7 @@ namespace Mongo.Context.Queryable
         {
             var callExpression = expression as MethodCallExpression;
 
-            MethodInfo methodInfo = typeof(MongoQueryProvider)
+            MethodInfo methodInfo = typeof(MongoQueryProvider<T>)
                 .GetMethod("ProcessProjection", BindingFlags.Instance | BindingFlags.NonPublic)
                 .MakeGenericMethod(typeof(DSPResource), typeof(TElement));
 

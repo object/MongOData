@@ -5,6 +5,8 @@ using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
+using System.Reflection;
+using System.ComponentModel;
 
 namespace Mongo.Context.Queryable
 {
@@ -34,9 +36,22 @@ namespace Mongo.Context.Queryable
             conventionPack.Add(new IgnoreExtraElementsConvention(true));
             ConventionRegistry.Register(collectionName, conventionPack, t => t == collectionType);
 
-            return InterceptingProvider.Intercept(
-                new MongoQueryableResource(this.mongoMetadata, connectionString, collectionName, collectionType),
-                new ResultExpressionVisitor());
+            Type genericMongoQueryableResource = typeof(MongoQueryableResource<>);
+            Type constructedMongoQueryableResource = genericMongoQueryableResource.MakeGenericType(collectionType);
+            object mongoQueryableResource = Activator.CreateInstance(constructedMongoQueryableResource, this.mongoMetadata, connectionString, collectionName, collectionType);
+
+            var interceptMethod = typeof(InterceptingProvider).GetMethods().First(); //FIXME
+            MethodInfo genericInterceptMethod = interceptMethod.MakeGenericMethod(typeof(DSPResource));
+            var expressionVisitors = new ExpressionVisitor[]
+            {
+                new ResultExpressionVisitor()
+            };
+            IQueryable interceptProvider = genericInterceptMethod.Invoke(null, new  object[]{ mongoQueryableResource, expressionVisitors }) as IQueryable;
+
+            //return InterceptingProvider.Intercept(
+            //    new MongoQueryableResource<BsonDocument>(this.mongoMetadata, connectionString, collectionName, collectionType),
+            //    new ResultExpressionVisitor());
+            return interceptProvider;
         }
 
         private Type CreateDynamicTypeForCollection(string collectionName, Dictionary<string, Type> providerTypes, Dictionary<string, Type> generatedTypes)

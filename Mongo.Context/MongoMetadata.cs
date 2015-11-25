@@ -6,7 +6,8 @@ using System.Linq;
 using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
-using MongoDB.Driver.Builders;
+using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace Mongo.Context
 {
@@ -65,7 +66,7 @@ namespace Mongo.Context
 
             using (var context = new MongoContext(connectionString))
             {
-                PopulateMetadata(context);
+               PopulateMetadata(context);
             }
         }
 
@@ -112,14 +113,18 @@ namespace Mongo.Context
 
         private IEnumerable<string> GetCollectionNames(MongoContext context)
         {
-            return context.Database.GetCollectionNames().Where(x => !x.StartsWith("system."));
+            var collectionNamesCursor = context.Database.ListCollectionsAsync().GetAwaiter().GetResult();
+            var collections = collectionNamesCursor.ToListAsync().GetAwaiter().GetResult();
+            var collectionNames = collections.Select(y => y["name"].AsString).Where(x => !x.StartsWith("system."));
+            return collectionNames;
         }
 
         private void PopulateMetadata(MongoContext context)
         {
+            var collectionNames = GetCollectionNames(context);
             lock (this.instanceMetadataCache)
             {
-                foreach (var collectionName in GetCollectionNames(context))
+                foreach (var collectionName in collectionNames)
                 {
                     var resourceSet = this.instanceMetadataCache.ResolveResourceSet(collectionName);
 
@@ -138,7 +143,7 @@ namespace Mongo.Context
 
                 foreach (var prop in this.unresolvedProperties)
                 {
-                    var providerType = typeof (string);
+                    var providerType = typeof(string);
                     var propertyName = NormalizeResourcePropertyName(prop.PropertyName);
                     this.instanceMetadataCache.AddPrimitiveProperty(prop.CollectionType, propertyName, providerType);
                     this.instanceMetadataCache.ProviderTypes.Add(
@@ -149,13 +154,13 @@ namespace Mongo.Context
 
         private void PopulateMetadataFromCollection(MongoContext context, string collectionName, ResourceSet resourceSet)
         {
-            var collection = context.Database.GetCollection(collectionName);
-            const string naturalSort = "$natural";
-            var sortOrder = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
-                                ? SortBy.Descending(naturalSort)
-                                : SortBy.Ascending(naturalSort);
-            var documents = collection.FindAll().SetSortOrder(sortOrder);
-
+            var collection = context.Database.GetCollection<BsonDocument>(collectionName);
+            //const string naturalSort = "$natural";
+            //var sortOrder = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
+            //                    ? SortBy.Descending(naturalSort)
+            //                    : SortBy.Ascending(naturalSort);
+            //var documents = collection.FindAll().SetSortOrder(sortOrder);
+            var documents = collection.Find(new BsonDocument()).ToListAsync().GetAwaiter().GetResult();
             int rowCount = 0;
             foreach (var document in documents)
             {

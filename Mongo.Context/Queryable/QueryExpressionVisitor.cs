@@ -12,25 +12,19 @@ using MongoDB.Driver.Linq;
 
 namespace Mongo.Context.Queryable
 {
-    public class QueryExpressionVisitor<T> : DSPMethodTranslatingVisitor
+    public class QueryExpressionVisitor<TDocument> : DSPMethodTranslatingVisitor
     {
         private IQueryable queryableCollection;
-        private Type collectionType;
         private MongoMetadata mongoMetadata;
 
-        public QueryExpressionVisitor(IMongoCollection<T> mongoCollection, MongoMetadata mongoMetadata, Type queryDocumentType)
+        public QueryExpressionVisitor(IMongoCollection<TDocument> mongoCollection, MongoMetadata mongoMetadata)
         {
-            //var genericMethod = typeof(LinqExtensionMethods).GetMethods()
-            //    .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
-            //    .Single();
-
             var genericMethod = typeof(IMongoCollectionExtensions).GetMethods()
               .Where(x => x.Name == "AsQueryable" && x.GetParameters().Single().ParameterType.IsGenericType)
               .Single();
 
-            var method = genericMethod.MakeGenericMethod(queryDocumentType);
+            var method = genericMethod.MakeGenericMethod(typeof(TDocument));
             this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
-            this.collectionType = queryDocumentType;
             this.mongoMetadata = mongoMetadata;
         }
 
@@ -187,7 +181,7 @@ namespace Mongo.Context.Queryable
         private MethodInfo ReplaceGenericMethodType(MethodInfo method, params Type[] genericTypes)
         {
             var genericArguments = new List<Type>();
-            genericArguments.Add(this.collectionType);
+            genericArguments.Add(typeof(TDocument));
             genericArguments.AddRange(genericTypes);
             genericArguments.AddRange(method.GetGenericArguments().Skip(1 + genericTypes.Count()));
 
@@ -198,7 +192,7 @@ namespace Mongo.Context.Queryable
         private IEnumerable<ParameterExpression> ReplaceLambdaParameterType(LambdaExpression lambda)
         {
             var parameterExpressions = new List<ParameterExpression>();
-            parameterExpressions.Add(Expression.Parameter(this.collectionType, lambda.Parameters[0].Name));
+            parameterExpressions.Add(Expression.Parameter(typeof(TDocument), lambda.Parameters[0].Name));
             parameterExpressions.AddRange(lambda.Parameters.Skip(1));
 
             return parameterExpressions;
@@ -249,8 +243,8 @@ namespace Mongo.Context.Queryable
 
             if (m.Object.NodeType == ExpressionType.Parameter)
             {
-                var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
-                var member = this.collectionType.GetMember(fieldName).Single();
+                var parameterExpression = Expression.Parameter(typeof(TDocument), (m.Object as ParameterExpression).Name);
+                var member = typeof(TDocument).GetMember(fieldName).Single();
                 return Expression.MakeMemberAccess(parameterExpression, member);
             }
             else if (m.Object.NodeType == ExpressionType.Convert && (m.Object as UnaryExpression).Operand.NodeType == ExpressionType.Call)
@@ -279,8 +273,8 @@ namespace Mongo.Context.Queryable
             if (fieldName == MongoMetadata.MappedObjectIdName)
                 fieldName = MongoMetadata.ProviderObjectIdName;
 
-            var parameterExpression = Expression.Parameter(this.collectionType, (m.Object as ParameterExpression).Name);
-            var member = this.collectionType.GetMember(fieldName).Single();
+            var parameterExpression = Expression.Parameter(typeof(TDocument), (m.Object as ParameterExpression).Name);
+            var member = typeof(TDocument).GetMember(fieldName).Single();
             return Expression.MakeMemberAccess(parameterExpression, member);
         }
 

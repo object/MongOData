@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Services;
-using System.Linq;
 using System.ServiceModel.Activation;
-using System.Web;
 using System.Web.Routing;
-using System.Web.Security;
-using System.Web.SessionState;
 using Mongo.Context;
-using Mongo.DataService;
 
 namespace Mongo.DataService
 {

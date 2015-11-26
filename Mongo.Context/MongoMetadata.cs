@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data.Services.Providers;
 using System.Linq;
-using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Threading.Tasks;
 
 namespace Mongo.Context
 {
@@ -64,10 +61,8 @@ namespace Mongo.Context
                 this.instanceMetadataCache = GetOrCreateMetadataCache();
             }
 
-            using (var context = new MongoContext(connectionString))
-            {
-               PopulateMetadata(context);
-            }
+            var context = new MongoContext(connectionString);
+            PopulateMetadata(context);
         }
 
         public DSPMetadata CreateDSPMetadata()
@@ -155,12 +150,12 @@ namespace Mongo.Context
         private void PopulateMetadataFromCollection(MongoContext context, string collectionName, ResourceSet resourceSet)
         {
             var collection = context.Database.GetCollection<BsonDocument>(collectionName);
-            //const string naturalSort = "$natural";
-            //var sortOrder = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
-            //                    ? SortBy.Descending(naturalSort)
-            //                    : SortBy.Ascending(naturalSort);
-            //var documents = collection.FindAll().SetSortOrder(sortOrder);
-            var documents = collection.Find(new BsonDocument()).ToListAsync().GetAwaiter().GetResult();
+            const string naturalSort = "$natural";
+            var sortBuilder = Builders<BsonDocument>.Sort;
+            var sort = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
+                                ? sortBuilder.Descending(naturalSort)
+                                : sortBuilder.Ascending(naturalSort);
+            var documents = collection.Find(new BsonDocument()).Sort(sort).ToListAsync().GetAwaiter().GetResult();
             int rowCount = 0;
             foreach (var document in documents)
             {

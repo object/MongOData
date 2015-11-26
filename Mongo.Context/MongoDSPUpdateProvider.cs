@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using DataServiceProvider;
 
 namespace Mongo.Context
 {
@@ -80,13 +79,12 @@ namespace Mongo.Context
         {
             base.SaveChanges();
 
-            using (MongoContext mongoContext = new MongoContext(connectionString))
+            MongoContext mongoContext = new MongoContext(connectionString);
+
+            foreach (var pendingChange in this.pendingChanges)
             {
-                foreach (var pendingChange in this.pendingChanges)
-                {
-                    var action = pendingChange.Action;
-                    action(mongoContext, pendingChange);
-                }
+                var action = pendingChange.Action;
+                action(mongoContext, pendingChange);
             }
 
             this.pendingChanges.Clear();
@@ -101,47 +99,57 @@ namespace Mongo.Context
 
         private void InsertDocument(MongoContext mongoContext, ResourceChange change)
         {
-            //var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            //var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
-            //collection.Insert(document);
-            //change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
+            var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
+            collection.InsertOneAsync(document).GetAwaiter().GetResult();
+            change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
         }
 
         private void UpdateDocument(MongoContext mongoContext, ResourceChange change)
         {
-            //if (!change.ModifiedProperties.Any())
-            //    return;
+            if (!change.ModifiedProperties.Any())
+                return;
 
-            //var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            //var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
-            //UpdateBuilder update = null;
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
+            var filter = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
 
-            //foreach (var resourceProperty in change.ModifiedProperties)
-            //{
-            //    if (update == null)
-            //    {
-            //        if (resourceProperty.Value != null)
-            //            update = Update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
-            //        else
-            //            update = Update.Unset(resourceProperty.Key);
-            //    }
-            //    else
-            //    {
-            //        if (resourceProperty.Value != null)
-            //            update = update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
-            //        else
-            //            update = update.Unset(resourceProperty.Key);
-            //    }
-            //}
+            UpdateDefinition<BsonDocument> update = null;
 
-            //collection.Update(query, update);
+            foreach (var resourceProperty in change.ModifiedProperties)
+            {
+                if (update == null)
+                {
+                    if (resourceProperty.Value != null)
+                    {
+                        update = Builders<BsonDocument>.Update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
+                    }
+                    else
+                    {
+                        update = Builders<BsonDocument>.Update.Unset(resourceProperty.Key);
+                    }
+                       
+                }
+                else
+                {
+                    if (resourceProperty.Value != null)
+                    {
+                        update = update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
+                    } 
+                    else
+                    {
+                        update = update.Unset(resourceProperty.Key);
+                    }    
+                }
+            }
+
+            collection.UpdateOneAsync(filter, update);
         }
 
         private void RemoveDocument(MongoContext mongoContext, ResourceChange change)
         {
-            //var collection = mongoContext.Database.GetCollection(change.CollectionName);
-            //var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
-            //collection.Remove(query);
+            var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
+            var filter = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(change.Resource.GetValue(MongoMetadata.MappedObjectIdName).ToString()));
+            collection.DeleteOneAsync(filter).GetAwaiter().GetResult();
         }
     }
 }

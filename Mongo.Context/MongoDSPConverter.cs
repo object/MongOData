@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Services.Providers;
 using System.Linq;
-using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 
@@ -131,8 +129,7 @@ namespace Mongo.Context
                 {
                     if (isDocument)
                     {
-                        // FastFix FIXME
-                        var bsonDoc = new BsonDocument("value", bsonArray[index]);
+                        var bsonDoc = new BsonDocument("__raw_value", bsonArray[index]);
                         propertyValue[valueIndex++] = CreateDSPResource(bsonDoc, mongoMetadata,
                                                                      propertyName,
                                                                      MongoMetadata.GetQualifiedTypePrefix(resourceType.Name));

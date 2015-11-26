@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Mongo.Context.Tests
+﻿namespace Mongo.Context.Tests
 {
     using System;
     using System.ServiceModel.Web;

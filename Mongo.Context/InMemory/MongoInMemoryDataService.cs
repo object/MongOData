@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Services.Providers;
-using System.Linq;
-using System.Text;
+﻿using System.Data.Services.Providers;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -11,7 +7,6 @@ namespace Mongo.Context.InMemory
 {
     public abstract class MongoInMemoryDataService : MongoDataServiceBase<DSPInMemoryContext, DSPResourceQueryProvider>
     {
-        /// <summary>Constructor</summary>
         public MongoInMemoryDataService(string connectionString, MongoConfiguration mongoConfiguration = null)
             : base(connectionString, mongoConfiguration)
         {
@@ -20,10 +15,8 @@ namespace Mongo.Context.InMemory
         public override DSPInMemoryContext CreateContext(string connectionString)
         {
             var dspContext = new DSPInMemoryContext();
-            using (MongoContext mongoContext = new MongoContext(connectionString))
-            {
-                PopulateData(dspContext, mongoContext);
-            }
+            MongoContext mongoContext = new MongoContext(connectionString);
+            PopulateData(dspContext, mongoContext);
 
             return dspContext;
         }

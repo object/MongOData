@@ -11,7 +11,6 @@
 
 namespace DataServiceProvider
 {
-    using System;
     using System.Collections.Generic;
     using System.Data.Services.Providers;
 

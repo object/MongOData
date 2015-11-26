@@ -12,12 +12,8 @@
 namespace DataServiceProvider
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Data.Services;
     using System.Data.Services.Providers;
-    using System.Linq;
-    using System.Reflection;
 
     /// <summary>Implements the <see cref="IDataServiceUpdateProvider"/>.</summary>
     /// <remarks>All the changes requested by calling method on this class are just remembered in a list of pending actions

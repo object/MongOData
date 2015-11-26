@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Services;
 using System.Data.Services.Common;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using DataServiceProvider;
 using Mongo.Context.InMemory;
 using Mongo.Context.Queryable;

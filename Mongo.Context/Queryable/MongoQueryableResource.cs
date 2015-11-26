@@ -2,25 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using DataServiceProvider;
 
 namespace Mongo.Context.Queryable
 {
-    public class MongoQueryableResource<T> : IQueryable<DSPResource>
+    public class MongoQueryableResource<TDocument> : IQueryable<DSPResource>
     {
         private MongoMetadata mongoMetadata;
-        private MongoQueryProvider<T> provider;
+        private MongoQueryProvider<TDocument> provider;
         private Expression expression;
 
-        public MongoQueryableResource(MongoMetadata mongoMetadata, string connectionString, string collectionName, Type collectionType)
+        public MongoQueryableResource(MongoMetadata mongoMetadata, string connectionString, string collectionName)
         {
             this.mongoMetadata = mongoMetadata;
-            this.provider = new MongoQueryProvider<T>(mongoMetadata, connectionString, collectionName, collectionType);
+            this.provider = new MongoQueryProvider<TDocument>(mongoMetadata, connectionString, collectionName);
             this.expression = (new DSPResource[0]).AsQueryable().Expression;
         }
 
-        public MongoQueryableResource(MongoQueryProvider<T> provider, Expression expression)
+        public MongoQueryableResource(MongoQueryProvider<TDocument> provider, Expression expression)
         {
             this.provider = provider;
             this.expression = expression;

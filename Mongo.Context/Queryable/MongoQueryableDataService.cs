@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using System.Reflection;
-using System.ComponentModel;
 
 namespace Mongo.Context.Queryable
 {
@@ -38,9 +36,9 @@ namespace Mongo.Context.Queryable
 
             Type genericMongoQueryableResource = typeof(MongoQueryableResource<>);
             Type constructedMongoQueryableResource = genericMongoQueryableResource.MakeGenericType(collectionType);
-            object mongoQueryableResource = Activator.CreateInstance(constructedMongoQueryableResource, this.mongoMetadata, connectionString, collectionName, collectionType);
+            object mongoQueryableResource = Activator.CreateInstance(constructedMongoQueryableResource, this.mongoMetadata, connectionString, collectionName);
 
-            var interceptMethod = typeof(InterceptingProvider).GetMethods().First(); //FIXME
+            var interceptMethod = typeof(InterceptingProvider).GetMethods().First();
             MethodInfo genericInterceptMethod = interceptMethod.MakeGenericMethod(typeof(DSPResource));
             var expressionVisitors = new ExpressionVisitor[]
             {
@@ -48,9 +46,6 @@ namespace Mongo.Context.Queryable
             };
             IQueryable interceptProvider = genericInterceptMethod.Invoke(null, new  object[]{ mongoQueryableResource, expressionVisitors }) as IQueryable;
 
-            //return InterceptingProvider.Intercept(
-            //    new MongoQueryableResource<BsonDocument>(this.mongoMetadata, connectionString, collectionName, collectionType),
-            //    new ResultExpressionVisitor());
             return interceptProvider;
         }
 

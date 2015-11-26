@@ -12,7 +12,6 @@
 namespace DataServiceProvider
 {
     using System.Data.Services.Providers;
-    using System.Reflection;
 
     /// <summary>Helper class for extension methods on the <see cref="ResourceProperty"/>.</summary>
     internal static class ResourcePropertyExtensions

@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Configuration;
 using System.Web;
 
@@ -18,7 +20,7 @@ namespace Mongo.DataService
                 databaseName = ExtractDatabaseNameFromRequestPath(path);
                 if (!String.IsNullOrEmpty(databaseName))
                 {
-                    connectionString = connectionString.Substring(0, startIndex) + databaseName + 
+                    connectionString = connectionString.Substring(0, startIndex) + databaseName +
                         (endIndex > 0 ? connectionString.Substring(endIndex) : string.Empty);
                 }
             }

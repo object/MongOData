@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -104,7 +106,7 @@ namespace Mongo.Context.Queryable
         {
             foreach (var op in VisualBasicComparisonOperators)
             {
-                if (IsConvertWithMethod(e, op.Key, 3) && (e.Type.IsValueType || e.Type == typeof (bool)))
+                if (IsConvertWithMethod(e, op.Key, 3) && (e.Type.IsValueType || e.Type == typeof(bool)))
                 {
                     return true;
                 }
@@ -142,7 +144,7 @@ namespace Mongo.Context.Queryable
 
         public static bool IsOrderMethod(MethodCallExpression m)
         {
-            var orderMethods = new string[] {"OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending"};
+            var orderMethods = new string[] { "OrderBy", "OrderByDescending", "ThenBy", "ThenByDescending" };
 
             return orderMethods.Contains(m.Method.Name);
         }

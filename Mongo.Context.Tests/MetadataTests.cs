@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿
+
+using System.Collections.Generic;
 using Microsoft.CSharp.RuntimeBinder;
 using NUnit.Framework;
 using Simple.Data;
@@ -39,14 +41,14 @@ namespace Mongo.Context.Tests
         public void VariableTypesPrefetchOneForwardNoUpdate()
         {
             TestService.Configuration = new MongoConfiguration
+            {
+                MetadataBuildStrategy = new MongoConfiguration.Metadata
                 {
-                    MetadataBuildStrategy = new MongoConfiguration.Metadata
-                    {
-                        PrefetchRows = 1,
-                        FetchPosition = MongoConfiguration.FetchPosition.Start,
-                        UpdateDynamically = false
-                    }
-                };
+                    PrefetchRows = 1,
+                    FetchPosition = MongoConfiguration.FetchPosition.Start,
+                    UpdateDynamically = false
+                }
+            };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();
@@ -57,14 +59,14 @@ namespace Mongo.Context.Tests
         public void VariableTypesPrefetchOneBackwardNoUpdate()
         {
             TestService.Configuration = new MongoConfiguration
+            {
+                MetadataBuildStrategy = new MongoConfiguration.Metadata
                 {
-                    MetadataBuildStrategy = new MongoConfiguration.Metadata
-                    {
-                        PrefetchRows = 1,
-                        FetchPosition = MongoConfiguration.FetchPosition.End,
-                        UpdateDynamically = false
-                    }
-                };
+                    PrefetchRows = 1,
+                    FetchPosition = MongoConfiguration.FetchPosition.End,
+                    UpdateDynamically = false
+                }
+            };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();
@@ -75,14 +77,14 @@ namespace Mongo.Context.Tests
         public void VariableTypesPrefetchTwoForwardNoUpdate()
         {
             TestService.Configuration = new MongoConfiguration
+            {
+                MetadataBuildStrategy = new MongoConfiguration.Metadata
                 {
-                    MetadataBuildStrategy = new MongoConfiguration.Metadata
-                    {
-                        PrefetchRows = 2,
-                        FetchPosition = MongoConfiguration.FetchPosition.Start,
-                        UpdateDynamically = false
-                    }
-                };
+                    PrefetchRows = 2,
+                    FetchPosition = MongoConfiguration.FetchPosition.Start,
+                    UpdateDynamically = false
+                }
+            };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();
@@ -93,14 +95,14 @@ namespace Mongo.Context.Tests
         public void VariableTypesPrefetchTwoBackwardNoUpdate()
         {
             TestService.Configuration = new MongoConfiguration
+            {
+                MetadataBuildStrategy = new MongoConfiguration.Metadata
                 {
-                    MetadataBuildStrategy = new MongoConfiguration.Metadata
-                    {
-                        PrefetchRows = 2,
-                        FetchPosition = MongoConfiguration.FetchPosition.End,
-                        UpdateDynamically = false
-                    }
-                };
+                    PrefetchRows = 2,
+                    FetchPosition = MongoConfiguration.FetchPosition.End,
+                    UpdateDynamically = false
+                }
+            };
             ResetService();
 
             var result = ctx.VariableTypes.All().ToList();
@@ -113,10 +115,10 @@ namespace Mongo.Context.Tests
             TestService.Configuration = new MongoConfiguration
             {
                 MetadataBuildStrategy = new MongoConfiguration.Metadata
-                    {
-                        PrefetchRows = -1,
-                        UpdateDynamically = false
-                    }
+                {
+                    PrefetchRows = -1,
+                    UpdateDynamically = false
+                }
             };
             ResetService();
 

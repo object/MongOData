@@ -1,4 +1,11 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,12 +18,6 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Linq.Expressions;
-
     /// <summary>The implementation of <see cref="IOrderedQueryable"/> which translates
     /// queries generated against the DSP ResourceType/ResourceProperty model into
     /// a LINQ to Objects query accessing properties directly on the resources.</summary>
@@ -24,17 +25,17 @@ namespace DataServiceProvider
     internal class DSPLinqQuery<T> : IOrderedQueryable<T>
     {
         /// <summary>The expression represented by this query (this is the DSP expression).</summary>
-        private Expression queryExpression;
+        private Expression _queryExpression;
         /// <summary>The query provider we use.</summary>
-        private DSPLinqQueryProvider queryProvider;
+        private DSPLinqQueryProvider _queryProvider;
 
         /// <summary>Internal constructor.</summary>
         /// <param name="queryProvider">The query provider to use for this query.</param>
         /// <param name="queryExpression">The query expression for this query (the DSP version).</param>
         internal DSPLinqQuery(DSPLinqQueryProvider queryProvider, Expression queryExpression)
         {
-            this.queryProvider = queryProvider;
-            this.queryExpression = queryExpression;
+            _queryProvider = queryProvider;
+            _queryExpression = queryExpression;
         }
 
         #region IEnumerable<T> Members
@@ -43,7 +44,7 @@ namespace DataServiceProvider
         /// <returns>The results of the query execution.</returns>
         public IEnumerator<T> GetEnumerator()
         {
-            return this.queryProvider.ExecuteQuery<T>(this.queryExpression);
+            return _queryProvider.ExecuteQuery<T>(_queryExpression);
         }
 
         #endregion
@@ -54,7 +55,7 @@ namespace DataServiceProvider
         /// <returns>The results of the query execution.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.queryProvider.ExecuteQuery<T>(this.queryExpression);
+            return _queryProvider.ExecuteQuery<T>(_queryExpression);
         }
 
         #endregion
@@ -70,13 +71,13 @@ namespace DataServiceProvider
         /// <summary>The expression tree for this query (the DSP version).</summary>
         public Expression Expression
         {
-            get { return this.queryExpression; }
+            get { return _queryExpression; }
         }
 
         /// <summary>The provider for this query.</summary>
         public IQueryProvider Provider
         {
-            get { return this.queryProvider; }
+            get { return _queryProvider; }
         }
 
         #endregion

@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,18 +17,18 @@ namespace DataServiceProvider
            InterceptingProvider provider,
            Expression expression)
         {
-            this._provider = provider;
-            this._expression = expression;
+            _provider = provider;
+            _expression = expression;
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return this._provider.ExecuteQuery<T>(this._expression);
+            return _provider.ExecuteQuery<T>(_expression);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this._provider.ExecuteQuery<T>(this._expression);
+            return _provider.ExecuteQuery<T>(_expression);
         }
 
         public Type ElementType
@@ -36,12 +38,12 @@ namespace DataServiceProvider
 
         public Expression Expression
         {
-            get { return this._expression; }
+            get { return _expression; }
         }
 
         public IQueryProvider Provider
         {
-            get { return this._provider; }
+            get { return _provider; }
         }
     }
 }

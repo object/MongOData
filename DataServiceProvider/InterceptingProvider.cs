@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -15,8 +17,8 @@ namespace DataServiceProvider
             IQueryProvider underlyingQueryProvider,
             params Func<Expression, Expression>[] visitors)
         {
-            this._underlyingProvider = underlyingQueryProvider;
-            this._visitors = visitors;
+            _underlyingProvider = underlyingQueryProvider;
+            _visitors = visitors;
         }
 
         public static IQueryable<T> Intercept<T>(
@@ -64,7 +66,7 @@ namespace DataServiceProvider
             ConstructorInfo ci = qt.GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Instance,
                 null,
-                new Type[] { 
+                new Type[] {
                 typeof(InterceptingProvider),
                 typeof(Expression)
             },
@@ -75,14 +77,14 @@ namespace DataServiceProvider
 
         public TResult Execute<TResult>(Expression expression)
         {
-            return this._underlyingProvider.Execute<TResult>(
+            return _underlyingProvider.Execute<TResult>(
                 Intercept(expression)
             );
         }
 
         public object Execute(Expression expression)
         {
-            return this._underlyingProvider.Execute(
+            return _underlyingProvider.Execute(
                 Intercept(expression)
             );
         }

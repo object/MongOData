@@ -1,4 +1,11 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,25 +18,19 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
-
     /// <summary>Implementation of <see cref="IQueryProvider"/> which allows running the DSP queries against a LINQ to Objects.</summary>
     internal class DSPLinqQueryProvider : IQueryProvider
     {
         /// <summary>The underlying query provider (the LINQ to Objects provider) determined from the source query.</summary>
-        private IQueryProvider underlyingQueryProvider;
-        private ExpressionVisitor expressionVisitor;
+        private IQueryProvider _underlyingQueryProvider;
+        private ExpressionVisitor _expressionVisitor;
 
         /// <summary>Private constructor.</summary>
         /// <param name="underlyingQueryProvider">The underlying provider to run the translated query on.</param>
         private DSPLinqQueryProvider(IQueryProvider underlyingQueryProvider, ExpressionVisitor expressionVisitor)
         {
-            this.underlyingQueryProvider = underlyingQueryProvider;
-            this.expressionVisitor = expressionVisitor;
+            _underlyingQueryProvider = underlyingQueryProvider;
+            _expressionVisitor = expressionVisitor;
         }
 
         /// <summary>Wraps a query in a new query which will translate the DSP query into a LINQ to Objects runnable query
@@ -49,7 +50,7 @@ namespace DataServiceProvider
         internal IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
             expression = this.ProcessExpression(expression);
-            return this.underlyingQueryProvider.CreateQuery<TElement>(expression).GetEnumerator();
+            return _underlyingQueryProvider.CreateQuery<TElement>(expression).GetEnumerator();
         }
 
         #region IQueryProvider Members
@@ -88,7 +89,7 @@ namespace DataServiceProvider
         public TResult Execute<TResult>(Expression expression)
         {
             expression = this.ProcessExpression(expression);
-            return this.underlyingQueryProvider.Execute<TResult>(expression);
+            return _underlyingQueryProvider.Execute<TResult>(expression);
         }
 
         /// <summary>Executes an expression which returns a single result.</summary>
@@ -97,7 +98,7 @@ namespace DataServiceProvider
         public object Execute(Expression expression)
         {
             expression = this.ProcessExpression(expression);
-            return this.underlyingQueryProvider.Execute(expression);
+            return _underlyingQueryProvider.Execute(expression);
         }
 
         #endregion
@@ -107,7 +108,7 @@ namespace DataServiceProvider
         /// <returns>A new expression which is the result of the conversion.</returns>
         private Expression ProcessExpression(Expression expression)
         {
-            return expressionVisitor.Visit(expression);
+            return _expressionVisitor.Visit(expression);
         }
     }
 }

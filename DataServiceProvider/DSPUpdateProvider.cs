@@ -1,4 +1,9 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Collections.Generic;
+using System.Data.Services.Providers;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,10 +16,6 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Services.Providers;
-
     /// <summary>Implements the <see cref="IDataServiceUpdateProvider"/>.</summary>
     /// <remarks>All the changes requested by calling method on this class are just remembered in a list of pending actions
     /// which are only applied once the SaveChanges method is called.
@@ -26,38 +27,38 @@ namespace DataServiceProvider
     public class DSPUpdateProvider : IDataServiceUpdateProvider
     {
         /// <summary>The data context to apply the change to.</summary>
-        private DSPContext dataContext;
+        private DSPContext _dataContext;
 
         /// <summary>The metadata describing the types to work with.</summary>
-        private DSPMetadata metadata;
+        private DSPMetadata _metadata;
 
         /// <summary>List of pending changes to apply once the <see cref="SaveChanges"/> is called.</summary>
         /// <remarks>This is a list of actions which will be called to apply the changes. Discarding the changes is done
         /// simply by clearing this list.</remarks>
-        private List<Action> pendingChanges;
+        private List<Action> _pendingChanges;
 
         /// <summary>Constructor.</summary>
         /// <param name="dataContext">The data context to apply the changes to.</param>
         /// <param name="metadata">The metadata describing the types to work with.</param>
         public DSPUpdateProvider(DSPContext dataContext, DSPMetadata metadata)
         {
-            this.dataContext = dataContext;
-            this.metadata = metadata;
-            this.pendingChanges = new List<Action>();
+            _dataContext = dataContext;
+            _metadata = metadata;
+            _pendingChanges = new List<Action>();
         }
 
         /// <summary>The data context to apply the change to.</summary>
         protected DSPContext DataContext
         {
-            get { return this.dataContext; }
+            get { return _dataContext; }
         }
 
         /// <summary>The metadata describing the types to work with.</summary>
         protected DSPMetadata Metadata
         {
-            get { return this.metadata; }
+            get { return _metadata; }
         }
-        
+
         #region IUpdatable Members
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace DataServiceProvider
                 throw new ArgumentException("The value of the property '" + propertyName + "' does not implement IList<DSPResource>, which is a requirement for resource set reference property.");
             }
 
-            this.pendingChanges.Add(() =>
+            _pendingChanges.Add(() =>
             {
                 list.Add(dspResourceToBeAdded);
             });
@@ -102,7 +103,7 @@ namespace DataServiceProvider
         public virtual void ClearChanges()
         {
             // Simply clear the list of pending changes
-            this.pendingChanges.Clear();
+            _pendingChanges.Clear();
         }
 
         /// <summary>
@@ -128,7 +129,7 @@ namespace DataServiceProvider
         public virtual object CreateResource(string containerName, string fullTypeName)
         {
             ResourceType resourceType;
-            if (!this.metadata.TryResolveResourceType(fullTypeName, out resourceType))
+            if (!_metadata.TryResolveResourceType(fullTypeName, out resourceType))
             {
                 throw new ArgumentException("Unknown resource type '" + fullTypeName + "'.");
             }
@@ -146,9 +147,9 @@ namespace DataServiceProvider
                 }
 
                 // And register pending change to add the resource to the resource set list
-                this.pendingChanges.Add(() =>
+                _pendingChanges.Add(() =>
                 {
-                    this.dataContext.AddResource(containerName, newResource);
+                    _dataContext.AddResource(containerName, newResource);
                 });
             }
             else
@@ -183,9 +184,9 @@ namespace DataServiceProvider
             ResourceSet resourceSet = dspTargetResource.ResourceType.GetAnnotation().ResourceSet;
 
             // Add a pending change to remove the resource from the resource set
-            this.pendingChanges.Add(() =>
+            _pendingChanges.Add(() =>
             {
-                this.dataContext.RemoveResource(resourceSet.Name, dspTargetResource);
+                _dataContext.RemoveResource(resourceSet.Name, dspTargetResource);
             });
         }
 
@@ -220,7 +221,7 @@ namespace DataServiceProvider
                 if (fullTypeName != null)
                 {
                     ResourceType resourceType;
-                    if (!this.metadata.TryResolveResourceType(fullTypeName, out resourceType))
+                    if (!_metadata.TryResolveResourceType(fullTypeName, out resourceType))
                     {
                         throw new ArgumentException("Unknown resource type '" + fullTypeName + "'.");
                     }
@@ -281,7 +282,7 @@ namespace DataServiceProvider
                 throw new ArgumentException("The value of the property '" + propertyName + "' does not implement IList<DSPResource>, which is a requirement for resource set reference property.");
             }
 
-            this.pendingChanges.Add(() =>
+            _pendingChanges.Add(() =>
             {
                 list.Remove(dspResourceToBeRemoved);
             });
@@ -304,7 +305,7 @@ namespace DataServiceProvider
         {
             DSPResource dspResource = ValidateDSPResource(resource);
 
-            this.pendingChanges.Add(() =>
+            _pendingChanges.Add(() =>
             {
                 foreach (var resourceProperty in dspResource.ResourceType.Properties)
                 {
@@ -341,12 +342,12 @@ namespace DataServiceProvider
         public virtual void SaveChanges()
         {
             // Just run all the pending changes we gathered so far
-            foreach (var pendingChange in this.pendingChanges)
+            foreach (var pendingChange in _pendingChanges)
             {
                 pendingChange();
             }
 
-            this.pendingChanges.Clear();
+            _pendingChanges.Clear();
         }
 
         /// <summary>
@@ -386,7 +387,7 @@ namespace DataServiceProvider
             DSPResource dspTargetResource = ValidateDSPResource(targetResource);
 
             // Add a pending change to modify the value of the property
-            this.pendingChanges.Add(() =>
+            _pendingChanges.Add(() =>
             {
                 dspTargetResource.SetValue(propertyName, propertyValue);
             });

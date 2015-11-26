@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,31 +11,31 @@ namespace Mongo.Context.Queryable
 {
     public static class DocumentTypeBuilder
     {
-        private static ConstructorInfo _bsondIdAttributeConstructor = typeof(BsonIdAttribute).GetConstructor(new Type[] { });
+        private static ConstructorInfo s_bsondIdAttributeConstructor = typeof(BsonIdAttribute).GetConstructor(new Type[] { });
 
-        private static Dictionary<string, Type> _cachedTypes = new Dictionary<string, Type>();
+        private static Dictionary<string, Type> s_cachedTypes = new Dictionary<string, Type>();
 
         public static Type CompileDocumentType(Type baseType, IDictionary<string, Type> fields)
         {
             string signature = baseType.FullName + string.Join(";", fields.Select(f => f.ToString()));
 
             Type type = null;
-            lock (_cachedTypes)
+            lock (s_cachedTypes)
             {
-                if (_cachedTypes.ContainsKey(signature))
+                if (s_cachedTypes.ContainsKey(signature))
                 {
-                    type = _cachedTypes[signature];
+                    type = s_cachedTypes[signature];
                 }
             }
 
             if (type == null)
             {
                 type = CompileDocumentTypeInternal(baseType, fields);
-                lock (_cachedTypes)
+                lock (s_cachedTypes)
                 {
-                    if (!_cachedTypes.ContainsKey(signature))
+                    if (!s_cachedTypes.ContainsKey(signature))
                     {
-                        _cachedTypes.Add(signature, type);
+                        s_cachedTypes.Add(signature, type);
                     }
                 }
             }
@@ -62,7 +64,7 @@ namespace Mongo.Context.Queryable
             AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(an, AssemblyBuilderAccess.Run);
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("Mongo.Context.DynamicModule");
             TypeBuilder tb = moduleBuilder.DefineType(
-                                typeSignature, 
+                                typeSignature,
                                 TypeAttributes.Public |
                                 TypeAttributes.Class |
                                 TypeAttributes.AutoClass |
@@ -80,7 +82,7 @@ namespace Mongo.Context.Queryable
             PropertyBuilder propertyBuilder = tb.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
             if (markAsBsonId)
             {
-                propertyBuilder.SetCustomAttribute(_bsondIdAttributeConstructor, new byte[] { });
+                propertyBuilder.SetCustomAttribute(s_bsondIdAttributeConstructor, new byte[] { });
             }
 
             MethodBuilder getPropMthdBldr = tb.DefineMethod("get_" + propertyName, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, propertyType, Type.EmptyTypes);

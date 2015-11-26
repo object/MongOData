@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Data.Services.Providers;
 using System.Linq;
 using DataServiceProvider;
@@ -8,7 +10,7 @@ namespace Mongo.Context
 {
     internal static class MongoDSPConverter
     {
-        private static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static DateTime s_unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public static DSPResource CreateDSPResource(BsonDocument document, MongoMetadata mongoMetadata, string resourceName, string ownerPrefix = null)
         {
@@ -163,7 +165,7 @@ namespace Mongo.Context
                     switch (bsonValue.BsonType)
                     {
                         case BsonType.DateTime:
-                            return UnixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
+                            return s_unixEpoch + TimeSpan.FromMilliseconds(bsonValue.AsBsonDateTime.MillisecondsSinceEpoch);
                         default:
                             return BsonTypeMapper.MapToDotNetValue(bsonValue);
                     }

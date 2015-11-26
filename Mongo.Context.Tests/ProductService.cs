@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Configuration;
 using System.Data.Services;
 using System.Data.Services.Common;
@@ -11,8 +13,8 @@ namespace Mongo.Context.Tests
 {
     public class ProductInMemoryService : MongoInMemoryDataService
     {
-        public ProductInMemoryService() 
-            : base (ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString, TestService.Configuration)
+        public ProductInMemoryService()
+            : base(ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString, TestService.Configuration)
         {
         }
 

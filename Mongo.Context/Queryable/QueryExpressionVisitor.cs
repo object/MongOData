@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Services.Providers;
@@ -14,8 +16,8 @@ namespace Mongo.Context.Queryable
 {
     public class QueryExpressionVisitor<TDocument> : DSPMethodTranslatingVisitor
     {
-        private IQueryable queryableCollection;
-        private MongoMetadata mongoMetadata;
+        private IQueryable _queryableCollection;
+        private MongoMetadata _mongoMetadata;
 
         public QueryExpressionVisitor(IMongoCollection<TDocument> mongoCollection, MongoMetadata mongoMetadata)
         {
@@ -24,8 +26,8 @@ namespace Mongo.Context.Queryable
               .Single();
 
             var method = genericMethod.MakeGenericMethod(typeof(TDocument));
-            this.queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
-            this.mongoMetadata = mongoMetadata;
+            _queryableCollection = method.Invoke(null, new object[] { mongoCollection }) as IQueryable;
+            _mongoMetadata = mongoMetadata;
         }
 
         public override Expression VisitMethodCall(MethodCallExpression m)
@@ -94,7 +96,7 @@ namespace Mongo.Context.Queryable
         {
             if (c.Value != null && c.Value.GetType() == typeof(EnumerableQuery<DSPResource>))
             {
-                return Expression.Constant(this.queryableCollection);
+                return Expression.Constant(_queryableCollection);
             }
             else if (c.Type.IsGenericType && c.Type.BaseType == typeof(ValueType) && c.Type.UnderlyingSystemType.Name == "Nullable`1")
             {
@@ -142,13 +144,13 @@ namespace Mongo.Context.Queryable
             {
                 return Visit(ReplaceObjectIdComparison(b.NodeType, right, left));
             }
-            else if (left.Type.IsGenericType && left.Type.GetGenericTypeDefinition() == typeof(Nullable<>) && 
+            else if (left.Type.IsGenericType && left.Type.GetGenericTypeDefinition() == typeof(Nullable<>) &&
                 left.NodeType == ExpressionType.MemberAccess && right.Type.IsValueType)
             {
-                 if (right.NodeType == ExpressionType.Constant)
+                if (right.NodeType == ExpressionType.Constant)
                     return Visit(ReplaceNullableMemberComparison(b.NodeType, right, left));
-                 else
-                     return base.VisitBinary(b);
+                else
+                    return base.VisitBinary(b);
             }
             else if (b.Left.Type == typeof(bool?) && b.Right.Type == typeof(bool?) && b.NodeType == ExpressionType.Equal &&
                 (b.Right.NodeType == ExpressionType.Convert || b.Right.NodeType == ExpressionType.Constant))
@@ -256,7 +258,7 @@ namespace Mongo.Context.Queryable
                 {
                     typeName = typeName.Replace(MongoMetadata.WordSeparator, ".");
                 }
-                var propertyType = this.mongoMetadata.GeneratedTypes.Single(x => x.Key == typeName).Value;
+                var propertyType = _mongoMetadata.GeneratedTypes.Single(x => x.Key == typeName).Value;
                 var member = propertyType.GetMember(fieldName).Single();
                 var expression = ReplaceMemberAccess(methodCallExpression);
                 return Expression.MakeMemberAccess(expression, member);

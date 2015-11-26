@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DataServiceProvider;
@@ -44,7 +46,7 @@ namespace Mongo.Context.Queryable
             {
                 new ResultExpressionVisitor()
             };
-            IQueryable interceptProvider = genericInterceptMethod.Invoke(null, new  object[]{ mongoQueryableResource, expressionVisitors }) as IQueryable;
+            IQueryable interceptProvider = genericInterceptMethod.Invoke(null, new object[] { mongoQueryableResource, expressionVisitors }) as IQueryable;
 
             return interceptProvider;
         }

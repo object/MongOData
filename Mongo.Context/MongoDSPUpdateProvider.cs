@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DataServiceProvider;
@@ -9,7 +11,7 @@ namespace Mongo.Context
 {
     public class MongoDSPUpdateProvider : DSPUpdateProvider
     {
-        class ResourceChange
+        private class ResourceChange
         {
             public string CollectionName { get; set; }
             public DSPResource Resource { get; set; }
@@ -25,22 +27,22 @@ namespace Mongo.Context
             }
         }
 
-        private string connectionString;
-        private MongoMetadata mongoMetadata;
-        private List<ResourceChange> pendingChanges = new List<ResourceChange>();
+        private string _connectionString;
+        private MongoMetadata _mongoMetadata;
+        private List<ResourceChange> _pendingChanges = new List<ResourceChange>();
 
         public MongoDSPUpdateProvider(string connectionString, DSPContext dataContext, MongoMetadata mongoMetadata)
             : base(dataContext, mongoMetadata.CreateDSPMetadata())
         {
-            this.connectionString = connectionString;
-            this.mongoMetadata = mongoMetadata;
+            _connectionString = connectionString;
+            _mongoMetadata = mongoMetadata;
         }
 
         public override object CreateResource(string containerName, string fullTypeName)
         {
             var resource = base.CreateResource(containerName, fullTypeName) as DSPResource;
 
-            this.pendingChanges.Add(new ResourceChange(containerName, resource, InsertDocument));
+            _pendingChanges.Add(new ResourceChange(containerName, resource, InsertDocument));
             return resource;
         }
 
@@ -49,14 +51,14 @@ namespace Mongo.Context
             base.SetValue(targetResource, propertyName, propertyValue);
 
             var resource = targetResource as DSPResource;
-            var pendingChange = this.pendingChanges.SingleOrDefault(x => x.Resource == resource && x.Action == InsertDocument);
+            var pendingChange = _pendingChanges.SingleOrDefault(x => x.Resource == resource && x.Action == InsertDocument);
             if (pendingChange == null)
             {
-                pendingChange = this.pendingChanges.SingleOrDefault(x => x.Resource == resource && x.Action == UpdateDocument);
+                pendingChange = _pendingChanges.SingleOrDefault(x => x.Resource == resource && x.Action == UpdateDocument);
                 if (pendingChange == null)
                 {
                     pendingChange = new ResourceChange(resource.ResourceType.Name, resource, UpdateDocument);
-                    this.pendingChanges.Add(pendingChange);
+                    _pendingChanges.Add(pendingChange);
                 }
             }
 
@@ -72,35 +74,35 @@ namespace Mongo.Context
             base.DeleteResource(targetResource);
 
             var resource = targetResource as DSPResource;
-            this.pendingChanges.Add(new ResourceChange(resource.ResourceType.Name, resource, RemoveDocument));
+            _pendingChanges.Add(new ResourceChange(resource.ResourceType.Name, resource, RemoveDocument));
         }
 
         public override void SaveChanges()
         {
             base.SaveChanges();
 
-            MongoContext mongoContext = new MongoContext(connectionString);
+            MongoContext mongoContext = new MongoContext(_connectionString);
 
-            foreach (var pendingChange in this.pendingChanges)
+            foreach (var pendingChange in _pendingChanges)
             {
                 var action = pendingChange.Action;
                 action(mongoContext, pendingChange);
             }
 
-            this.pendingChanges.Clear();
+            _pendingChanges.Clear();
         }
 
         public override void ClearChanges()
         {
             base.ClearChanges();
 
-            this.pendingChanges.Clear();
+            _pendingChanges.Clear();
         }
 
         private void InsertDocument(MongoContext mongoContext, ResourceChange change)
         {
             var collection = mongoContext.Database.GetCollection<BsonDocument>(change.CollectionName);
-            var document = MongoDSPConverter.CreateBSonDocument(change.Resource, this.mongoMetadata, change.CollectionName);
+            var document = MongoDSPConverter.CreateBSonDocument(change.Resource, _mongoMetadata, change.CollectionName);
             collection.InsertOneAsync(document).GetAwaiter().GetResult();
             change.Resource.SetValue(MongoMetadata.MappedObjectIdName, document.GetValue(MongoMetadata.ProviderObjectIdName).ToString());
         }
@@ -127,18 +129,17 @@ namespace Mongo.Context
                     {
                         update = Builders<BsonDocument>.Update.Unset(resourceProperty.Key);
                     }
-                       
                 }
                 else
                 {
                     if (resourceProperty.Value != null)
                     {
                         update = update.Set(resourceProperty.Key, BsonValue.Create(resourceProperty.Value));
-                    } 
+                    }
                     else
                     {
                         update = update.Unset(resourceProperty.Key);
-                    }    
+                    }
                 }
             }
 

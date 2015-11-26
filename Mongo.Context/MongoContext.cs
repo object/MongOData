@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver;
@@ -6,7 +8,7 @@ using MongoDB.Bson;
 
 namespace Mongo.Context
 {
-    public partial class MongoContext 
+    public partial class MongoContext
     {
         public IMongoDatabase Database { get; private set; }
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -12,17 +14,17 @@ namespace Mongo.Context.Queryable
 {
     public class MongoQueryProvider<TDocument> : IQueryProvider
     {
-        private MongoContext mongoContext;
-        private MongoMetadata mongoMetadata;
-        private string connectionString;
-        private string collectionName;
+        private MongoContext _mongoContext;
+        private MongoMetadata _mongoMetadata;
+        private string _connectionString;
+        private string _collectionName;
 
         public MongoQueryProvider(MongoMetadata mongoMetadata, string connectionString, string collectionName)
         {
-            this.mongoContext = new MongoContext(connectionString);
-            this.mongoMetadata = mongoMetadata;
-            this.connectionString = connectionString;
-            this.collectionName = collectionName;
+            _mongoContext = new MongoContext(connectionString);
+            _mongoMetadata = mongoMetadata;
+            _connectionString = connectionString;
+            _collectionName = collectionName;
         }
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -85,8 +87,8 @@ namespace Mongo.Context.Queryable
 
         private void PrepareExecution(Expression expression, string methodName, out IMongoCollection<TDocument> mongoCollection, out Expression mongoExpression, out MethodInfo method)
         {
-            mongoCollection = this.mongoContext.Database.GetCollection<TDocument>(collectionName);
-            mongoExpression = new QueryExpressionVisitor<TDocument>(mongoCollection, this.mongoMetadata).Visit(expression);
+            mongoCollection = _mongoContext.Database.GetCollection<TDocument>(_collectionName);
+            mongoExpression = new QueryExpressionVisitor<TDocument>(mongoCollection, _mongoMetadata).Visit(expression);
 
             var genericMethod = this.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
             method = genericMethod.MakeGenericMethod(typeof(TDocument));
@@ -107,7 +109,7 @@ namespace Mongo.Context.Queryable
         {
             while (enumerator.MoveNext())
             {
-                yield return CreateDSPResource(enumerator.Current, this.collectionName);
+                yield return CreateDSPResource(enumerator.Current, _collectionName);
             }
             yield break;
         }
@@ -115,9 +117,9 @@ namespace Mongo.Context.Queryable
         private DSPResource CreateDSPResource<TSource>(TSource document, string resourceName)
         {
             var typedDocument = document.ToBsonDocument();
-            var resource = MongoDSPConverter.CreateDSPResource(typedDocument, this.mongoMetadata, resourceName);
+            var resource = MongoDSPConverter.CreateDSPResource(typedDocument, _mongoMetadata, resourceName);
 
-            if (this.mongoMetadata.Configuration.UpdateDynamically)
+            if (_mongoMetadata.Configuration.UpdateDynamically)
             {
                 UpdateMetadataFromResourceSet(resourceName, typedDocument);
             }
@@ -127,8 +129,8 @@ namespace Mongo.Context.Queryable
 
         private void UpdateMetadataFromResourceSet(string resourceName, BsonDocument typedDocument)
         {
-            var resourceType = mongoMetadata.ResolveResourceType(resourceName);
-            var collection = mongoContext.Database.GetCollection<BsonDocument>(resourceName);
+            var resourceType = _mongoMetadata.ResolveResourceType(resourceName);
+            var collection = _mongoContext.Database.GetCollection<BsonDocument>(resourceName);
             var filter = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
             var bsonDocumentsTask = collection.Find(filter).ToListAsync();
             var bsonDocuments = bsonDocumentsTask.GetAwaiter().GetResult();
@@ -136,7 +138,7 @@ namespace Mongo.Context.Queryable
 
             foreach (var element in bsonDocument.Elements)
             {
-                mongoMetadata.RegisterResourceProperty(this.mongoContext, resourceType, element);
+                _mongoMetadata.RegisterResourceProperty(_mongoContext, resourceType, element);
             }
         }
 

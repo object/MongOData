@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using NUnit.Framework;
 
 namespace Mongo.Context.Tests

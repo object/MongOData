@@ -143,7 +143,7 @@ namespace Mongo.Context
                 }
             }
 
-            collection.UpdateOneAsync(filter, update);
+            collection.UpdateOneAsync(filter, update).GetAwaiter().GetResult();
         }
 
         private void RemoveDocument(MongoContext mongoContext, ResourceChange change)

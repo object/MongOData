@@ -256,7 +256,7 @@ namespace Mongo.Context.Tests
 
         private static string GetDatabaseName(string connectionString)
         {
-            string databaseName = connectionString.Substring(connectionString.IndexOf("localhost") + 10);
+            string databaseName = connectionString.Substring(connectionString.LastIndexOf("/")+1);
             int optionsIndex = databaseName.IndexOf("?");
             if (optionsIndex > 0)
             {

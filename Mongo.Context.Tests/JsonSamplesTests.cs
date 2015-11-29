@@ -237,6 +237,20 @@ namespace Mongo.Context.Tests
         }
 
         [Test]
+        public void NullArray_e()
+        {
+            var result = ctx.NullArray.All().ToList();
+            Assert.AreEqual("0001", result[0].id);
+            Assert.AreEqual(0, result[0].arrays.d.Count);
+            Assert.AreEqual("0002", result[1].id);
+            Assert.AreEqual(1, result[1].arrays.d.Count);
+            var a = result[1].arrays.d[0];
+            Assert.AreEqual(1, result[1].arrays.d[0].x_id);
+            Assert.AreEqual(2, result[1].arrays.d[0].nonid);
+            Assert.AreEqual("Regular", result[1].arrays.d[0].type);
+        }
+
+        [Test]
         public void UnresolvedArray()
         {
             var result = ctx.UnresolvedArray.All().ToList();

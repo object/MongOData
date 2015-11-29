@@ -323,17 +323,8 @@ namespace Mongo.Context
 
         private void AddDocumentProperty(MongoContext context, string collectionName, ResourceType collectionType, string propertyName, BsonElement element, bool isCollection = false)
         {
-            ResourceType resourceType = null;
-            var resourceSet = this.instanceMetadataCache.ResolveResourceSet(collectionName);
-            if (resourceSet != null)
-            {
-                resourceType = resourceSet.ResourceType;
-            }
-            else
-            {
-                resourceType = AddDocumentType(context, GetQualifiedTypeName(collectionName, propertyName),
-                                                    element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
-            }
+            var resourceType = AddDocumentType(context, GetQualifiedTypeName(collectionName, propertyName),
+                                                element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
             if (isCollection && ResolveResourceProperty(collectionType, propertyName) == null)
                 this.instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, resourceType);
             else

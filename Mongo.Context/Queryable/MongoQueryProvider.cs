@@ -1,33 +1,30 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
-using System.Data.Services.Providers;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 
 namespace Mongo.Context.Queryable
 {
-    public class MongoQueryProvider : IQueryProvider
+    public class MongoQueryProvider<TDocument> : IQueryProvider
     {
-        private MongoContext mongoContext;
-        private MongoMetadata mongoMetadata;
-        private string connectionString;
-        private string collectionName;
-        private Type collectionType;
+        private MongoContext _mongoContext;
+        private MongoMetadata _mongoMetadata;
+        private string _connectionString;
+        private string _collectionName;
 
-        public MongoQueryProvider(MongoMetadata mongoMetadata, string connectionString, string collectionName, Type collectionType)
+        public MongoQueryProvider(MongoMetadata mongoMetadata, string connectionString, string collectionName)
         {
-            this.mongoContext = new MongoContext(connectionString);
-            this.mongoMetadata = mongoMetadata;
-            this.connectionString = connectionString;
-            this.collectionName = collectionName;
-            this.collectionType = collectionType;
+            _mongoContext = new MongoContext(connectionString);
+            _mongoMetadata = mongoMetadata;
+            _connectionString = connectionString;
+            _collectionName = collectionName;
         }
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -38,13 +35,13 @@ namespace Mongo.Context.Queryable
             }
             else
             {
-                return new MongoQueryableResource(this, expression) as IQueryable<TElement>;
+                return new MongoQueryableResource<TDocument>(this, expression) as IQueryable<TElement>;
             }
         }
 
         public IQueryable CreateQuery(Expression expression)
         {
-            return new MongoQueryableResource(this, expression);
+            return new MongoQueryableResource<TDocument>(this, expression);
         }
 
         public TResult Execute<TResult>(Expression expression)
@@ -67,7 +64,7 @@ namespace Mongo.Context.Queryable
 
         public IEnumerator<TElement> ExecuteQuery<TElement>(Expression expression)
         {
-            MongoCollection mongoCollection;
+            IMongoCollection<TDocument> mongoCollection;
             Expression mongoExpression;
             MethodInfo method;
 
@@ -79,7 +76,7 @@ namespace Mongo.Context.Queryable
 
         public object ExecuteNonQuery(Expression expression)
         {
-            MongoCollection mongoCollection;
+            IMongoCollection<TDocument> mongoCollection;
             Expression mongoExpression;
             MethodInfo method;
 
@@ -88,31 +85,31 @@ namespace Mongo.Context.Queryable
             return method.Invoke(this, new object[] { mongoCollection, mongoExpression });
         }
 
-        private void PrepareExecution(Expression expression, string methodName, out MongoCollection mongoCollection, out Expression mongoExpression, out MethodInfo method)
+        private void PrepareExecution(Expression expression, string methodName, out IMongoCollection<TDocument> mongoCollection, out Expression mongoExpression, out MethodInfo method)
         {
-            mongoCollection = this.mongoContext.Database.GetCollection(collectionType, collectionName);
-            mongoExpression = new QueryExpressionVisitor(mongoCollection, this.mongoMetadata, collectionType).Visit(expression);
+            mongoCollection = _mongoContext.Database.GetCollection<TDocument>(_collectionName);
+            mongoExpression = new QueryExpressionVisitor<TDocument>(mongoCollection, _mongoMetadata).Visit(expression);
 
             var genericMethod = this.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-            method = genericMethod.MakeGenericMethod(collectionType);
+            method = genericMethod.MakeGenericMethod(typeof(TDocument));
         }
 
-        private IEnumerable<DSPResource> GetEnumerableCollection<TSource>(MongoCollection mongoCollection, Expression expression)
+        private IEnumerable<DSPResource> GetEnumerableCollection<TSource>(IMongoCollection<TDocument> mongoCollection, Expression expression)
         {
-            var mongoEnumerator = mongoCollection.AsQueryable<TSource>().Provider.CreateQuery<TSource>(expression).GetEnumerator();
+            var mongoEnumerator = mongoCollection.AsQueryable<TDocument>().Provider.CreateQuery<TDocument>(expression).GetEnumerator();
             return GetEnumerable(mongoEnumerator);
         }
 
-        private object GetExecutionResult<TSource>(MongoCollection mongoCollection, Expression expression)
+        private object GetExecutionResult<TSource>(IMongoCollection<TDocument> mongoCollection, Expression expression)
         {
-            return mongoCollection.AsQueryable<TSource>().Provider.Execute(expression);
+            return mongoCollection.AsQueryable<TDocument>().Provider.Execute(expression);
         }
 
         private IEnumerable<DSPResource> GetEnumerable<TSource>(IEnumerator<TSource> enumerator)
         {
             while (enumerator.MoveNext())
             {
-                yield return CreateDSPResource(enumerator.Current, this.collectionName);
+                yield return CreateDSPResource(enumerator.Current, _collectionName);
             }
             yield break;
         }
@@ -120,9 +117,9 @@ namespace Mongo.Context.Queryable
         private DSPResource CreateDSPResource<TSource>(TSource document, string resourceName)
         {
             var typedDocument = document.ToBsonDocument();
-            var resource = MongoDSPConverter.CreateDSPResource(typedDocument, this.mongoMetadata, resourceName);
+            var resource = MongoDSPConverter.CreateDSPResource(typedDocument, _mongoMetadata, resourceName);
 
-            if (this.mongoMetadata.Configuration.UpdateDynamically)
+            if (_mongoMetadata.Configuration.UpdateDynamically)
             {
                 UpdateMetadataFromResourceSet(resourceName, typedDocument);
             }
@@ -132,13 +129,16 @@ namespace Mongo.Context.Queryable
 
         private void UpdateMetadataFromResourceSet(string resourceName, BsonDocument typedDocument)
         {
-            var resourceType = mongoMetadata.ResolveResourceType(resourceName);
-            var collection = mongoContext.Database.GetCollection(resourceName);
-            var query = Query.EQ(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
-            var bsonDocument = collection.FindOne(query);
+            var resourceType = _mongoMetadata.ResolveResourceType(resourceName);
+            var collection = _mongoContext.Database.GetCollection<BsonDocument>(resourceName);
+            var filter = Builders<BsonDocument>.Filter.Eq(MongoMetadata.ProviderObjectIdName, ObjectId.Parse(typedDocument.GetValue(MongoMetadata.ProviderObjectIdName).ToString()));
+            var bsonDocumentsTask = collection.Find(filter).ToListAsync();
+            var bsonDocuments = bsonDocumentsTask.GetAwaiter().GetResult();
+            var bsonDocument = bsonDocuments.FirstOrDefault();
+
             foreach (var element in bsonDocument.Elements)
             {
-                mongoMetadata.RegisterResourceProperty(this.mongoContext, resourceType, element);
+                _mongoMetadata.RegisterResourceProperty(_mongoContext, resourceType, element);
             }
         }
 
@@ -146,7 +146,7 @@ namespace Mongo.Context.Queryable
         {
             var callExpression = expression as MethodCallExpression;
 
-            MethodInfo methodInfo = typeof(MongoQueryProvider)
+            MethodInfo methodInfo = typeof(MongoQueryProvider<TDocument>)
                 .GetMethod("ProcessProjection", BindingFlags.Instance | BindingFlags.NonPublic)
                 .MakeGenericMethod(typeof(DSPResource), typeof(TElement));
 

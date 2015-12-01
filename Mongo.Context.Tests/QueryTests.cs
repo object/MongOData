@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+
+using System;
 using System.Linq;
 using NUnit.Framework;
 using Simple.OData.Client;
@@ -326,7 +327,7 @@ namespace Mongo.Context.Tests
                 MongoMetadata.CreateDynamicTypesForComplexTypes = false;
                 Assert.Throws<WebRequestException>(() => { var x = ctx.Products.Find(ctx.Products.Quantity.Value == 7); });
             }
-            finally 
+            finally
             {
                 MongoMetadata.CreateDynamicTypesForComplexTypes = true;
             }

@@ -1,4 +1,10 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Collections.Generic;
+using System.Data.Services.Providers;
+using System.Linq;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,17 +17,12 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Services.Providers;
-    using System.Linq;
-
     /// <summary>Implementation of the <see cref="IDataServiceQueryProvider"/>.</summary>
     public class DSPResourceQueryProvider : IDataServiceQueryProvider
     {
         /// <summary>The "context" which is the data source.</summary>
-        private DSPContext dataSource;
-        private ExpressionVisitor expressionVisitor;
+        private DSPContext _dataSource;
+        private ExpressionVisitor _expressionVisitor;
 
         /// <summary>Constructor.</summary>
         public DSPResourceQueryProvider()
@@ -32,7 +33,7 @@ namespace DataServiceProvider
         /// <summary>Constructor.</summary>
         public DSPResourceQueryProvider(ExpressionVisitor expressionVisitor)
         {
-            this.expressionVisitor = expressionVisitor;
+            _expressionVisitor = expressionVisitor;
         }
 
         public DSPMetadata Metadata { get; set; }
@@ -44,16 +45,16 @@ namespace DataServiceProvider
         {
             get
             {
-                return this.dataSource;
+                return _dataSource;
             }
             set
             {
-                if (this.dataSource != null)
+                if (_dataSource != null)
                 {
                     throw new InvalidOperationException("CurrentDataSource should only be set once.");
                 }
 
-                this.dataSource = (DSPContext)value;
+                _dataSource = (DSPContext)value;
             }
         }
 
@@ -104,7 +105,7 @@ namespace DataServiceProvider
         /// to return an <see cref="IQueryable"/> which can handle such queries. If the resource set is not recognized by the provider it should return null.</remarks>
         public virtual IQueryable GetQueryRootForResourceSet(ResourceSet resourceSet)
         {
-            return DSPLinqQueryProvider.CreateQuery(this.dataSource.GetQueryable(resourceSet.Name), this.expressionVisitor);
+            return DSPLinqQueryProvider.CreateQuery(_dataSource.GetQueryable(resourceSet.Name), _expressionVisitor);
         }
 
         /// <summary>Returns a resource type for the specified resource.</summary>

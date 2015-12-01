@@ -1,41 +1,37 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace Mongo.Context
 {
-    public partial class MongoContext : IDisposable
+    public partial class MongoContext
     {
-        protected string connectionString;
-        protected MongoClient client;
-        protected MongoServer server;
-        protected MongoDatabase database;
+        public IMongoDatabase Database { get; private set; }
+
+        protected string _connectionString;
+        protected MongoClient _client;
 
         public MongoContext(string connectionString)
         {
-            this.connectionString = connectionString;
-            string databaseName = GetDatabaseName(this.connectionString);
+            _connectionString = connectionString;
+            string databaseName = GetDatabaseName(_connectionString);
 
-            this.client = new MongoClient(this.connectionString);
-            this.server = this.client.GetServer();
-            this.database = server.GetDatabase(databaseName);
+            _client = new MongoClient(_connectionString);
+            Database = _client.GetDatabase(databaseName);
         }
 
-        public MongoDatabase Database
-        {
-            get { return this.database; }
-        }
 
         public static IEnumerable<string> GetDatabaseNames(string connectionString)
         {
-            return new MongoClient(connectionString).GetServer().GetDatabaseNames();
-        }
-
-        public void Dispose()
-        {
-            this.database.Server.Disconnect();
+            var mongoClient = new MongoClient(connectionString);
+            var databaseNamesCursor = mongoClient.ListDatabasesAsync().GetAwaiter().GetResult();
+            var databases = databaseNamesCursor.ToListAsync().GetAwaiter().GetResult();
+            var databaseNames = databases.Select(x => x["name"].AsString);
+            return databaseNames;
         }
 
         public void SaveChanges()

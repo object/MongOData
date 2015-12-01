@@ -1,4 +1,8 @@
-﻿//*********************************************************
+﻿
+
+using System.Collections.Generic;
+using System.Data.Services.Providers;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,29 +15,25 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Services.Providers;
-
     /// <summary>Class which represents a single resource instance.</summary>
     /// <remarks>Uses a property bag to store properties of the resource.</remarks>
     public class DSPResource
     {
         /// <summary>The bag of properties. Dictionary where key is the property name and value is the value of the property.</summary>
-        private Dictionary<string, object> properties;
+        private Dictionary<string, object> _properties;
 
         /// <summary>The resource type of the resource.</summary>
-        private ResourceType resourceType;
+        private ResourceType _resourceType;
 
         /// <summary>The resource type of the resource.</summary>
-        public ResourceType ResourceType { get { return this.resourceType; } }
+        public ResourceType ResourceType { get { return _resourceType; } }
 
         /// <summary>Constructor, creates a new resource (all properties are empty).</summary>
         /// <param name="resourceType">The type of the resource to create.</param>
         public DSPResource(ResourceType resourceType)
         {
-            this.properties = new Dictionary<string, object>();
-            this.resourceType = resourceType;
+            _properties = new Dictionary<string, object>();
+            _resourceType = resourceType;
         }
 
         /// <summary>Returns a value of the specified property.</summary>
@@ -42,7 +42,7 @@ namespace DataServiceProvider
         public object GetValue(string propertyName)
         {
             object value;
-            if (!this.properties.TryGetValue(propertyName, out value))
+            if (!_properties.TryGetValue(propertyName, out value))
             {
                 return null;
             }
@@ -58,7 +58,7 @@ namespace DataServiceProvider
         /// <remarks>Note that this method will define the property if it doesn't exist yet. If it does exist, it will overwrite its value.</remarks>
         public void SetValue(string propertyName, object value)
         {
-            this.properties[propertyName] = value;
+            _properties[propertyName] = value;
         }
     }
 }

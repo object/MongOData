@@ -13,10 +13,6 @@ using System.Linq;
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Data.Services.Providers;
-    using System.Collections.Generic;
-
     public abstract class DSPContext
     {
         public abstract IQueryable GetQueryable(string resourceSetName);

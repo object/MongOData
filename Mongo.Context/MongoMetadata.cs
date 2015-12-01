@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Data.Services.Providers;
 using System.Linq;
-using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
-using MongoDB.Driver.Builders;
+using MongoDB.Driver;
 
 namespace Mongo.Context
 {
-    class CollectionProperty
+    internal class CollectionProperty
     {
         public ResourceType CollectionType { get; set; }
         public string PropertyName { get; set; }
@@ -44,49 +44,47 @@ namespace Mongo.Context
         internal static readonly string WordSeparator = "__";
         internal static readonly string PrefixForInvalidLeadingChar = "x";
 
-        private readonly string connectionString;
-        private readonly List<CollectionProperty> unresolvedProperties = new List<CollectionProperty>();
-        private static readonly Dictionary<string, MongoMetadataCache> MetadataCache = new Dictionary<string, MongoMetadataCache>();
-        private readonly MongoMetadataCache instanceMetadataCache;
+        private readonly string _connectionString;
+        private readonly List<CollectionProperty> _unresolvedProperties = new List<CollectionProperty>();
+        private static readonly Dictionary<string, MongoMetadataCache> s_metadataCache = new Dictionary<string, MongoMetadataCache>();
+        private readonly MongoMetadataCache _instanceMetadataCache;
 
         public MongoConfiguration.Metadata Configuration { get; private set; }
-        internal Dictionary<string, Type> ProviderTypes { get { return this.instanceMetadataCache.ProviderTypes; } }
-        internal Dictionary<string, Type> GeneratedTypes { get { return this.instanceMetadataCache.GeneratedTypes; } }
+        internal Dictionary<string, Type> ProviderTypes { get { return _instanceMetadataCache.ProviderTypes; } }
+        internal Dictionary<string, Type> GeneratedTypes { get { return _instanceMetadataCache.GeneratedTypes; } }
 
         public MongoMetadata(string connectionString, MongoConfiguration.Metadata metadata = null)
         {
-            this.connectionString = connectionString;
+            _connectionString = connectionString;
             this.Configuration = metadata ?? MongoConfiguration.Metadata.Default;
 
-            lock (MetadataCache)
+            lock (s_metadataCache)
             {
-                this.instanceMetadataCache = GetOrCreateMetadataCache();
+                _instanceMetadataCache = GetOrCreateMetadataCache();
             }
 
-            using (var context = new MongoContext(connectionString))
-            {
-                PopulateMetadata(context);
-            }
+            var context = new MongoContext(connectionString);
+            PopulateMetadata(context);
         }
 
         public DSPMetadata CreateDSPMetadata()
         {
-            return this.instanceMetadataCache.CloneDSPMetadata();
+            return _instanceMetadataCache.CloneDSPMetadata();
         }
 
         public static void ResetDSPMetadata()
         {
-            MetadataCache.Clear();
+            s_metadataCache.Clear();
         }
 
         private MongoMetadataCache GetOrCreateMetadataCache()
         {
             MongoMetadataCache metadataCache;
-            MetadataCache.TryGetValue(this.connectionString, out metadataCache);
+            s_metadataCache.TryGetValue(_connectionString, out metadataCache);
             if (metadataCache == null)
             {
                 metadataCache = new MongoMetadataCache(ContainerName, RootNamespace);
-                MetadataCache.Add(this.connectionString, metadataCache);
+                s_metadataCache.Add(_connectionString, metadataCache);
             }
             return metadataCache;
         }
@@ -95,7 +93,7 @@ namespace Mongo.Context
         {
             ResourceType resourceType;
             var qualifiedResourceName = string.IsNullOrEmpty(ownerPrefix) ? resourceName : MongoMetadata.GetQualifiedTypeName(ownerPrefix, resourceName);
-            this.instanceMetadataCache.TryResolveResourceType(GetQualifiedPropertyName(MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
+            _instanceMetadataCache.TryResolveResourceType(GetQualifiedPropertyName(MongoMetadata.RootNamespace, qualifiedResourceName), out resourceType);
             return resourceType;
         }
 
@@ -112,16 +110,20 @@ namespace Mongo.Context
 
         private IEnumerable<string> GetCollectionNames(MongoContext context)
         {
-            return context.Database.GetCollectionNames().Where(x => !x.StartsWith("system."));
+            var collectionNamesCursor = context.Database.ListCollectionsAsync().GetAwaiter().GetResult();
+            var collections = collectionNamesCursor.ToListAsync().GetAwaiter().GetResult();
+            var collectionNames = collections.Select(y => y["name"].AsString).Where(x => !x.StartsWith("system."));
+            return collectionNames;
         }
 
         private void PopulateMetadata(MongoContext context)
         {
-            lock (this.instanceMetadataCache)
+            var collectionNames = GetCollectionNames(context);
+            lock (_instanceMetadataCache)
             {
-                foreach (var collectionName in GetCollectionNames(context))
+                foreach (var collectionName in collectionNames)
                 {
-                    var resourceSet = this.instanceMetadataCache.ResolveResourceSet(collectionName);
+                    var resourceSet = _instanceMetadataCache.ResolveResourceSet(collectionName);
 
                     if (this.Configuration.PrefetchRows == 0)
                     {
@@ -136,12 +138,12 @@ namespace Mongo.Context
                     }
                 }
 
-                foreach (var prop in this.unresolvedProperties)
+                foreach (var prop in _unresolvedProperties)
                 {
-                    var providerType = typeof (string);
+                    var providerType = typeof(string);
                     var propertyName = NormalizeResourcePropertyName(prop.PropertyName);
-                    this.instanceMetadataCache.AddPrimitiveProperty(prop.CollectionType, propertyName, providerType);
-                    this.instanceMetadataCache.ProviderTypes.Add(
+                    _instanceMetadataCache.AddPrimitiveProperty(prop.CollectionType, propertyName, providerType);
+                    _instanceMetadataCache.ProviderTypes.Add(
                         GetQualifiedPropertyName(prop.CollectionType.Name, propertyName), providerType);
                 }
             }
@@ -149,13 +151,13 @@ namespace Mongo.Context
 
         private void PopulateMetadataFromCollection(MongoContext context, string collectionName, ResourceSet resourceSet)
         {
-            var collection = context.Database.GetCollection(collectionName);
+            var collection = context.Database.GetCollection<BsonDocument>(collectionName);
             const string naturalSort = "$natural";
-            var sortOrder = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
-                                ? SortBy.Descending(naturalSort)
-                                : SortBy.Ascending(naturalSort);
-            var documents = collection.FindAll().SetSortOrder(sortOrder);
-
+            var sortBuilder = Builders<BsonDocument>.Sort;
+            var sort = this.Configuration.FetchPosition == MongoConfiguration.FetchPosition.End
+                                ? sortBuilder.Descending(naturalSort)
+                                : sortBuilder.Ascending(naturalSort);
+            var documents = collection.Find(new BsonDocument()).Sort(sort).ToListAsync().GetAwaiter().GetResult();
             int rowCount = 0;
             foreach (var document in documents)
             {
@@ -176,13 +178,13 @@ namespace Mongo.Context
 
         public ResourceSet ResolveResourceSet(string resourceName)
         {
-            return this.instanceMetadataCache.ResolveResourceSet(resourceName);
+            return _instanceMetadataCache.ResolveResourceSet(resourceName);
         }
 
         private ResourceSet AddResourceSet(MongoContext context, string collectionName, BsonDocument document = null)
         {
             AddDocumentType(context, collectionName, document, ResourceTypeKind.EntityType);
-            return this.instanceMetadataCache.ResolveResourceSet(collectionName);
+            return _instanceMetadataCache.ResolveResourceSet(collectionName);
         }
 
         private void UpdateResourceSet(MongoContext context, ResourceSet resourceSet, BsonDocument document)
@@ -196,8 +198,8 @@ namespace Mongo.Context
         private ResourceType AddDocumentType(MongoContext context, string collectionName, BsonDocument document, ResourceTypeKind resourceTypeKind)
         {
             var collectionType = resourceTypeKind == ResourceTypeKind.EntityType
-                                     ? this.instanceMetadataCache.AddEntityType(collectionName)
-                                     : this.instanceMetadataCache.AddComplexType(collectionName);
+                                     ? _instanceMetadataCache.AddEntityType(collectionName)
+                                     : _instanceMetadataCache.AddComplexType(collectionName);
 
             bool hasObjectId = false;
             if (document != null)
@@ -214,13 +216,13 @@ namespace Mongo.Context
             {
                 if (resourceTypeKind == ResourceTypeKind.EntityType)
                 {
-                    this.instanceMetadataCache.AddKeyProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
+                    _instanceMetadataCache.AddKeyProperty(collectionType, MappedObjectIdName, MappedObjectIdType);
                 }
                 AddProviderType(collectionName, ProviderObjectIdName, BsonObjectId.Empty, true);
             }
 
             if (resourceTypeKind == ResourceTypeKind.EntityType)
-                this.instanceMetadataCache.AddResourceSet(collectionName, collectionType);
+                _instanceMetadataCache.AddResourceSet(collectionName, collectionType);
 
             return collectionType;
         }
@@ -231,15 +233,15 @@ namespace Mongo.Context
             var resourceProperty = ResolveResourceProperty(resourceType, element);
             if (resourceProperty == null)
             {
-                lock (unresolvedProperties)
+                lock (_unresolvedProperties)
                 {
-                    var unresolvedEarlier = unresolvedProperties.Contains(collectionProperty);
+                    var unresolvedEarlier = _unresolvedProperties.Contains(collectionProperty);
                     var resolvedNow = ResolveProviderType(element.Value, IsObjectId(element)) != null;
 
                     if (!unresolvedEarlier && !resolvedNow)
-                        this.unresolvedProperties.Add(collectionProperty);
+                        _unresolvedProperties.Add(collectionProperty);
                     else if (unresolvedEarlier && resolvedNow)
-                        this.unresolvedProperties.Remove(collectionProperty);
+                        _unresolvedProperties.Remove(collectionProperty);
 
                     if (resolvedNow)
                     {
@@ -263,9 +265,9 @@ namespace Mongo.Context
             if (IsObjectId(element))
             {
                 if (treatObjectIdAsKey)
-                    this.instanceMetadataCache.AddKeyProperty(collectionType, propertyName, elementType);
+                    _instanceMetadataCache.AddKeyProperty(collectionType, propertyName, elementType);
                 else
-                    this.instanceMetadataCache.AddPrimitiveProperty(collectionType, propertyName, elementType);
+                    _instanceMetadataCache.AddPrimitiveProperty(collectionType, propertyName, elementType);
                 isKey = true;
             }
             else if (elementType == typeof(BsonDocument))
@@ -278,7 +280,7 @@ namespace Mongo.Context
             }
             else
             {
-                this.instanceMetadataCache.AddPrimitiveProperty(collectionType, propertyName, elementType);
+                _instanceMetadataCache.AddPrimitiveProperty(collectionType, propertyName, elementType);
             }
 
             if (!string.IsNullOrEmpty(propertyName))
@@ -324,7 +326,7 @@ namespace Mongo.Context
         private void AddDocumentProperty(MongoContext context, string collectionName, ResourceType collectionType, string propertyName, BsonElement element, bool isCollection = false)
         {
             ResourceType resourceType = null;
-            var resourceSet = this.instanceMetadataCache.ResolveResourceSet(collectionName);
+            var resourceSet = _instanceMetadataCache.ResolveResourceSet(collectionName);
             if (resourceSet != null)
             {
                 resourceType = resourceSet.ResourceType;
@@ -335,9 +337,9 @@ namespace Mongo.Context
                                                     element.Value.AsBsonDocument, ResourceTypeKind.ComplexType);
             }
             if (isCollection && ResolveResourceProperty(collectionType, propertyName) == null)
-                this.instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, resourceType);
+                _instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, resourceType);
             else
-                this.instanceMetadataCache.AddComplexProperty(collectionType, propertyName, resourceType);
+                _instanceMetadataCache.AddComplexProperty(collectionType, propertyName, resourceType);
         }
 
         private void RegisterArrayProperty(MongoContext context, ResourceType collectionType, BsonElement element)
@@ -361,7 +363,7 @@ namespace Mongo.Context
                         if (arrayValue.BsonType != BsonType.Array)
                         {
                             var mappedType = BsonTypeMapper.MapToDotNetValue(arrayValue).GetType();
-                            this.instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, mappedType);
+                            _instanceMetadataCache.AddCollectionProperty(collectionType, propertyName, mappedType);
                         }
                     }
                 }
@@ -372,9 +374,9 @@ namespace Mongo.Context
         {
             Type providerType = ResolveProviderType(elementValue, isKey);
             var qualifiedName = GetQualifiedPropertyName(collectionName, elementName);
-            if (providerType != null && !this.instanceMetadataCache.ProviderTypes.ContainsKey(qualifiedName))
+            if (providerType != null && !_instanceMetadataCache.ProviderTypes.ContainsKey(qualifiedName))
             {
-                this.instanceMetadataCache.ProviderTypes.Add(qualifiedName, providerType);
+                _instanceMetadataCache.ProviderTypes.Add(qualifiedName, providerType);
             }
         }
 
@@ -408,7 +410,7 @@ namespace Mongo.Context
                 else
                     return GetRawValueType(element.Value, treatObjectIdAsKey);
             }
-            else if (element.Value.GetType() == typeof (BsonObjectId))
+            else if (element.Value.GetType() == typeof(BsonObjectId))
             {
                 return MappedObjectIdType;
             }

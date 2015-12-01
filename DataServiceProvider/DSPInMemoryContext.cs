@@ -1,33 +1,33 @@
-﻿using System;
+﻿
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace DataServiceProvider
 {
-    public class DSPInMemoryContext :  DSPContext
+    public class DSPInMemoryContext : DSPContext
     {
         /// <summary>The actual data storage.</summary>
         /// <remarks>Dictionary where the key is the name of the resource set and the value is a list of resources.</remarks>
-        private Dictionary<string, List<DSPResource>> resourceSetsStorage;
+        private Dictionary<string, List<DSPResource>> _resourceSetsStorage;
 
         /// <summary>Constructor, creates a new empty context.</summary>
         public DSPInMemoryContext()
         {
-            this.resourceSetsStorage = new Dictionary<string, List<DSPResource>>();
+            _resourceSetsStorage = new Dictionary<string, List<DSPResource>>();
         }
 
         public List<DSPResource> GetResourceSetStorage(string resourceSetName)
         {
             List<DSPResource> storage;
-            if (this.resourceSetsStorage.TryGetValue(resourceSetName, out storage))
+            if (_resourceSetsStorage.TryGetValue(resourceSetName, out storage))
             {
                 return storage;
             }
             else
             {
                 storage = new List<DSPResource>();
-                this.resourceSetsStorage.Add(resourceSetName, storage);
+                _resourceSetsStorage.Add(resourceSetName, storage);
                 return storage;
             }
         }
@@ -39,10 +39,10 @@ namespace DataServiceProvider
         public override IQueryable GetQueryable(string resourceSetName)
         {
             List<DSPResource> entities;
-            if (!this.resourceSetsStorage.TryGetValue(resourceSetName, out entities))
+            if (!_resourceSetsStorage.TryGetValue(resourceSetName, out entities))
             {
                 entities = new List<DSPResource>();
-                this.resourceSetsStorage[resourceSetName] = entities;
+                _resourceSetsStorage[resourceSetName] = entities;
             }
 
             return entities.AsQueryable();

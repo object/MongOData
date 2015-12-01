@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
+﻿
+
+using System;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using NUnit.Framework;
 using Simple.Data;
 using Simple.Data.OData;
@@ -57,15 +57,16 @@ namespace Mongo.Context.Tests
 
         protected void ValidateColumnNullability(ISchema schema)
         {
-            Action<EdmProperty> validator = x => {
-                    var message = string.Format("Property {0} of type {1} should {2}be marked as nullable",
-                                  x.Name, x.Type, x.Nullable ? "not " : "");
+            Action<EdmProperty> validator = x =>
+            {
+                var message = string.Format("Property {0} of type {1} should {2}be marked as nullable",
+                              x.Name, x.Type, x.Nullable ? "not " : "");
 
-                    if (x.Name == MongoMetadata.MappedObjectIdName || x.Type.Name.StartsWith("Collection("))
-                        Assert.False(x.Nullable, message);
-                    else
-                        Assert.True(x.Nullable, message);
-                };
+                if (x.Name == MongoMetadata.MappedObjectIdName || x.Type.Name.StartsWith("Collection("))
+                    Assert.False(x.Nullable, message);
+                else
+                    Assert.True(x.Nullable, message);
+            };
 
             foreach (var table in schema.Tables)
             {
@@ -76,11 +77,11 @@ namespace Mongo.Context.Tests
                         Assert.False(column.IsNullable, "Column {0} belongs to a primary key and should not be marked as nullable", column.ActualName);
 
                     ValidateProperty(new EdmProperty
-                        {
-                            Name = column.ActualName,
-                            Nullable = column.IsNullable,
-                            Type = column.PropertyType
-                        }, schema, validator);
+                    {
+                        Name = column.ActualName,
+                        Nullable = column.IsNullable,
+                        Type = column.PropertyType
+                    }, schema, validator);
                 }
             }
         }
@@ -94,11 +95,11 @@ namespace Mongo.Context.Tests
                 foreach (var column in table.Columns)
                 {
                     ValidateProperty(new EdmProperty
-                        {
-                            Name = column.ActualName,
-                            Nullable = column.IsNullable,
-                            Type = column.PropertyType
-                        }, schema, validator);
+                    {
+                        Name = column.ActualName,
+                        Nullable = column.IsNullable,
+                        Type = column.PropertyType
+                    }, schema, validator);
                 }
             }
         }

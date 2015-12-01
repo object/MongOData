@@ -1,4 +1,10 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Data.Services.Providers;
+using System.Linq.Expressions;
+using System.Reflection;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,13 +17,6 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Services.Providers;
-    using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
-
     /// <summary>Expression visitor which translates calls to methods on the <see cref="DataServiceProviderMethods"/> class
     /// into expressions which can be evaluated by LINQ to Objects.</summary>
     public class DSPMethodTranslatingVisitor : ExpressionVisitor

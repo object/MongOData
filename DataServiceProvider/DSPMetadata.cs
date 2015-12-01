@@ -1,4 +1,11 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Collections.Generic;
+using System.Data.Services.Providers;
+using System.Diagnostics;
+using System.Linq;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,38 +18,32 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data.Services.Providers;
-    using System.Diagnostics;
-    using System.Linq;
-
     /// <summary>Metadata definition for the DSP. This also implements the <see cref="IDataServiceMetadataProvider"/>.</summary>
     public class DSPMetadata : IDataServiceMetadataProvider, ICloneable
     {
         /// <summary>List of resource sets. Dictionary where key is the name of the resource set and value is the resource set itself.</summary>
         /// <remarks>Note that we store this such that we can quickly lookup a resource set based on its name.</remarks>
-        private readonly Dictionary<string, ResourceSet> resourceSets;
+        private readonly Dictionary<string, ResourceSet> _resourceSets;
 
         /// <summary>List of resource types. Dictionary where key is the full name of the resource type and value is the resource type itself.</summary>
         /// <remarks>Note that we store this such that we can quickly lookup a resource type based on its name.</remarks>
-        private readonly Dictionary<string, ResourceType> resourceTypes;
+        private readonly Dictionary<string, ResourceType> _resourceTypes;
 
         /// <summary>Name of the container to report.</summary>
-        private readonly string containerName;
+        private readonly string _containerName;
 
         /// <summary>Namespace name.</summary>
-        private readonly string namespaceName;
+        private readonly string _namespaceName;
 
         /// <summary>Creates new empty metadata definition.</summary>
         /// <param name="containerName">Name of the container to report.</param>
         /// <param name="namespaceName">Namespace name.</param>
         public DSPMetadata(string containerName, string namespaceName)
         {
-            this.resourceSets = new Dictionary<string, ResourceSet>();
-            this.resourceTypes = new Dictionary<string, ResourceType>();
-            this.containerName = containerName;
-            this.namespaceName = namespaceName;
+            _resourceSets = new Dictionary<string, ResourceSet>();
+            _resourceTypes = new Dictionary<string, ResourceType>();
+            _containerName = containerName;
+            _namespaceName = namespaceName;
         }
 
         /// <summary>Adds a new entity type (without any properties).</summary>
@@ -50,10 +51,10 @@ namespace DataServiceProvider
         /// <returns>The newly created resource type.</returns>
         public ResourceType AddEntityType(string name)
         {
-            var resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.EntityType, null, this.namespaceName, name, false);
+            var resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.EntityType, null, _namespaceName, name, false);
             resourceType.CanReflectOnInstanceType = false;
             resourceType.CustomState = new ResourceTypeAnnotation();
-            this.resourceTypes.Add(resourceType.FullName, resourceType);
+            _resourceTypes.Add(resourceType.FullName, resourceType);
             return resourceType;
         }
 
@@ -62,9 +63,9 @@ namespace DataServiceProvider
         /// <returns>The newly created resource type.</returns>
         public ResourceType AddComplexType(string name)
         {
-            var resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.ComplexType, null, this.namespaceName, name, false);
+            var resourceType = new ResourceType(typeof(DSPResource), ResourceTypeKind.ComplexType, null, _namespaceName, name, false);
             resourceType.CanReflectOnInstanceType = false;
-            this.resourceTypes.Add(resourceType.FullName, resourceType);
+            _resourceTypes.Add(resourceType.FullName, resourceType);
             return resourceType;
         }
 
@@ -96,7 +97,7 @@ namespace DataServiceProvider
             var type = ResourceType.GetPrimitiveResourceType(propertyType);
             if (type == null)
             {
-                throw new ArgumentException(string.Format("Unable to resolve primitive type {0}", propertyType), "propertyType");    
+                throw new ArgumentException(string.Format("Unable to resolve primitive type {0}", propertyType), "propertyType");
             }
 
             var kind = ResourcePropertyKind.Primitive;
@@ -214,19 +215,19 @@ namespace DataServiceProvider
 
             var resourceSet = new ResourceSet(name, entityType);
             entityType.GetAnnotation().ResourceSet = resourceSet;
-            this.resourceSets.Add(name, resourceSet);
+            _resourceSets.Add(name, resourceSet);
             return resourceSet;
         }
 
         /// <summary>Marks the metadata as read-only.</summary>
         internal void SetReadOnly()
         {
-            foreach (var type in this.resourceTypes.Values)
+            foreach (var type in _resourceTypes.Values)
             {
                 type.SetReadOnly();
             }
 
-            foreach (var set in this.resourceSets.Values)
+            foreach (var set in _resourceSets.Values)
             {
                 set.SetReadOnly();
             }
@@ -238,13 +239,13 @@ namespace DataServiceProvider
         /// The main context class generated will have the ContainerName.</summary>
         public string ContainerName
         {
-            get { return this.containerName; }
+            get { return _containerName; }
         }
 
         /// <summary>The namespace name for the container. This is used in the $metadata response.</summary>
         public string ContainerNamespace
         {
-            get { return this.namespaceName; }
+            get { return _namespaceName; }
         }
 
         /// <summary>Returns list of all types derived (directly or indirectly) from the specified <see cref="resourceType"/>.</summary>
@@ -293,7 +294,7 @@ namespace DataServiceProvider
         /// <remarks>The implementation doesn't need to be fast as this will only be called for the $metadata and service document requests.</remarks>
         public System.Collections.Generic.IEnumerable<ResourceSet> ResourceSets
         {
-            get { return this.resourceSets.Values; }
+            get { return _resourceSets.Values; }
         }
 
         /// <summary>Returns all service operations.</summary>
@@ -311,7 +312,7 @@ namespace DataServiceProvider
         /// for non-existing resource sets to avoid possible DoS attacks on the service.</remarks>
         public bool TryResolveResourceSet(string name, out ResourceSet resourceSet)
         {
-            return this.resourceSets.TryGetValue(name, out resourceSet); ;
+            return _resourceSets.TryGetValue(name, out resourceSet); ;
         }
 
         /// <summary>Returnes a resource type specified by its name.</summary>
@@ -322,7 +323,7 @@ namespace DataServiceProvider
         /// for non-existing resource types to avoid possible DoS attacks on the service.</remarks>
         public bool TryResolveResourceType(string name, out ResourceType resourceType)
         {
-            return this.resourceTypes.TryGetValue(name, out resourceType);
+            return _resourceTypes.TryGetValue(name, out resourceType);
         }
 
         /// <summary>Returns a service operation specified by its name.</summary>
@@ -342,7 +343,7 @@ namespace DataServiceProvider
         /// <remarks>The implementation doesn't need to be fast as this will only be called for the $metadata requests.</remarks>
         public System.Collections.Generic.IEnumerable<ResourceType> Types
         {
-            get { return this.resourceTypes.Values; }
+            get { return _resourceTypes.Values; }
         }
 
         #endregion
@@ -350,9 +351,9 @@ namespace DataServiceProvider
         #region ICloneable Members
         public object Clone()
         {
-            var dspMetadata = new DSPMetadata(this.containerName, this.namespaceName);
+            var dspMetadata = new DSPMetadata(_containerName, _namespaceName);
 
-            var emptyResourceTypes = this.resourceTypes.Where(x => 
+            var emptyResourceTypes = _resourceTypes.Where(x =>
                 x.Value.ResourceTypeKind == ResourceTypeKind.ComplexType &&
                 !x.Value.Properties.Any());
             foreach (var resourceType in emptyResourceTypes)
@@ -360,13 +361,13 @@ namespace DataServiceProvider
                 AddPrimitiveProperty(resourceType.Value, "empty_content", typeof(byte[]));
             }
 
-            foreach (var resourceType in this.resourceTypes)
+            foreach (var resourceType in _resourceTypes)
             {
-                dspMetadata.resourceTypes.Add(resourceType.Key, resourceType.Value.Clone());
+                dspMetadata._resourceTypes.Add(resourceType.Key, resourceType.Value.Clone());
             }
-            foreach (var resourceSet in this.resourceSets)
+            foreach (var resourceSet in _resourceSets)
             {
-                dspMetadata.resourceSets.Add(resourceSet.Key, resourceSet.Value.Clone(dspMetadata.resourceTypes));
+                dspMetadata._resourceSets.Add(resourceSet.Key, resourceSet.Value.Clone(dspMetadata._resourceTypes));
             }
 
             return dspMetadata;
@@ -374,16 +375,16 @@ namespace DataServiceProvider
         #endregion
     }
 
-    static class ExtensionMethods
+    internal static class ExtensionMethods
     {
         public static ResourceSet Clone(this ResourceSet resourceSet, Dictionary<string, ResourceType> resourceTypes)
         {
             return new ResourceSet(
                 resourceSet.Name,
                 resourceTypes[resourceSet.ResourceType.FullName])
-                       {
-                           CustomState = resourceSet.CustomState
-                       };
+            {
+                CustomState = resourceSet.CustomState
+            };
         }
 
         public static ResourceType Clone(this ResourceType resourceType)
@@ -395,12 +396,12 @@ namespace DataServiceProvider
                 resourceType.Namespace,
                 resourceType.Name,
                 resourceType.IsAbstract)
-                       {
-                           CanReflectOnInstanceType = resourceType.CanReflectOnInstanceType,
-                           CustomState = resourceType.CustomState,
-                           IsMediaLinkEntry = resourceType.IsMediaLinkEntry,
-                           IsOpenType = resourceType.IsOpenType,
-                       };
+            {
+                CanReflectOnInstanceType = resourceType.CanReflectOnInstanceType,
+                CustomState = resourceType.CustomState,
+                IsMediaLinkEntry = resourceType.IsMediaLinkEntry,
+                IsOpenType = resourceType.IsOpenType,
+            };
             resourceType.Properties.ToList().ForEach(clonedType.AddProperty);
             return clonedType;
         }

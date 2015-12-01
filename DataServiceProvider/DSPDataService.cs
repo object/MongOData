@@ -1,4 +1,9 @@
-﻿//*********************************************************
+﻿
+
+using System;
+using System.Data.Services;
+using System.Data.Services.Providers;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,14 +16,10 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Data.Services;
-    using System.Data.Services.Providers;
-
     /// <summary>Data service implementation which can defined metadata for the service and stores the data as property bags.</summary>
     /// <typeparam name="T">The type of the context to use. This must derive from the <see cref="DSPContext"/> class.</typeparam>
-    public abstract class DSPDataService<T,Q,U> : DataService<T>, IServiceProvider 
-        where T : DSPContext 
+    public abstract class DSPDataService<T, Q, U> : DataService<T>, IServiceProvider
+        where T : DSPContext
         where Q : DSPResourceQueryProvider
         where U : DSPUpdateProvider
     {

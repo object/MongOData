@@ -1,9 +1,7 @@
-﻿using System;
-using System.Data.Services.Client;
-using System.Linq;
+﻿
+
+using System;
 using NUnit.Framework;
-using Simple.Data;
-using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {

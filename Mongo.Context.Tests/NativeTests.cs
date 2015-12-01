@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿
+
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -11,13 +12,13 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class NativeTests : TestBase<ProductInMemoryService>
     {
-        class Product : ClientProduct
+        private class Product : ClientProduct
         {
             [BsonId]
             public ObjectId Id { get; set; }
         }
 
-        class TwitterCollection
+        private class TwitterCollection
         {
             public class Metadata
             {

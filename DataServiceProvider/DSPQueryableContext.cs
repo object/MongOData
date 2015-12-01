@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿
+
+using System;
 using System.Linq;
-using System.Text;
 
 namespace DataServiceProvider
 {
     public class DSPQueryableContext : DSPContext
     {
-        private DSPMetadata metadata;
-        private Func<string, IQueryable> createQueryProvider;
+        private DSPMetadata _metadata;
+        private Func<string, IQueryable> _createQueryProvider;
 
         public DSPQueryableContext(DSPMetadata metadata, Func<string, IQueryable> createQueryProvider)
         {
-            this.metadata = metadata;
-            this.createQueryProvider = createQueryProvider;
+            _metadata = metadata;
+            _createQueryProvider = createQueryProvider;
         }
 
         public override IQueryable GetQueryable(string resourceSetName)
         {
-            return this.createQueryProvider(resourceSetName);
+            return _createQueryProvider(resourceSetName);
         }
 
         public override void AddResource(string resourceSetName, DSPResource resource)

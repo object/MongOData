@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Net;
-using System.Text;
+﻿
+
+using System;
 using NUnit.Framework;
-using Simple.Data;
-using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {

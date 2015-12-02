@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
+
+using System;
 using System.Linq.Expressions;
 using DataServiceProvider;
 using MongoDB.Bson;
 
 namespace Mongo.Context.Queryable
 {
-    public class ProjectionExpressionVisitor :  DSPMethodTranslatingVisitor
+    public class ProjectionExpressionVisitor : DSPMethodTranslatingVisitor
     {
         public override Expression VisitParameter(ParameterExpression p)
         {
@@ -33,7 +33,7 @@ namespace Mongo.Context.Queryable
             }
             if (u.NodeType == ExpressionType.TypeAs && u.Type == typeof(BsonDocument))
             {
-                return Expression.TypeAs(u.Operand, typeof (DSPResource));
+                return Expression.TypeAs(u.Operand, typeof(DSPResource));
             }
             else
             {

@@ -1,4 +1,8 @@
-﻿//*********************************************************
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq.Expressions;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,11 +15,6 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq.Expressions;
-
     /// <summary>
     /// base vistor class for walking an expression tree bottom up.
     /// </summary>

@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Mongo.Context.Tests
 {
     public abstract class ClrTypeTests<T> : TestBase<T>
     {
-        protected override void PopulateTestData()
+        protected override Task PopulateTestDataAsync()
         {
-            TestData.PopulateWithClrTypes();
+            return TestData.PopulateWithClrTypesAsync();
         }
 
         [SetUp]

@@ -1,4 +1,5 @@
-﻿//*********************************************************
+﻿using System.Data.Services.Providers;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,9 +12,6 @@
 
 namespace DataServiceProvider
 {
-    using System.Data.Services.Providers;
-    using System.Reflection;
-
     /// <summary>Helper class for extension methods on the <see cref="ResourceProperty"/>.</summary>
     internal static class ResourcePropertyExtensions
     {

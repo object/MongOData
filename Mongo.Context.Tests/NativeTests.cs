@@ -1,5 +1,5 @@
-﻿using System.Configuration;
-using System.Linq;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -11,13 +11,13 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class NativeTests : TestBase<ProductInMemoryService>
     {
-        class Product : ClientProduct
+        private class Product : ClientProduct
         {
             [BsonId]
             public ObjectId Id { get; set; }
         }
 
-        class TwitterCollection
+        private class TwitterCollection
         {
             public class Metadata
             {
@@ -57,13 +57,13 @@ namespace Mongo.Context.Tests
             public Result results { get; set; }
         }
 
-        private MongoDatabase _database;
+        private IMongoDatabase _database;
 
-        protected override void PopulateTestData()
+        protected override async Task PopulateTestDataAsync()
         {
             TestData.CreateDatabase();
-            TestData.PopulateWithJsonSamples(false);
-            TestData.PopulateWithCategoriesAndProducts(false);
+            await TestData.PopulateWithJsonSamplesAsync(false);
+            await TestData.PopulateWithCategoriesAndProductsAsync(false);
         }
 
         [SetUp]

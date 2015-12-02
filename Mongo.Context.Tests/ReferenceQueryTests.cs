@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Net;
-using System.Text;
+﻿using System.Threading.Tasks;
 using NUnit.Framework;
-using Simple.Data;
-using Simple.Data.OData;
 
 namespace Mongo.Context.Tests
 {
     public abstract class ReferenceQueryTests<T> : TestBase<T>
     {
-        protected override void PopulateTestData()
+        protected override Task PopulateTestDataAsync()
         {
-            TestData.PopulateWithCategoriesAndProducts();
+            return TestData.PopulateWithCategoriesAndProductsAsync();
         }
 
         //[Test]

@@ -1,4 +1,6 @@
-﻿//*********************************************************
+﻿using System;
+using System.Collections.Generic;
+//*********************************************************
 //
 //    Copyright (c) Microsoft. All rights reserved.
 //    This code is licensed under the Microsoft Public License.
@@ -11,9 +13,6 @@
 
 namespace DataServiceProvider
 {
-    using System;
-    using System.Collections.Generic;
-
     /// <summary>Helper methods for working with types and reflection.</summary>
     public static class TypeSystem
     {

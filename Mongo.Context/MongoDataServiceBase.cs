@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using DataServiceProvider;
 
 namespace Mongo.Context
 {
-    public abstract class MongoDataServiceBase<T,Q> : DSPDataService<T, Q, DSPUpdateProvider>
+    public abstract class MongoDataServiceBase<T, Q> : DSPDataService<T, Q, DSPUpdateProvider>
         where T : DSPContext
         where Q : DSPResourceQueryProvider
     {
@@ -26,7 +23,7 @@ namespace Mongo.Context
             ResetDataContext = x =>
             {
                 this.mongoMetadata = new MongoMetadata(x, this.mongoConfiguration == null ? null : this.mongoConfiguration.MetadataBuildStrategy);
-                MongoDataServiceBase<T,Q>.context = this.CreateContext(x);
+                MongoDataServiceBase<T, Q>.context = this.CreateContext(x);
             };
 
             ResetDataContext(connectionString);
@@ -34,23 +31,23 @@ namespace Mongo.Context
 
         public static IDisposable RestoreDataContext(string connectionString)
         {
-            return new MongoDataServiceBase<T,Q>.RestoreDataContextDisposable(connectionString);
+            return new MongoDataServiceBase<T, Q>.RestoreDataContextDisposable(connectionString);
         }
 
         public abstract T CreateContext(string connectionString);
 
         private class RestoreDataContextDisposable : IDisposable
         {
-            private readonly string connectionString;
+            private readonly string _connectionString;
 
             public RestoreDataContextDisposable(string connectionString)
             {
-                this.connectionString = connectionString;
+                _connectionString = connectionString;
             }
 
             public void Dispose()
             {
-                ResetDataContext(this.connectionString);
+                ResetDataContext(_connectionString);
             }
         }
 
@@ -61,7 +58,7 @@ namespace Mongo.Context
 
         protected override DSPMetadata CreateDSPMetadata()
         {
-            lock(this)
+            lock (this)
             {
                 if (this.metadata == null)
                 {

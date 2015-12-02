@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Simple.OData.Client;
 
@@ -8,9 +8,9 @@ namespace Mongo.Context.Tests
 {
     public abstract class QueryTests<T> : TestBase<T>
     {
-        protected override void PopulateTestData()
+        protected override Task PopulateTestDataAsync()
         {
-            TestData.PopulateWithCategoriesAndProducts();
+            return TestData.PopulateWithCategoriesAndProductsAsync();
         }
 
         [SetUp]
@@ -326,7 +326,7 @@ namespace Mongo.Context.Tests
                 MongoMetadata.CreateDynamicTypesForComplexTypes = false;
                 Assert.Throws<WebRequestException>(() => { var x = ctx.Products.Find(ctx.Products.Quantity.Value == 7); });
             }
-            finally 
+            finally
             {
                 MongoMetadata.CreateDynamicTypesForComplexTypes = true;
             }
@@ -350,9 +350,9 @@ namespace Mongo.Context.Tests
     [TestFixture]
     public class QueryableServiceInterceptorTests : TestBase<ProductQueryableServiceWithQueryInterceptor>
     {
-        protected override void PopulateTestData()
+        protected override Task PopulateTestDataAsync()
         {
-            TestData.PopulateWithCategoriesAndProducts();
+            return TestData.PopulateWithCategoriesAndProductsAsync();
         }
 
         [SetUp]

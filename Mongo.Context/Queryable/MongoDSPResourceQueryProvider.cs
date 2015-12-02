@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+
+using System;
 using System.Data.Services.Providers;
-using System.Linq;
-using System.Text;
 using DataServiceProvider;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace Mongo.Context.Queryable
 {

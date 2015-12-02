@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+
 using System.Data.Services.Providers;
-using System.Linq;
-using System.Text;
 using DataServiceProvider;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace Mongo.Context.InMemory
 {
     public abstract class MongoInMemoryDataService : MongoDataServiceBase<DSPInMemoryContext, DSPResourceQueryProvider>
     {
-        /// <summary>Constructor</summary>
         public MongoInMemoryDataService(string connectionString, MongoConfiguration mongoConfiguration = null)
             : base(connectionString, mongoConfiguration)
         {
@@ -19,10 +17,8 @@ namespace Mongo.Context.InMemory
         public override DSPInMemoryContext CreateContext(string connectionString)
         {
             var dspContext = new DSPInMemoryContext();
-            using (MongoContext mongoContext = new MongoContext(connectionString))
-            {
-                PopulateData(dspContext, mongoContext);
-            }
+            MongoContext mongoContext = new MongoContext(connectionString);
+            PopulateData(dspContext, mongoContext);
 
             return dspContext;
         }
@@ -32,8 +28,9 @@ namespace Mongo.Context.InMemory
             foreach (var resourceSet in this.Metadata.ResourceSets)
             {
                 var storage = dspContext.GetResourceSetStorage(resourceSet.Name);
-                var collection = mongoContext.Database.GetCollection(resourceSet.Name);
-                foreach (var document in collection.FindAll())
+                var collection = mongoContext.Database.GetCollection<BsonDocument>(resourceSet.Name);
+                var documents = collection.Find(new BsonDocument()).ToListAsync().GetAwaiter().GetResult();
+                foreach (var document in documents)
                 {
                     var resource = MongoDSPConverter.CreateDSPResource(document, this.mongoMetadata, resourceSet.Name);
                     storage.Add(resource);

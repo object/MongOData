@@ -21,15 +21,15 @@ namespace Mongo.Context
 
             public static Metadata Default
             {
-                get 
-                { 
+                get
+                {
                     return new Metadata
                     {
-                        PrefetchRows = 10, 
-                        FetchPosition = FetchPosition.End, 
-                        UpdateDynamically = false, 
+                        PrefetchRows = 10,
+                        FetchPosition = FetchPosition.End,
+                        UpdateDynamically = false,
                         PersistSchema = false
-                    }; 
+                    };
                 }
             }
         }
